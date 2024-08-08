@@ -1,0 +1,5 @@
+pymysql
+requests
+discord
+PyNaCl
+lavalink
