@@ -3,3 +3,4 @@ requests
 discord
 PyNaCl
 lavalink
+billboard.py

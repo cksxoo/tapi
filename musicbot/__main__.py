@@ -29,13 +29,10 @@ class MusicBot(commands.Bot):
         LOGGER.info("Lavalink starting...")
         self.lavalink_process = multiprocessing.Process(target=start_lavalink)
         self.lavalink_process.start()
-        time.sleep(10)
+        time.sleep(20)
+        LOGGER.info("Lavalink process started")
 
-    async def setup_hook(self):
-        # Lavalink 클라이언트 초기화
-        self.lavalink = lavalink.Client(self.user.id)
-        self.lavalink.add_node('127.0.0.1', 8080, 'youshallnotpass', 'eu', 'default-node')
-        
+    async def setup_hook(self):        
         # 확장 기능 로드
         for extension in EXTENSIONS:
             await self.load_extension(f"musicbot.cogs.{extension}")

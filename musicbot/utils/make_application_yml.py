@@ -22,7 +22,7 @@ def make_application_yml(HOST: str, PORT: str, PSW: str, LOGGER: Logger, LAVALIN
     print(plugin_str)
     print()
 
-    f = open("application.yml", 'w')
+    f = open("application.yml", 'w', encoding='utf-8')
     f.write(f"""server: # REST and WS server
   port: {PORT}
   address: {HOST}

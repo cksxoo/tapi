@@ -4,9 +4,10 @@ import pymysql
 import logging
 
 from musicbot.utils.make_config import make_config
+from musicbot.utils.make_application_yml import make_application_yml
 
 # Bot version
-BOT_VER = "V.0.1"
+BOT_VER = "v0.1"
 
 # enable logging
 logging.basicConfig(
@@ -56,6 +57,9 @@ for file in os.listdir("musicbot/cogs"):
         EXTENSIONS.append(file.replace(".py", ""))
 
 BOT_NAME_TAG_VER = "%s%s | %s" % (BOT_NAME, BOT_TAG, BOT_VER)
+
+
+make_application_yml(HOST, PORT, PSW, LOGGER, LAVALINK_PLUGINS)
 
 
 # DB 생성

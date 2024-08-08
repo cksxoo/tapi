@@ -163,3 +163,5 @@ cython_debug/
 
 config.py
 Lavalink.jar
+plugins
+*.yml
