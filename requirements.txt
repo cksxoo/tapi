@@ -1,7 +1,12 @@
-pymysql
-requests
-discord
-PyNaCl
+py-cord
 lavalink
-billboard.py
+BeautifulSoup4
+psutil
+requests
 lxml
+chardet
+billboard.py
+koreanbots
+topggpy
+pymysql
+soundcloud-lib
