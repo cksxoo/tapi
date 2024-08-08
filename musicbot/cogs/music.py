@@ -301,7 +301,7 @@ class Music(commands.Cog):
                 color=COLOR_CODE,
             )
             embed.set_footer(text=BOT_NAME_TAG_VER)
-            return await interaction.respond(embed=embed)
+            await interaction.response.send_message(embed=embed)
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_already_connected_voice_channel"),
             color=COLOR_CODE,

@@ -2,7 +2,6 @@ import time
 import discord
 import asyncio
 import multiprocessing
-from discord import app_commands
 from discord.ext import commands
 from musicbot.lavalinkstart import start_lavalink, download_lavalink
 import lavalink
@@ -15,7 +14,6 @@ from musicbot import (
     LAVALINK_AUTO_UPDATE,
 )
 
-
 class MusicBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
@@ -24,8 +22,6 @@ class MusicBot(commands.Bot):
         intents.guilds = True
         super().__init__(command_prefix="$", intents=intents)
         self.remove_command("help")
-        
-        self._first_ready = True
 
         if LAVALINK_AUTO_UPDATE:
             download_lavalink()
@@ -36,16 +32,16 @@ class MusicBot(commands.Bot):
         time.sleep(20)
         LOGGER.info("Lavalink process started")
 
+    async def setup_hook(self):        
+        # 확장 기능 로드
+        for extension in EXTENSIONS:
+            await self.load_extension(f"musicbot.cogs.{extension}")
+
+        # 슬래시 커맨드 동기화
+        await self.tree.sync()
+        LOGGER.info("Slash commands synced")
+
     async def on_ready(self):
-        if self._first_ready:
-            for extension in EXTENSIONS:
-                await self.load_extension(f"musicbot.cogs.{extension}")
-
-            await self.tree.sync()
-            LOGGER.info("Slash commands synced")
-
-            self._first_ready = False
-
         LOGGER.info(BOT_NAME_TAG_VER)
         await self.change_presence(
             activity=discord.Game("/help : 도움말"),
@@ -62,9 +58,7 @@ class MusicBot(commands.Bot):
                 )
                 await asyncio.sleep(10)
                 await self.change_presence(
-                    activity=discord.Game(
-                        f"{len(self.guilds)}개의 서버에서 놀고있어요!"
-                    ),
+                    activity=discord.Game(f"{len(self.guilds)}개의 서버에서 놀고있어요!"),
                     status=discord.Status.online,
                 )
                 await asyncio.sleep(10)
@@ -75,7 +69,6 @@ class MusicBot(commands.Bot):
         if message.author.bot:
             return
         await self.process_commands(message)
-
 
 bot = MusicBot()
 bot.run(TOKEN)
