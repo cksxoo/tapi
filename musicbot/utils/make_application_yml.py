@@ -2,28 +2,49 @@ import json
 import requests
 from logging import Logger
 
-def make_application_yml(HOST: str, PORT: str, PSW: str, LOGGER: Logger, LAVALINK_PLUGINS: dict) -> None:
+
+def make_application_yml(
+    HOST: str, PORT: str, PSW: str, LOGGER: Logger, LAVALINK_PLUGINS: dict
+) -> None:
     print()
     LOGGER.info("Creating application.yml file...")
 
     plugin_tags = {}
     for key, value in LAVALINK_PLUGINS.items():
-        plugin_json = json.loads(requests.get(value).text)
-        for i in plugin_json:
-            if not i['prerelease']:
-                plugin_tags[key] = i['tag_name']
-                break
-    
+        try:
+            response = requests.get(value)
+            response.raise_for_status()  # Raises a HTTPError if the status is 4xx, 5xx
+            plugin_json = response.json()
+
+            if isinstance(plugin_json, list):
+                for release in plugin_json:
+                    if isinstance(release, dict) and not release.get(
+                        "prerelease", True
+                    ):
+                        plugin_tags[key] = release.get("tag_name")
+                        break
+            elif isinstance(plugin_json, dict):
+                # Handle case where the API returns a single release
+                if not plugin_json.get("prerelease", True):
+                    plugin_tags[key] = plugin_json.get("tag_name")
+            else:
+                LOGGER.warning(f"Unexpected response format for plugin {key}")
+        except requests.RequestException as e:
+            LOGGER.error(f"Error fetching plugin info for {key}: {e}")
+        except json.JSONDecodeError:
+            LOGGER.error(f"Error decoding JSON for plugin {key}")
+
     plugin_str = ""
     for key, value in plugin_tags.items():
-        plugin_str += f"    - dependency: \"{key}:{value}\"\n"
+        plugin_str += f'    - dependency: "{key}:{value}"\n'
         plugin_str += "      snapshot: false\n"
-    
+
     print(plugin_str)
     print()
 
-    f = open("application.yml", 'w', encoding='utf-8')
-    f.write(f"""server: # REST and WS server
+    f = open("application.yml", "w", encoding="utf-8")
+    f.write(
+        f"""server: # REST and WS server
   port: {PORT}
   address: {HOST}
 http2:
@@ -200,7 +221,7 @@ logging:
     rollingpolicy:
       max-file-size: 1GB
       max-history: 30
-""")
+"""
+    )
 
     f.close()
-

@@ -7,7 +7,7 @@ from musicbot.utils.make_config import make_config
 from musicbot.utils.make_application_yml import make_application_yml
 
 # Bot version
-BOT_VER = "v0.1"
+BOT_VER = "v0.2"
 
 # enable logging
 logging.basicConfig(

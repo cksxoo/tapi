@@ -4,3 +4,4 @@ discord
 PyNaCl
 lavalink
 billboard.py
+lxml
