@@ -165,3 +165,4 @@ config.py
 Lavalink.jar
 plugins
 *.yml
+logs/

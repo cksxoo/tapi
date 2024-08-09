@@ -188,6 +188,7 @@ class Music(commands.Cog):
             player = interaction.client.lavalink.player_manager.create(
                 interaction.guild.id
             )
+            player.set_volume(50)
         except Exception as e:
             LOGGER.error(f"Failed to create player: {e}")
             LOGGER.error(
