@@ -384,7 +384,7 @@ class Music(commands.Cog):
 
         else:
             track = results.tracks[0]
-            embed.title = get_lan(interaction.user.id, "music_play_music")
+            embed.title = get_lan(interaction.user.id, "music_play_music") + "  💿 | " + track.author
             embed.description = f"[{track.title}]({track.uri})"
             thumbnail = track.identifier
 
@@ -395,6 +395,10 @@ class Music(commands.Cog):
             # constructing the AudioTrack class yourself.
             player.add(requester=interaction.user.id, track=track)
 
+        embed.add_field(
+            name=get_lan(interaction.user.id, "music_length"),
+            value=lavalink.format_time(track.duration),
+        )
         embed.add_field(
             name=get_lan(interaction.user.id, "music_shuffle"),
             value=(
@@ -497,7 +501,7 @@ class Music(commands.Cog):
 
         else:
             track = results.tracks[0]
-            embed.title = get_lan(interaction.user.id, "music_play_music")
+            embed.title = get_lan(interaction.user.id, "music_play_music") + "  💿 | " + track.author
             embed.description = f"[{track.title}]({track.uri})"
             thumbnail = track.uri
 
@@ -508,6 +512,10 @@ class Music(commands.Cog):
             # constructing the AudioTrack class yourself.
             player.add(requester=interaction.user.id, track=track)
 
+        embed.add_field(
+            name=get_lan(interaction.user.id, "music_length"),
+            value=lavalink.format_time(track.duration),
+        )
         embed.add_field(
             name=get_lan(interaction.user.id, "music_shuffle"),
             value=(
@@ -592,9 +600,13 @@ class Music(commands.Cog):
         player.add(requester=interaction.user.id, track=track)
 
         embed = discord.Embed(color=COLOR_CODE)
-        embed.title = get_lan(interaction.user.id, "music_play_music")
+        embed.title = get_lan(interaction.user.id, "music_play_music") + "  💿 | " + track.author
         embed.description = f"[{track.title}]({track.uri})"
 
+        embed.add_field(
+            name=get_lan(interaction.user.id, "music_length"),
+            value=lavalink.format_time(track.duration),
+        )
         embed.add_field(
             name=get_lan(interaction.user.id, "music_shuffle"),
             value=(get_lan(interaction.user.id, "music_shuffle_already_on") if player.shuffle
