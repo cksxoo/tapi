@@ -188,7 +188,6 @@ class Music(commands.Cog):
             player = interaction.client.lavalink.player_manager.create(
                 interaction.guild.id
             )
-            player.set_volume(50)
         except Exception as e:
             LOGGER.error(f"Failed to create player: {e}")
             LOGGER.error(
@@ -260,6 +259,9 @@ class Music(commands.Cog):
         shuffle = Database().get_shuffle(interaction.guild.id)
         if shuffle is not None:
             player.set_shuffle(shuffle)
+
+        # 볼륨 설정
+        player.set_volume(50)
 
         return True
 
