@@ -205,6 +205,7 @@ class Music(commands.Cog):
         should_connect = interaction.command.name in (
             "play",
             "scplay",
+            "search",
             "connect",
             "list",
             "chartplay",
@@ -261,7 +262,7 @@ class Music(commands.Cog):
             player.set_shuffle(shuffle)
 
         # 볼륨 설정
-        player.set_volume(50)
+        await player.set_volume(50)
 
         return True
 
@@ -537,6 +538,86 @@ class Music(commands.Cog):
         # the current track.
         if not player.is_playing:
             await player.play()
+
+
+    @app_commands.command(name="search", description="Search for songs with a given keyword")
+    @app_commands.describe(query="Enter the keyword to search for songs")
+    @app_commands.check(create_player)
+    async def search(self, interaction: discord.Interaction, query: str):
+        await interaction.response.defer()
+
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+
+        if not query:
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "music_search_no_keyword"),
+                color=COLOR_CODE
+            )
+            embed.set_footer(text=BOT_NAME_TAG_VER)
+            return await interaction.followup.send(embed=embed)
+
+        # Use ytsearch: prefix to search YouTube
+        query = f"ytsearch:{query}"
+        results = await player.node.get_tracks(query)
+
+        if not results or not results.tracks:
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "music_search_no_results"),
+                color=COLOR_CODE
+            )
+            embed.set_footer(text=BOT_NAME_TAG_VER)
+            return await interaction.followup.send(embed=embed)
+
+        tracks = results.tracks[:5]  # Limit to 5 results
+
+        embed = discord.Embed(
+            title=get_lan(interaction.user.id, "music_search_results"),
+            description=get_lan(interaction.user.id, "music_search_select"),
+            color=COLOR_CODE
+        )
+        for i, track in enumerate(tracks, start=1):
+            embed.add_field(
+                name=f"{i}. {track.title}",
+                value=f"{track.author} - {lavalink.format_time(track.duration)}",
+                inline=False
+            )
+        embed.set_footer(text=BOT_NAME_TAG_VER)
+
+        view = SearchView(tracks, self, interaction)
+        await interaction.followup.send(embed=embed, view=view)
+
+    async def play_search_result(self, interaction: discord.Interaction, track):
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+
+        player.add(requester=interaction.user.id, track=track)
+
+        embed = discord.Embed(color=COLOR_CODE)
+        embed.title = get_lan(interaction.user.id, "music_play_music")
+        embed.description = f"[{track.title}]({track.uri})"
+
+        embed.add_field(
+            name=get_lan(interaction.user.id, "music_shuffle"),
+            value=(get_lan(interaction.user.id, "music_shuffle_already_on") if player.shuffle
+                   else get_lan(interaction.user.id, "music_shuffle_already_off")),
+            inline=True
+        )
+        embed.add_field(
+            name=get_lan(interaction.user.id, "music_repeat"),
+            value=[
+                get_lan(interaction.user.id, "music_repeat_already_off"),
+                get_lan(interaction.user.id, "music_repeat_already_one"),
+                get_lan(interaction.user.id, "music_repeat_already_on")
+            ][player.loop],
+            inline=True
+        )
+
+        embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
+        embed.set_footer(text=BOT_NAME_TAG_VER)
+        await interaction.followup.send(embed=embed)
+
+        if not player.is_playing:
+            await player.play()
+
 
     @app_commands.command(
         name="disconnect",
@@ -1212,3 +1293,35 @@ class Music(commands.Cog):
 async def setup(bot):
     await bot.add_cog(Music(bot))
     LOGGER.info("Music loaded!")
+
+class SearchSelect(discord.ui.Select):
+    def __init__(self, tracks, cog, interaction):
+        self.tracks = tracks
+        self.cog = cog
+        self.interaction = interaction
+        options = [
+            discord.SelectOption(
+                label=f"{i+1}. {track.title[:50]}",
+                description=f"{track.author} - {lavalink.format_time(track.duration)}",
+                value=str(i),
+            )
+            for i, track in enumerate(tracks)
+        ]
+        super().__init__(
+            placeholder=get_lan(interaction.user.id, "music_search_select_placeholder"),
+            min_values=1,
+            max_values=1,
+            options=options,
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        selected_index = int(self.values[0])
+        selected_track = self.tracks[selected_index]
+        await self.cog.play_search_result(interaction, selected_track)
+
+class SearchView(discord.ui.View):
+    def __init__(self, tracks, cog, interaction):
+        super().__init__()
+        self.add_item(SearchSelect(tracks, cog, interaction))
+
