@@ -196,9 +196,11 @@ class Owners(commands.Cog):
     @app_commands.default_permissions(administrator=True)
     async def server_list(self, interaction: discord.Interaction):
         """봇이 들어가있는 모든 서버 리스트를 출력합니다."""
-        await interaction.response.defer()
-
         try:
+            # 응답이 아직 전송되지 않은 경우에만 defer 호출
+            if not interaction.response.is_done():
+                await interaction.response.defer()
+
             page = 10
             if len(self.bot.guilds) <= page:
                 embed = discord.Embed(
@@ -221,7 +223,7 @@ class Owners(commands.Cog):
                 )
                 embed.add_field(name="​", value=srvr, inline=False)
                 embed.set_footer(text=BOT_NAME_TAG_VER)
-                return await interaction.response.send_message(embed=embed)
+                return await interaction.edit_original_response(embed=embed)
 
             guilds = sorted(self.bot.guilds, key=lambda x: (-x.member_count, x.name))
             allpage = math.ceil(len(guilds) / page)
@@ -252,18 +254,23 @@ class Owners(commands.Cog):
                 )
                 embeds.append(embed)
 
-            await interaction.followup.send(
+            await interaction.edit_original_response(
                 embed=embeds[0], view=ServerListPaginator(embeds)
-            )  # followup 사용
-        except discord.errors.NotFound:
-            # 상호작용이 만료된 경우
-            LOGGER.error("Interaction has expired.")
-        except Exception as e:
-            # 기타 예외 처리
-            LOGGER.error(f"An error occurred in server_list: {e}")
-            await interaction.followup.send(
-                "An error occurred while processing your request."
             )
+        except discord.errors.NotFound:
+            LOGGER.error("Interaction has expired.")
+        except discord.errors.InteractionResponded:
+            LOGGER.error("This interaction has already been responded to")
+        except Exception as e:
+            LOGGER.error(f"An error occurred in server_list: {e}")
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "An error occurred while processing your request."
+                )
+            else:
+                await interaction.followup.send(
+                    "An error occurred while processing your request."
+                )
 
     @app_commands.command()
     @app_commands.default_permissions(administrator=True)
