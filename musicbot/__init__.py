@@ -1,10 +1,11 @@
 import os
 import sys
-import pymysql
 import logging
 
 from musicbot.utils.make_config import make_config
 from musicbot.utils.make_application_yml import make_application_yml
+from musicbot.utils.database import Database
+
 
 # Bot version
 BOT_VER = "v0.2"
@@ -51,6 +52,10 @@ SQL_DB = Config.SQL_DB
 KOREANBOT_TOKEN = Config.KOREANBOT_TOKEN
 TOPGG_TOKEN = Config.TOPGG_TOKEN
 
+BASE_DIR = Config.BASE_DIR
+DB_NAME = Config.DB_NAME
+DB_PATH = Config.DB_PATH
+
 EXTENSIONS = []
 for file in os.listdir("musicbot/cogs"):
     if file.endswith(".py"):
@@ -61,29 +66,30 @@ BOT_NAME_TAG_VER = "%s%s | %s" % (BOT_NAME, BOT_TAG, BOT_VER)
 
 make_application_yml(HOST, PORT, PSW, LOGGER, LAVALINK_PLUGINS)
 
+Database().__init__()
 
 # DB 생성
-con = pymysql.connect(
-    host=SQL_HOST, user=SQL_USER, password=SQL_PASSWORD, charset="utf8"
-)
-cur = con.cursor()
+# con = pymysql.connect(
+#     host=SQL_HOST, user=SQL_USER, password=SQL_PASSWORD, charset="utf8"
+# )
+# cur = con.cursor()
 
-cur.execute("CREATE DATABASE IF NOT EXISTS tkbot")
+# cur.execute("CREATE DATABASE IF NOT EXISTS tkbot")
 
-con.commit()
-con.close()
+# con.commit()
+# con.close()
 
-con = pymysql.connect(
-    host=SQL_HOST, user=SQL_USER, password=SQL_PASSWORD, db=SQL_DB, charset="utf8"
-)
-cur = con.cursor()
+# con = pymysql.connect(
+#     host=SQL_HOST, user=SQL_USER, password=SQL_PASSWORD, db=SQL_DB, charset="utf8"
+# )
+# cur = con.cursor()
 
-cur.execute(
-    "CREATE TABLE IF NOT EXISTS statistics (date date, video_id text, count int)"
-)
-cur.execute("CREATE TABLE IF NOT EXISTS language (id text, language text)")
-cur.execute("CREATE TABLE IF NOT EXISTS loop_setting (guild_id text, loop_set int)")
-cur.execute("CREATE TABLE IF NOT EXISTS shuffle (guild_id text, shuffle bool)")
+# cur.execute(
+#     "CREATE TABLE IF NOT EXISTS statistics (date date, video_id text, count int)"
+# )
+# cur.execute("CREATE TABLE IF NOT EXISTS language (id text, language text)")
+# cur.execute("CREATE TABLE IF NOT EXISTS loop_setting (guild_id text, loop_set int)")
+# cur.execute("CREATE TABLE IF NOT EXISTS shuffle (guild_id text, shuffle bool)")
 
-con.commit()
-con.close()
+# con.commit()
+# con.close()

@@ -38,7 +38,7 @@ class Config(object):
     SQL_HOST = "localhost"
     SQL_USER = "root"
     SQL_PASSWORD = ""
-    SQL_DB = "tkbot"
+    SQL_DB = "music_bot"
 
 
 class Production(Config):

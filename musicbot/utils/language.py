@@ -1,8 +1,8 @@
 import os
 import json
-import pymysql
-
-from musicbot import SQL_HOST, SQL_USER, SQL_PASSWORD, SQL_DB
+import sqlite3
+from contextlib import closing
+from musicbot.config import Development as Config
 
 
 def get_lan(user_id, text: str):
@@ -10,19 +10,22 @@ def get_lan(user_id, text: str):
     default_language = "en"
 
     # if the userdata file exists
-    con = pymysql.connect(
-        host=SQL_HOST, user=SQL_USER, password=SQL_PASSWORD, db=SQL_DB, charset="utf8"
-    )
-    cur = con.cursor()
-    cur.execute("SELECT * FROM language WHERE id=%s", (str(user_id)))
-    temp = cur.fetchone()
-    if temp is None:
-        language = default_language
-    else:
-        language = temp[1]
-        if not os.path.exists(f"musicbot/languages/{language}.json"):
-            language = default_language
-    con.close()
+    with closing(sqlite3.connect(Config.DB_PATH)) as conn:
+        with closing(conn.cursor()) as cursor:
+            cursor.execute(
+                f"""
+                SELECT * FROM language WHERE id=?
+                """,
+                (str(user_id),),
+            )
+            temp = cursor.fetchone()
+            if temp is None:
+                language = default_language
+            else:
+                language = temp[1]
+                if not os.path.exists(f"musicbot/languages/{language}.json"):
+                    language = default_language
+
     # read language file
     with open(f"musicbot/languages/{language}.json", encoding="utf-8") as f:
         language_data = json.load(f)
