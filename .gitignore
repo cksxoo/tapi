@@ -166,3 +166,4 @@ Lavalink.jar
 plugins
 *.yml
 logs/
+db/
