@@ -66,30 +66,4 @@ BOT_NAME_TAG_VER = "%s%s | %s" % (BOT_NAME, BOT_TAG, BOT_VER)
 
 make_application_yml(HOST, PORT, PSW, LOGGER, LAVALINK_PLUGINS)
 
-Database().__init__()
-
-# DB 생성
-# con = pymysql.connect(
-#     host=SQL_HOST, user=SQL_USER, password=SQL_PASSWORD, charset="utf8"
-# )
-# cur = con.cursor()
-
-# cur.execute("CREATE DATABASE IF NOT EXISTS tkbot")
-
-# con.commit()
-# con.close()
-
-# con = pymysql.connect(
-#     host=SQL_HOST, user=SQL_USER, password=SQL_PASSWORD, db=SQL_DB, charset="utf8"
-# )
-# cur = con.cursor()
-
-# cur.execute(
-#     "CREATE TABLE IF NOT EXISTS statistics (date date, video_id text, count int)"
-# )
-# cur.execute("CREATE TABLE IF NOT EXISTS language (id text, language text)")
-# cur.execute("CREATE TABLE IF NOT EXISTS loop_setting (guild_id text, loop_set int)")
-# cur.execute("CREATE TABLE IF NOT EXISTS shuffle (guild_id text, shuffle bool)")
-
-# con.commit()
-# con.close()
+Database().create_table()
