@@ -21,9 +21,11 @@ class Database:
         self.loop_table = "loop_setting"
         self.shuffle_table = "shuffle"
 
+    def create_table(self) -> None:
         # Ensure the directory exists
         os.makedirs(os.path.dirname(Config.DB_PATH), exist_ok=True)
 
+        # Create the database
         with closing(sqlite3.connect(Config.DB_PATH)) as conn:
             with closing(conn.cursor()) as cursor:
                 cursor.execute(
