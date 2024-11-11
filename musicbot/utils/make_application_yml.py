@@ -79,9 +79,9 @@ plugins:
   lavasrc:
     providers: # Custom providers for track loading. This is the default
     #Youtube
-      - "ytsearch:"%ISRC%"
+      - "ytsearch:%ISRC%"
       - "ytsearch:%QUERY%"
-      - "ytmsearch:"%ISRC%"
+      - "ytmsearch:%ISRC%"
       - "ytmsearch:%QUERY%"
     #Soundcloud
       - "scsearch:%QUERY%"
