@@ -53,14 +53,18 @@ plugins:
   youtube:
     enabled: true # Whether this source can be used.
     allowSearch: true # Whether "ytsearch:" and "ytmsearch:" can be used.
+    defaultSearchProvider: ytsearch # The default search provider to use when none is specified.
     allowDirectVideoIds: true # Whether just video IDs can match. If false, only complete URLs will be loaded.
     allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
     # The clients to use for track loading. See below for a list of valid clients.
     # Clients are queried in the order they are given (so the first client is queried first and so on...)
     clients:
-      - MUSIC
-      - ANDROID_TESTSUITE
+      - ANDROID
+      - ANDROID_MUSIC
+      - IOS
+      - MOBILE
       - WEB
+      - TV_EMBED
     # You can configure individual clients with the following.
     # Any options or clients left unspecified will use their default values,
     # which enables everything for all clients.
@@ -75,9 +79,9 @@ plugins:
   lavasrc:
     providers: # Custom providers for track loading. This is the default
     #Youtube
-      - "ytsearch:\\"%ISRC%\\""
+      - "ytsearch:"%ISRC%""
       - "ytsearch:%QUERY%"
-      - "ytmsearch:\\"%ISRC%\\""
+      - "ytmsearch:"%ISRC%""
       - "ytmsearch:%QUERY%"
     #Soundcloud
       - "scsearch:%QUERY%"
