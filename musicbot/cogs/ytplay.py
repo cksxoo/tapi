@@ -8,9 +8,23 @@ import re
 
 class YTDLPSource:
     YTDLP_OPTIONS = {
-        'format': 'bestaudio/best',
+        # 오디오 포맷 우선순위 설정
+        'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
+        # 오디오 품질 설정
+        'format_sort': [
+            'acodec:opus',  # Opus 코덱 선호
+            'asr:48000',    # 48kHz 샘플레이트 선호
+            'abr:192',      # 192kbps 비트레이트 선호
+        ],
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'opus',
+            'preferredquality': '192'
+        }],
+        
+        # 기본 설정
         'extractaudio': True,
-        'audioformat': 'mp3',
+        'audioformat': 'opus',
         'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
         'restrictfilenames': True,
         'noplaylist': True,
@@ -21,6 +35,10 @@ class YTDLPSource:
         'no_warnings': True,
         'default_search': 'auto',
         'source_address': '0.0.0.0',
+        
+        # 추가 최적화 설정
+        'buffersize': 32768,  # 버퍼 크기 증가
+        'concurrent_fragments': 3,  # 동시 다운로드 세그먼트 수
     }
 
     def __init__(self, ctx: commands.Context, source: discord.FFmpegPCMAudio, *, data: dict):
@@ -57,10 +75,34 @@ class YTDLPSource:
                     data = data['entries'][0]
 
                 url = data['url']
-                return cls(ctx, discord.FFmpegPCMAudio(url, **{
-                    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                    'options': '-vn'
-                }), data=data)
+                
+                # FFmpeg 옵션 최적화
+                ffmpeg_options = {
+                    'before_options': (
+                        # 재연결 설정
+                        '-reconnect 1 '
+                        '-reconnect_streamed 1 '
+                        '-reconnect_delay_max 5 '
+                        # 버퍼 설정
+                        '-buffer_size 32768'
+                    ),
+                    'options': (
+                        # 오디오 품질 설정
+                        '-vn '  # 비디오 비활성화
+                        '-acodec libopus '  # Opus 코덱 사용
+                        '-ar 48000 '  # 48kHz 샘플레이트
+                        '-ac 2 '  # 스테레오
+                        '-b:a 192k '  # 192kbps 비트레이트
+                        # 추가 최적화
+                        '-application audio '  # 오디오 최적화 모드
+                        '-frame_duration 20 '  # 20ms 프레임 길이
+                        '-packet_loss 5 '  # 5% 패킷 손실 허용
+                        '-compression_level 10'  # 최대 압축
+                    )
+                }
+
+                return cls(ctx, discord.FFmpegPCMAudio(url, **ffmpeg_options), data=data)
+                
             except Exception as e:
                 raise e
 
@@ -74,8 +116,21 @@ class MusicPlayer:
         self.current = None
         self.volume = 0.5
         self.loop = False
+        self._volume_cog = None  # 볼륨 조절을 위한 FFmpeg 필터 저장
+        
+        # 볼륨 조절을 위한 FFmpeg 필터 설정
+        self._volume_cog = discord.PCMVolumeTransformer(
+            original=self.current.source if self.current else None,
+            volume=self.volume
+        )
         
         ctx.bot.loop.create_task(self.player_loop())
+
+    async def set_volume(self, volume: float):
+        """볼륨 레벨 설정 (0.0 ~ 2.0)"""
+        self.volume = max(0.0, min(2.0, volume))
+        if self.current:
+            self._volume_cog.volume = self.volume
 
     async def player_loop(self):
         while True:
@@ -90,7 +145,8 @@ class MusicPlayer:
             if not isinstance(source, YTDLPSource):
                 continue
 
-            source.volume = self.volume
+            # 볼륨 조절을 위한 PCMVolumeTransformer 적용
+            source.source = discord.PCMVolumeTransformer(source.source, volume=self.volume)
             self.current = source
 
             self.guild.voice_client.play(
@@ -98,18 +154,27 @@ class MusicPlayer:
                 after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set)
             )
 
+            # 재생 정보 임베드
             embed = discord.Embed(
-                title="Now Playing",
+                title="Now Playing 🎵",
                 description=f"[{source.title}]({source.url})",
                 color=discord.Color.green()
             )
             embed.add_field(name="Duration", value=source.duration)
+            embed.add_field(name="Quality", value="High Quality (192kbps)")
             embed.add_field(name="Requested by", value=source.requester.name)
+            
+            # 음질 정보 추가
+            if hasattr(source.data, 'abr'):
+                embed.add_field(name="Bitrate", value=f"{source.data['abr']}kbps")
+            if hasattr(source.data, 'asr'):
+                embed.add_field(name="Sample Rate", value=f"{source.data['asr']}Hz")
+                
             await self.channel.send(embed=embed)
 
             await self.next.wait()
 
-            # Cleanup source after it's done playing
+            # Cleanup
             try:
                 source.source.cleanup()
             except Exception:
