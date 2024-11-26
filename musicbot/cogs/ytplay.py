@@ -1,6 +1,6 @@
 import yt_dlp
 import asyncio
-from async_timeout import timeout  # asyncio.timeout 대신 async_timeout 사용
+from async_timeout import timeout
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -8,21 +8,12 @@ import re
 
 class YTDLPSource:
     YTDLP_OPTIONS = {
-        # 오디오 포맷 우선순위 설정
         'format': 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio',
-        # 오디오 품질 설정
         'format_sort': [
-            'acodec:opus',  # Opus 코덱 선호
-            'asr:48000',    # 48kHz 샘플레이트 선호
-            'abr:192',      # 192kbps 비트레이트 선호
+            'acodec:opus',
+            'asr:48000',
+            'abr:192',
         ],
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'opus',
-            'preferredquality': '192'
-        }],
-        
-        # 기본 설정
         'extractaudio': True,
         'audioformat': 'opus',
         'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
@@ -35,10 +26,7 @@ class YTDLPSource:
         'no_warnings': True,
         'default_search': 'auto',
         'source_address': '0.0.0.0',
-        
-        # 추가 최적화 설정
-        'buffersize': 32768,  # 버퍼 크기 증가
-        'concurrent_fragments': 3,  # 동시 다운로드 세그먼트 수
+        'buffersize': 32768,
     }
 
     def __init__(self, ctx: commands.Context, source: discord.FFmpegPCMAudio, *, data: dict):
@@ -49,6 +37,7 @@ class YTDLPSource:
         self.title = data.get('title', 'Unknown title')
         self.url = data.get('webpage_url', 'Unknown URL')
         self.duration = self.parse_duration(data.get('duration', 0))
+        self.volume = 0.5
 
     @staticmethod
     def parse_duration(duration):
@@ -75,36 +64,37 @@ class YTDLPSource:
                     data = data['entries'][0]
 
                 url = data['url']
-                
-                # FFmpeg 옵션 최적화
                 ffmpeg_options = {
                     'before_options': (
-                        # 재연결 설정
                         '-reconnect 1 '
                         '-reconnect_streamed 1 '
                         '-reconnect_delay_max 5 '
-                        # 버퍼 설정
                         '-buffer_size 32768'
                     ),
                     'options': (
-                        # 오디오 품질 설정
-                        '-vn '  # 비디오 비활성화
-                        '-acodec libopus '  # Opus 코덱 사용
-                        '-ar 48000 '  # 48kHz 샘플레이트
-                        '-ac 2 '  # 스테레오
-                        '-b:a 192k '  # 192kbps 비트레이트
-                        # 추가 최적화
-                        '-application audio '  # 오디오 최적화 모드
-                        '-frame_duration 20 '  # 20ms 프레임 길이
-                        '-packet_loss 5 '  # 5% 패킷 손실 허용
-                        '-compression_level 10'  # 최대 압축
+                        '-vn '
+                        '-acodec libopus '
+                        '-ar 48000 '
+                        '-ac 2 '
+                        '-b:a 192k '
+                        '-application audio '
+                        '-frame_duration 20'
                     )
                 }
 
-                return cls(ctx, discord.FFmpegPCMAudio(url, **ffmpeg_options), data=data)
+                source = discord.FFmpegPCMAudio(url, **ffmpeg_options)
+                return cls(ctx, source, data=data)
                 
             except Exception as e:
                 raise e
+
+    def cleanup(self):
+        """Clean up the audio source."""
+        if hasattr(self, 'source'):
+            try:
+                self.source.cleanup()
+            except AttributeError:
+                pass
 
 class MusicPlayer:
     def __init__(self, ctx):
@@ -116,28 +106,20 @@ class MusicPlayer:
         self.current = None
         self.volume = 0.5
         self.loop = False
-        self._volume_cog = None  # 볼륨 조절을 위한 FFmpeg 필터 저장
-        
-        # 볼륨 조절을 위한 FFmpeg 필터 설정
-        self._volume_cog = discord.PCMVolumeTransformer(
-            original=self.current.source if self.current else None,
-            volume=self.volume
-        )
         
         ctx.bot.loop.create_task(self.player_loop())
 
     async def set_volume(self, volume: float):
-        """볼륨 레벨 설정 (0.0 ~ 2.0)"""
         self.volume = max(0.0, min(2.0, volume))
-        if self.current:
-            self._volume_cog.volume = self.volume
+        if self.current and hasattr(self.current, 'source'):
+            self.current.source.volume = self.volume
 
     async def player_loop(self):
         while True:
             self.next.clear()
             
             try:
-                async with timeout(180):  # 3 minutes
+                async with timeout(180):
                     source = await self.queue.get()
             except asyncio.TimeoutError:
                 return await self.destroy()
@@ -145,8 +127,9 @@ class MusicPlayer:
             if not isinstance(source, YTDLPSource):
                 continue
 
-            # 볼륨 조절을 위한 PCMVolumeTransformer 적용
-            source.source = discord.PCMVolumeTransformer(source.source, volume=self.volume)
+            # Create a new PCMVolumeTransformer for the source
+            transformed_source = discord.PCMVolumeTransformer(source.source, volume=self.volume)
+            source.source = transformed_source
             self.current = source
 
             self.guild.voice_client.play(
@@ -154,7 +137,6 @@ class MusicPlayer:
                 after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set)
             )
 
-            # 재생 정보 임베드
             embed = discord.Embed(
                 title="Now Playing 🎵",
                 description=f"[{source.title}]({source.url})",
@@ -164,7 +146,6 @@ class MusicPlayer:
             embed.add_field(name="Quality", value="High Quality (192kbps)")
             embed.add_field(name="Requested by", value=source.requester.name)
             
-            # 음질 정보 추가
             if hasattr(source.data, 'abr'):
                 embed.add_field(name="Bitrate", value=f"{source.data['abr']}kbps")
             if hasattr(source.data, 'asr'):
@@ -174,13 +155,13 @@ class MusicPlayer:
 
             await self.next.wait()
 
-            # Cleanup
-            try:
-                source.source.cleanup()
-            except Exception:
-                pass
-
-            self.current = None
+            # Clean up the source properly
+            if self.current:
+                try:
+                    self.current.cleanup()
+                except Exception:
+                    pass
+                self.current = None
 
             if self.loop:
                 await self.queue.put(source)
@@ -188,15 +169,21 @@ class MusicPlayer:
     async def destroy(self):
         """Disconnect and cleanup the player."""
         try:
-            await self.guild.voice_client.disconnect()
-        except Exception:
-            pass
-        
-        try:
+            if self.current:
+                self.current.cleanup()
             while True:
-                self.queue.get_nowait()
-        except asyncio.QueueEmpty:
-            pass
+                try:
+                    item = self.queue.get_nowait()
+                    if hasattr(item, 'cleanup'):
+                        item.cleanup()
+                except asyncio.QueueEmpty:
+                    break
+        finally:
+            try:
+                if self.guild.voice_client:
+                    await self.guild.voice_client.disconnect()
+            except Exception:
+                pass
 
 class YTMusicCommands(commands.Cog):
     def __init__(self, bot):
@@ -210,7 +197,6 @@ class YTMusicCommands(commands.Cog):
             else:
                 await ctx.send("You need to be in a voice channel to use this command.")
                 raise commands.CommandError("Author not connected to a voice channel.")
-        
         return True
 
     @app_commands.command(name='ytplay', description='Play music using yt-dlp')
@@ -230,7 +216,7 @@ class YTMusicCommands(commands.Cog):
             await player.queue.put(source)
             
             embed = discord.Embed(
-                title="Added to Queue",
+                title="Added to Queue 🎵",
                 description=f"[{source.title}]({source.url})",
                 color=discord.Color.blue()
             )
@@ -242,55 +228,31 @@ class YTMusicCommands(commands.Cog):
         except Exception as e:
             await interaction.followup.send(f'An error occurred: {str(e)}')
 
-    @app_commands.command(name='ytskip', description='Skip the current song')
-    async def skip(self, interaction: discord.Interaction):
+    @app_commands.command(name='ytvolume', description='Change the volume (0-200)')
+    async def volume(self, interaction: discord.Interaction, volume: int):
+        await interaction.response.defer()
         ctx = await commands.Context.from_interaction(interaction)
         
-        if not ctx.voice_client or not ctx.voice_client.is_playing():
-            return await interaction.response.send_message("Nothing is playing right now.")
-        
-        ctx.voice_client.stop()
-        await interaction.response.send_message("⏭ Skipped the song.")
-
-    @app_commands.command(name='ytloop', description='Toggle loop mode')
-    async def loop(self, interaction: discord.Interaction):
-        ctx = await commands.Context.from_interaction(interaction)
+        if not 0 <= volume <= 200:
+            return await interaction.followup.send("Volume must be between 0 and 200")
         
         player = self.players.get(ctx.guild.id)
         if not player:
-            return await interaction.response.send_message("No music is playing.")
+            return await interaction.followup.send("No music is playing.")
         
-        player.loop = not player.loop
-        await interaction.response.send_message(
-            f"🔁 Loop mode is now {'enabled' if player.loop else 'disabled'}"
-        )
+        await player.set_volume(volume / 100)
+        await interaction.followup.send(f"🔊 Volume set to {volume}%")
 
     @app_commands.command(name='ytstop', description='Stop the music and clear the queue')
     async def stop(self, interaction: discord.Interaction):
         ctx = await commands.Context.from_interaction(interaction)
         
-        if ctx.voice_client:
-            player = self.players.pop(ctx.guild.id, None)
-            if player:
-                await player.destroy()
-            await ctx.voice_client.disconnect()
+        player = self.players.pop(ctx.guild.id, None)
+        if player:
+            await player.destroy()
             await interaction.response.send_message("⏹ Stopped the music and disconnected.")
         else:
-            await interaction.response.send_message("Not connected to a voice channel.")
-
-    @app_commands.command(name='ytvolume', description='Change the volume (0-100)')
-    async def volume(self, interaction: discord.Interaction, volume: int):
-        ctx = await commands.Context.from_interaction(interaction)
-        
-        if not 0 <= volume <= 100:
-            return await interaction.response.send_message("Volume must be between 0 and 100")
-        
-        player = self.players.get(ctx.guild.id)
-        if not player:
-            return await interaction.response.send_message("No music is playing.")
-        
-        player.volume = volume / 100
-        await interaction.response.send_message(f"🔊 Volume set to {volume}%")
+            await interaction.response.send_message("Not playing any music right now.")
 
 async def setup(bot):
     await bot.add_cog(YTMusicCommands(bot))
