@@ -1,46 +1,36 @@
 import yt_dlp
 import asyncio
-from async_timeout import timeout
+from async_timeout import timeout  # asyncio.timeout 대신 async_timeout 사용
 import discord
 from discord import app_commands
 from discord.ext import commands
 import re
 
-
 class YTDLPSource:
     YTDLP_OPTIONS = {
-        "format": "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio",
-        "format_sort": [
-            "acodec:opus",
-            "asr:48000",
-            "abr:192",
-        ],
-        "extractaudio": True,
-        "audioformat": "opus",
-        "outtmpl": "%(extractor)s-%(id)s-%(title)s.%(ext)s",
-        "restrictfilenames": True,
-        "noplaylist": True,
-        "nocheckcertificate": True,
-        "ignoreerrors": False,
-        "logtostderr": False,
-        "quiet": True,
-        "no_warnings": True,
-        "default_search": "auto",
-        "source_address": "0.0.0.0",
-        "buffersize": 32768,
+        'format': 'bestaudio/best',
+        'extractaudio': True,
+        'audioformat': 'mp3',
+        'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+        'restrictfilenames': True,
+        'noplaylist': True,
+        'nocheckcertificate': True,
+        'ignoreerrors': False,
+        'logtostderr': False,
+        'quiet': True,
+        'no_warnings': True,
+        'default_search': 'auto',
+        'source_address': '0.0.0.0',
     }
 
-    def __init__(
-        self, ctx: commands.Context, source: discord.FFmpegPCMAudio, *, data: dict
-    ):
+    def __init__(self, ctx: commands.Context, source: discord.FFmpegPCMAudio, *, data: dict):
         self.requester = ctx.author
         self.channel = ctx.channel
         self.data = data
         self.source = source
-        self.title = data.get("title", "Unknown title")
-        self.url = data.get("webpage_url", "Unknown URL")
-        self.duration = self.parse_duration(data.get("duration", 0))
-        self.volume = 0.5
+        self.title = data.get('title', 'Unknown title')
+        self.url = data.get('webpage_url', 'Unknown URL')
+        self.duration = self.parse_duration(data.get('duration', 0))
 
     @staticmethod
     def parse_duration(duration):
@@ -49,72 +39,30 @@ class YTDLPSource:
         minutes, seconds = divmod(duration, 60)
         hours, minutes = divmod(minutes, 60)
         if hours > 0:
-            return f"{hours}:{minutes:02d}:{seconds:02d}"
-        return f"{minutes}:{seconds:02d}"
+            return f'{hours}:{minutes:02d}:{seconds:02d}'
+        return f'{minutes}:{seconds:02d}'
 
     @classmethod
-    async def create_source(
-        cls, ctx: commands.Context, search: str, *, loop: asyncio.BaseEventLoop = None
-    ):
+    async def create_source(cls, ctx: commands.Context, search: str, *, loop: asyncio.BaseEventLoop = None):
         loop = loop or asyncio.get_event_loop()
 
         with yt_dlp.YoutubeDL(cls.YTDLP_OPTIONS) as ydl:
             try:
-                if re.match(r"https?://(?:www\.)?.+", search):
-                    data = await loop.run_in_executor(
-                        None, lambda: ydl.extract_info(search, download=False)
-                    )
+                if re.match(r'https?://(?:www\.)?.+', search):
+                    data = await loop.run_in_executor(None, lambda: ydl.extract_info(search, download=False))
                 else:
-                    data = await loop.run_in_executor(
-                        None,
-                        lambda: ydl.extract_info(f"ytsearch:{search}", download=False),
-                    )
+                    data = await loop.run_in_executor(None, lambda: ydl.extract_info(f"ytsearch:{search}", download=False))
+                    
+                if 'entries' in data:
+                    data = data['entries'][0]
 
-                if "entries" in data:
-                    data = data["entries"][0]
-
-                url = data["url"]
-
-                # FFmpeg 옵션 수정
-                ffmpeg_options = {
-                    "before_options": (
-                        "-reconnect 1 "
-                        "-reconnect_streamed 1 "
-                        "-reconnect_delay_max 5"
-                    ),
-                    "options": (
-                        "-vn "  # 비디오 비활성화
-                        "-acodec libopus "  # Opus 코덱 사용
-                        "-ar 48000 "  # 샘플레이트
-                        "-ac 2 "  # 스테레오
-                        "-b:a 192k "  # 비트레이트
-                        "-loglevel error"  # 에러 로그만 표시
-                    ),
-                }
-
-                source = discord.FFmpegPCMAudio(url, **ffmpeg_options)
-                return cls(ctx, source, data=data)
-
+                url = data['url']
+                return cls(ctx, discord.FFmpegPCMAudio(url, **{
+                    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+                    'options': '-vn'
+                }), data=data)
             except Exception as e:
                 raise e
-
-    def cleanup(self):
-        """Clean up the audio source."""
-        try:
-            if hasattr(self, "source"):
-                if hasattr(self.source, "process"):
-                    try:
-                        self.source.process.kill()
-                    except Exception:
-                        pass
-                if hasattr(self.source, "cleanup"):
-                    try:
-                        self.source.cleanup()
-                    except Exception:
-                        pass
-        except Exception:
-            pass
-
 
 class MusicPlayer:
     def __init__(self, ctx):
@@ -126,14 +74,13 @@ class MusicPlayer:
         self.current = None
         self.volume = 0.5
         self.loop = False
-        self._stopped = False
-
+        
         ctx.bot.loop.create_task(self.player_loop())
 
     async def player_loop(self):
-        while not self._stopped:
+        while True:
             self.next.clear()
-
+            
             try:
                 async with timeout(180):  # 3 minutes
                     source = await self.queue.get()
@@ -143,75 +90,48 @@ class MusicPlayer:
             if not isinstance(source, YTDLPSource):
                 continue
 
-            # Create a new PCMVolumeTransformer for the source
+            source.volume = self.volume
+            self.current = source
+
+            self.guild.voice_client.play(
+                source.source,
+                after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set)
+            )
+
+            embed = discord.Embed(
+                title="Now Playing",
+                description=f"[{source.title}]({source.url})",
+                color=discord.Color.green()
+            )
+            embed.add_field(name="Duration", value=source.duration)
+            embed.add_field(name="Requested by", value=source.requester.name)
+            await self.channel.send(embed=embed)
+
+            await self.next.wait()
+
+            # Cleanup source after it's done playing
             try:
-                transformed_source = discord.PCMVolumeTransformer(
-                    source.source, volume=self.volume
-                )
-                source.source = transformed_source
-                self.current = source
+                source.source.cleanup()
+            except Exception:
+                pass
 
-                def after_playing(error):
-                    if error:
-                        print(f"Player error: {error}")
-                    self.bot.loop.call_soon_threadsafe(self.next.set)
+            self.current = None
 
-                self.guild.voice_client.play(source.source, after=after_playing)
-
-                embed = discord.Embed(
-                    title="Now Playing 🎵",
-                    description=f"[{source.title}]({source.url})",
-                    color=discord.Color.green(),
-                )
-                embed.add_field(name="Duration", value=source.duration)
-                embed.add_field(name="Quality", value="High Quality (192kbps)")
-                embed.add_field(name="Requested by", value=source.requester.name)
-
-                await self.channel.send(embed=embed)
-
-                await self.next.wait()
-
-                # Clean up the source properly
-                if self.current:
-                    try:
-                        self.current.cleanup()
-                    except Exception:
-                        pass
-                    self.current = None
-
-                if self.loop and not self._stopped:
-                    await self.queue.put(source)
-
-            except Exception as e:
-                print(f"Player error: {e}")
-                continue
+            if self.loop:
+                await self.queue.put(source)
 
     async def destroy(self):
         """Disconnect and cleanup the player."""
-        self._stopped = True
-
         try:
-            if self.current:
-                self.current.cleanup()
-
+            await self.guild.voice_client.disconnect()
+        except Exception:
+            pass
+        
+        try:
             while True:
-                try:
-                    item = self.queue.get_nowait()
-                    if hasattr(item, "cleanup"):
-                        item.cleanup()
-                except asyncio.QueueEmpty:
-                    break
-
-            if self.guild.voice_client:
-                await self.guild.voice_client.disconnect(force=True)
-        except Exception:
+                self.queue.get_nowait()
+        except asyncio.QueueEmpty:
             pass
-
-        try:
-            del self.bot.cog_YTMusicCommands.players[self.guild.id]
-        except Exception:
-            pass
-
 
 class YTMusicCommands(commands.Cog):
     def __init__(self, bot):
@@ -225,16 +145,17 @@ class YTMusicCommands(commands.Cog):
             else:
                 await ctx.send("You need to be in a voice channel to use this command.")
                 raise commands.CommandError("Author not connected to a voice channel.")
+        
         return True
 
-    @app_commands.command(name="ytplay", description="Play music using yt-dlp")
+    @app_commands.command(name='ytplay', description='Play music using yt-dlp')
     async def play(self, interaction: discord.Interaction, *, search: str):
         await interaction.response.defer()
         ctx = await commands.Context.from_interaction(interaction)
-
+        
         try:
             await self.ensure_voice(ctx)
-
+            
             player = self.players.get(ctx.guild.id)
             if not player:
                 player = MusicPlayer(ctx)
@@ -242,50 +163,69 @@ class YTMusicCommands(commands.Cog):
 
             source = await YTDLPSource.create_source(ctx, search, loop=self.bot.loop)
             await player.queue.put(source)
-
+            
             embed = discord.Embed(
-                title="Added to Queue 🎵",
+                title="Added to Queue",
                 description=f"[{source.title}]({source.url})",
-                color=discord.Color.blue(),
+                color=discord.Color.blue()
             )
             embed.add_field(name="Duration", value=source.duration)
             embed.add_field(name="Requested by", value=ctx.author.name)
-
+            
             await interaction.followup.send(embed=embed)
-
+            
         except Exception as e:
-            await interaction.followup.send(f"An error occurred: {str(e)}")
+            await interaction.followup.send(f'An error occurred: {str(e)}')
 
-    @app_commands.command(name="ytvolume", description="Change the volume (0-200)")
-    async def volume(self, interaction: discord.Interaction, volume: int):
-        await interaction.response.defer()
+    @app_commands.command(name='ytskip', description='Skip the current song')
+    async def skip(self, interaction: discord.Interaction):
         ctx = await commands.Context.from_interaction(interaction)
+        
+        if not ctx.voice_client or not ctx.voice_client.is_playing():
+            return await interaction.response.send_message("Nothing is playing right now.")
+        
+        ctx.voice_client.stop()
+        await interaction.response.send_message("⏭ Skipped the song.")
 
-        if not 0 <= volume <= 200:
-            return await interaction.followup.send("Volume must be between 0 and 200")
-
+    @app_commands.command(name='ytloop', description='Toggle loop mode')
+    async def loop(self, interaction: discord.Interaction):
+        ctx = await commands.Context.from_interaction(interaction)
+        
         player = self.players.get(ctx.guild.id)
         if not player:
-            return await interaction.followup.send("No music is playing.")
+            return await interaction.response.send_message("No music is playing.")
+        
+        player.loop = not player.loop
+        await interaction.response.send_message(
+            f"🔁 Loop mode is now {'enabled' if player.loop else 'disabled'}"
+        )
 
-        await player.set_volume(volume / 100)
-        await interaction.followup.send(f"🔊 Volume set to {volume}%")
-
-    @app_commands.command(
-        name="ytstop", description="Stop the music and clear the queue"
-    )
+    @app_commands.command(name='ytstop', description='Stop the music and clear the queue')
     async def stop(self, interaction: discord.Interaction):
         ctx = await commands.Context.from_interaction(interaction)
-
-        player = self.players.pop(ctx.guild.id, None)
-        if player:
-            await player.destroy()
-            await interaction.response.send_message(
-                "⏹ Stopped the music and disconnected."
-            )
+        
+        if ctx.voice_client:
+            player = self.players.pop(ctx.guild.id, None)
+            if player:
+                await player.destroy()
+            await ctx.voice_client.disconnect()
+            await interaction.response.send_message("⏹ Stopped the music and disconnected.")
         else:
-            await interaction.response.send_message("Not playing any music right now.")
+            await interaction.response.send_message("Not connected to a voice channel.")
 
+    @app_commands.command(name='ytvolume', description='Change the volume (0-100)')
+    async def volume(self, interaction: discord.Interaction, volume: int):
+        ctx = await commands.Context.from_interaction(interaction)
+        
+        if not 0 <= volume <= 100:
+            return await interaction.response.send_message("Volume must be between 0 and 100")
+        
+        player = self.players.get(ctx.guild.id)
+        if not player:
+            return await interaction.response.send_message("No music is playing.")
+        
+        player.volume = volume / 100
+        await interaction.response.send_message(f"🔊 Volume set to {volume}%")
 
 async def setup(bot):
     await bot.add_cog(YTMusicCommands(bot))
