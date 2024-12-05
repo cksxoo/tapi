@@ -2,21 +2,23 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including Java
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
     ffmpeg \
+    default-jre \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt \
+    && pip install PyNaCl
 
-# Copy the bot code
+# Create directories
+RUN mkdir -p musicbot/db
+
+# Copy everything except what's in volumes
 COPY . .
-
-# Create necessary directories
-RUN mkdir -p musicbot/db logs
 
 CMD ["python", "-m", "musicbot"]

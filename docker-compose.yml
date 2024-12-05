@@ -21,8 +21,10 @@ services:
     depends_on:
       - lavalink
     volumes:
-      - ./db:/app/musicbot/db
-      - ./config.py:/app/musicbot/config.py
+      - ./musicbot:/app/musicbot
+      - ./Lavalink.jar:/app/Lavalink.jar
+    environment:
+      - PYTHONUNBUFFERED=1
     networks:
       - bot_network
     restart: unless-stopped

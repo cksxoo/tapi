@@ -2,10 +2,20 @@ FROM eclipse-temurin:17-jre-focal
 
 WORKDIR /opt/lavalink
 
-# Download Lavalink.jar
+# Install curl
 RUN apt-get update && \
-    apt-get install -y wget && \
-    wget https://github.com/freyacodes/Lavalink/releases/download/3.7.11/Lavalink.jar
+    apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create plugins directory
+RUN mkdir -p plugins
+
+# Download latest Lavalink.jar
+RUN curl -L "https://github.com/lavalink-devs/Lavalink/releases/download/3.7.11/Lavalink.jar" -o Lavalink.jar
+
+# Download required plugins
+RUN curl -L "https://github.com/topi314/LavaSrc/releases/download/3.2.7/lavasrc-plugin.jar" -o plugins/lavasrc-plugin.jar && \
+    curl -L "https://github.com/lavalink-devs/youtube-plugin/releases/download/v0.1.1/youtube-plugin.jar" -o plugins/youtube-plugin.jar
 
 EXPOSE 2333
 
