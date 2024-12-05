@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  lavalink:
+    build:
+      context: .
+      dockerfile: Dockerfile.lavalink
+    ports:
+      - "2333:2333"
+    volumes:
+      - ./application.yml:/opt/lavalink/application.yml
+      - ./plugins:/opt/lavalink/plugins
+      - ./logs:/opt/lavalink/logs
+    networks:
+      - bot_network
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    depends_on:
+      - lavalink
+    volumes:
+      - ./db:/app/musicbot/db
+      - ./config.py:/app/musicbot/config.py
+    networks:
+      - bot_network
+    restart: unless-stopped
+
+networks:
+  bot_network:
+    driver: bridge

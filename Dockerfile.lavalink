@@ -1,0 +1,12 @@
+FROM eclipse-temurin:17-jre-focal
+
+WORKDIR /opt/lavalink
+
+# Download Lavalink.jar
+RUN apt-get update && \
+    apt-get install -y wget && \
+    wget https://github.com/freyacodes/Lavalink/releases/download/3.7.11/Lavalink.jar
+
+EXPOSE 2333
+
+CMD ["java", "-jar", "Lavalink.jar"]
