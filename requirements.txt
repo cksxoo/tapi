@@ -11,3 +11,7 @@ topggpy
 pymysql
 soundcloud-lib
 yt-dlp
+
+streamlit
+plotly
+pandas
