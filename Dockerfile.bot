@@ -8,6 +8,7 @@ RUN apt-get update && \
     build-essential \
     ffmpeg \
     default-jre \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -15,8 +16,11 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt \
     && pip install PyNaCl
 
-# Create directories
-RUN mkdir -p musicbot/db
+# Create necessary directories
+RUN mkdir -p musicbot/db logs plugins
+
+# Download latest Lavalink.jar
+RUN curl -L "https://github.com/freyacodes/Lavalink/releases/download/3.7.11/Lavalink.jar" -o Lavalink.jar
 
 # Copy everything except what's in volumes
 COPY . .
