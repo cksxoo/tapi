@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   bot:
     build: 
@@ -11,4 +13,18 @@ services:
       - ./plugins:/app/plugins
     environment:
       - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    ports:
+      - "8501:8501"  # Streamlit port
+    volumes:
+      - ./musicbot:/app/musicbot  # Share the same database with the bot
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - bot
     restart: unless-stopped
