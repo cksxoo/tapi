@@ -14,13 +14,18 @@ RUN apt-get update && \
 # Copy requirements first for better caching
 COPY requirements.txt .
 RUN pip install -r requirements.txt \
-    && pip install PyNaCl
+    && pip install PyNaCl youtube_dl
 
 # Create necessary directories
 RUN mkdir -p musicbot/db logs plugins
 
-# Download latest Lavalink.jar
-RUN curl -L "https://github.com/freyacodes/Lavalink/releases/download/3.7.11/Lavalink.jar" -o Lavalink.jar
+# Download Lavalink.jar
+RUN curl -L "https://github.com/freyacodes/Lavalink/releases/download/4.0.0/Lavalink.jar" -o Lavalink.jar
+
+# Download plugins
+RUN mkdir -p plugins && \
+    curl -L "https://github.com/lavalink-devs/youtube-source/releases/download/1.10.2/youtube-plugin-1.10.2.jar" -o plugins/youtube-plugin.jar && \
+    curl -L "https://github.com/topi314/LavaSrc/releases/download/4.0.0/lavasrc-plugin-4.0.0.jar" -o plugins/lavasrc-plugin.jar
 
 # Copy everything except what's in volumes
 COPY . .
