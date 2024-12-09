@@ -20,7 +20,7 @@ class Config(object):
     COLOR_CODE = 0xC68E6E  # 색상코드
 
     # Music
-    HOST = "localhost"
+    HOST = "0.0.0.0"
     PSW = ""  # 컴퓨터 비밀번호
     REGION = "eu"  # 리전
     PORT = 2333

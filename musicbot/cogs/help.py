@@ -45,16 +45,6 @@ class Help(commands.Cog):
                     inline=True,
                 )
                 embed.add_field(
-                    name=get_lan(interaction.user.id, "help_general_java_command"),
-                    value=get_lan(interaction.user.id, "help_general_java_info"),
-                    inline=True,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_general_softver_command"),
-                    value=get_lan(interaction.user.id, "help_general_softver_info"),
-                    inline=True,
-                )
-                embed.add_field(
                     name=get_lan(interaction.user.id, "help_general_uptime_command"),
                     value=get_lan(interaction.user.id, "help_general_uptime_info"),
                     inline=True,
@@ -147,11 +137,6 @@ class Help(commands.Cog):
                 embed.add_field(
                     name=get_lan(interaction.user.id, "help_music_remove_command"),
                     value=get_lan(interaction.user.id, "help_music_remove_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_equalizer_command"),
-                    value=get_lan(interaction.user.id, "help_music_equalizer_info"),
                     inline=False,
                 )
 

@@ -33,7 +33,6 @@ from musicbot import (
     REGION,
     PORT,
 )
-from musicbot.utils.equalizer import Equalizer, EqualizerButton
 from musicbot.utils.database import Database
 
 url_rx = re.compile(r"https?://(?:www\.)?.+")
@@ -1286,20 +1285,6 @@ class Music(commands.Cog):
                 text=f"{get_lan(interaction.user.id, 'music_page')} 1/{len(pages)}\n{BOT_NAME_TAG_VER}"
             )
             await interaction.followup.send(embed=embed, view=view)
-
-    @app_commands.command(name="equalizer", description="Send equalizer dashboard")
-    @app_commands.check(create_player)
-    async def equalizer(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        eq = player.fetch("eq", Equalizer())
-
-        selector = f'{" " * 8}^^^'
-        await interaction.followup.send(
-            f"```diff\n{eq.visualise()}\n{selector}```",
-            view=EqualizerButton(interaction, player, eq, 0),
-        )
 
 
 async def setup(bot):
