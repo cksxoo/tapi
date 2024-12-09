@@ -20,7 +20,7 @@ RUN pip install -r requirements.txt \
 RUN mkdir -p musicbot/db logs plugins
 
 # Download Lavalink.jar
-RUN curl -L "https://github.com/freyacodes/Lavalink/releases/download/4.3.0/Lavalink.jar" -o Lavalink.jar
+RUN curl -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.0.8/Lavalink.jar" -o Lavalink.jar
 
 # Download plugins
 RUN mkdir -p plugins
