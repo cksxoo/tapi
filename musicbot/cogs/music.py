@@ -321,116 +321,139 @@ class Music(commands.Cog):
     async def play(self, interaction: discord.Interaction, query: str):
         await interaction.response.defer()
 
-        # Get the player for this guild from cache.
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+        try:
+            # Get the player for this guild from cache.
+            player = self.bot.lavalink.player_manager.get(interaction.guild.id)
 
-        # Remove leading and trailing <>. <> may be used to suppress embedding links in Discord.
-        query = query.strip("<>")
+            # Remove leading and trailing <>. <> may be used to suppress embedding links in Discord.
+            query = query.strip("<>")
 
-        # Check if the user input might be a URL. If it isn't, we can Lavalink do a YouTube search for it instead.
-        # SoundCloud searching is possible by prefixing "scsearch:" instead.
-        if not url_rx.match(query):
-            query = f"ytsearch:{query}"
+            # Check if the user input might be a URL.
+            if not url_rx.match(query):
+                query = f"ytsearch:{query}"
 
-        nofind = 0
-        while True:
-            # Get the results for the query from Lavalink.
-            results = await player.node.get_tracks(query)
+            nofind = 0
+            while True:
+                # Get the results for the query from Lavalink.
+                results = await player.node.get_tracks(query)
 
-            # Results could be None if Lavalink returns an invalid response (non-JSON/non-200 (OK)).
-            # ALternatively, results['tracks'] could be an empty array if the query yielded no tracks.
-            if results.load_type == LoadType.EMPTY or not results or not results.tracks:
-                if nofind < 3:
-                    nofind += 1
-                elif nofind == 3:
-                    embed = discord.Embed(
-                        title=get_lan(
-                            interaction.user.id, "music_can_not_find_anything"
-                        ),
-                        description="",
-                        color=COLOR_CODE,
-                    )
-                    embed.set_footer(text=BOT_NAME_TAG_VER)
-                    return await interaction.followup.send(embed=embed)
+                if (
+                    results.load_type == LoadType.EMPTY
+                    or not results
+                    or not results.tracks
+                ):
+                    if nofind < 3:
+                        nofind += 1
+                    elif nofind == 3:
+                        embed = discord.Embed(
+                            title=get_lan(
+                                interaction.user.id, "music_can_not_find_anything"
+                            ),
+                            description="",
+                            color=COLOR_CODE,
+                        )
+                        embed.set_footer(text=BOT_NAME_TAG_VER)
+                        return await interaction.followup.send(embed=embed)
+                else:
+                    break
+
+            embed = discord.Embed(color=COLOR_CODE)
+
+            thumbnail = None
+            if results.load_type == LoadType.PLAYLIST:
+                tracks = results.tracks
+                trackcount = 0
+
+                for track in tracks:
+                    try:
+                        if trackcount != 1:
+                            thumbnail = track.identifier
+                            trackcount = 1
+
+                        # Record statistics for each track in playlist
+                        Statistics().record_play(
+                            track=track,
+                            guild_id=interaction.guild_id,
+                            channel_id=interaction.channel_id,
+                            user_id=interaction.user.id,
+                            success=True,
+                        )
+
+                        player.add(requester=interaction.user.id, track=track)
+                    except Exception as e:
+                        LOGGER.error(f"Error adding track from playlist: {e}")
+
+                embed.title = get_lan(interaction.user.id, "music_play_playlist")
+                embed.description = (
+                    f"{results.playlist_info.name} - {len(tracks)} tracks"
+                )
+
             else:
-                break
+                track = results.tracks[0]
+                embed.title = (
+                    get_lan(interaction.user.id, "music_play_music")
+                    + "  💿 | "
+                    + track.author
+                )
+                embed.description = f"[{track.title}]({track.uri})"
+                thumbnail = track.identifier
 
-        embed = discord.Embed(color=COLOR_CODE)  # discord.Color.blurple()
+                # Record statistics for single track
+                Statistics().record_play(
+                    track=track,
+                    guild_id=interaction.guild_id,
+                    channel_id=interaction.channel_id,
+                    user_id=interaction.user.id,
+                    success=True,
+                )
 
-        # Valid load_types are:
-        #   TRACK    - direct URL to a track
-        #   PLAYLIST - direct URL to playlist
-        #   SEARCH   - query prefixed with either "ytsearch:" or "scsearch:". This could possibly be expanded with plugins.
-        #   EMPTY    - no results for the query (result.tracks will be empty)
-        #   ERROR    - the track encountered an exception during loading
-        thumbnail = None
-        if results.load_type == LoadType.PLAYLIST:
-            tracks = results.tracks
-
-            trackcount = 0
-
-            for track in tracks:
-                if trackcount != 1:
-                    thumbnail = track.identifier
-                    trackcount = 1
-                # Music statistical(for playlist)
-                Statistics().up(track.identifier)
-
-                # Add all of the tracks from the playlist to the queue.
                 player.add(requester=interaction.user.id, track=track)
 
-            embed.title = get_lan(interaction.user.id, "music_play_playlist")
-            embed.description = f"{results.playlist_info.name} - {len(tracks)} tracks"
-
-        else:
-            track = results.tracks[0]
-            embed.title = (
-                get_lan(interaction.user.id, "music_play_music")
-                + "  💿 | "
-                + track.author
+            embed.add_field(
+                name=get_lan(interaction.user.id, "music_length"),
+                value=lavalink.format_time(track.duration),
             )
-            embed.description = f"[{track.title}]({track.uri})"
-            thumbnail = track.identifier
+            embed.add_field(
+                name=get_lan(interaction.user.id, "music_shuffle"),
+                value=(
+                    get_lan(interaction.user.id, "music_shuffle_already_on")
+                    if player.shuffle
+                    else get_lan(interaction.user.id, "music_shuffle_already_off")
+                ),
+                inline=True,
+            )
+            embed.add_field(
+                name=get_lan(interaction.user.id, "music_repeat"),
+                value=[
+                    get_lan(interaction.user.id, "music_repeat_already_off"),
+                    get_lan(interaction.user.id, "music_repeat_already_one"),
+                    get_lan(interaction.user.id, "music_repeat_already_on"),
+                ][player.loop],
+                inline=True,
+            )
 
-            # Music statistical
-            Statistics().up(track.identifier)
+            if thumbnail is not None:
+                embed.set_thumbnail(url=f"http://img.youtube.com/vi/{thumbnail}/0.jpg")
+            embed.set_footer(text=BOT_NAME_TAG_VER)
+            await interaction.followup.send(embed=embed)
 
-            # You can attach additional information to audiotracks through kwargs, however this involves
-            # constructing the AudioTrack class yourself.
-            player.add(requester=interaction.user.id, track=track)
+            if not player.is_playing:
+                await player.play()
 
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_length"),
-            value=lavalink.format_time(track.duration),
-        )
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_shuffle"),
-            value=(
-                get_lan(interaction.user.id, "music_shuffle_already_on")
-                if player.shuffle
-                else get_lan(interaction.user.id, "music_shuffle_already_off")
-            ),
-            inline=True,
-        )
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_repeat"),
-            value=[
-                get_lan(interaction.user.id, "music_repeat_already_off"),
-                get_lan(interaction.user.id, "music_repeat_already_one"),
-                get_lan(interaction.user.id, "music_repeat_already_on"),
-            ][player.loop],
-            inline=True,
-        )
-
-        if thumbnail is not None:
-            embed.set_thumbnail(url=f"http://img.youtube.com/vi/{thumbnail}/0.jpg")
-        embed.set_footer(text=BOT_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
-
-        # We don't want to call .play() if the player is playing as that will effectively skip
-        # the current track.
-        if not player.is_playing:
-            await player.play()
+        except Exception as e:
+            LOGGER.error(f"Error in play command: {e}")
+            try:
+                # Record failed play attempt
+                Statistics().record_play(
+                    track=track if "track" in locals() else None,
+                    guild_id=interaction.guild_id,
+                    channel_id=interaction.channel_id,
+                    user_id=interaction.user.id,
+                    success=False,
+                )
+            except Exception as stats_error:
+                LOGGER.error(f"Failed to record failure statistics: {stats_error}")
+            raise e
 
     @app_commands.command(
         name="scplay", description="Searches and plays a song from SoundCloud."

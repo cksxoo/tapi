@@ -1,105 +1,81 @@
-"""
-
-Table name example : date20220101
-
-ID, video_id, count
-
-"""
-
+import os
 import re
-import pymysql
 import sqlite3
 from contextlib import closing
+from datetime import datetime
+import pandas as pd
 from musicbot.config import Development as Config
-from datetime import datetime, timedelta
 
 url_rx = re.compile(r"(.+)?https?://(?:www\.)?.+")
 
 
 class Statistics:
     def __init__(self):
-        self.statisticsdb = StatisticsDb()
-
-    def up(self, video_id: str) -> None:
-        """비디오 재생 횟수를 1 증가시킵니다"""
-        # 유튜브 비디오 ID가 아닌 링크라면
-        if url_rx.match(video_id):
-            return
-
-        # Set table name
-        date = datetime.today().strftime("%Y-%m-%d")
-        # Get play count from db
-        temp = self.statisticsdb.get(date, video_id)
-        # Set count
-        if temp is None:
-            num = 1
-        else:
-            num = temp[2] + 1
-        self.statisticsdb.write(date, video_id, num)
-
-    def get_week(self) -> dict[str, int]:
-        """이번주의 통계를 가져옵니다"""
-        week_data = {}
-        for day in range(7):  # 0 ~ 6
-            # 타깃 날짜 설정
-            target_date = datetime.today() - timedelta(days=day)
-            date = target_date.strftime("%Y-%m-%d")
-
-            # 해당 날짜의 데이터 가져오기
-            videos_data = self.statisticsdb.get_all(date)
-            if videos_data is not None:
-                for data in videos_data:
-                    _, video_id, count = data
-                    week_data[video_id] = count
-
-        return week_data
-
-
-class StatisticsDb:
-    def __init__(self):
         self.statistics = "statistics"
 
-    def get(self, date: str, video_id: str) -> tuple[int, str, int] | None:
-        """해당 날짜와 비디오 아이디로 데이터를 가져옴"""
+    def record_play(self, track, guild_id, channel_id, user_id, success=True):
+        """트랙 재생 정보를 기록"""
+        if track and url_rx.match(track.identifier):
+            return
+            
+        now = datetime.now()
+        
+        data = {
+            'date': now.strftime("%Y-%m-%d"),
+            'time': now.strftime("%H:%M:%S"),
+            'guild_id': str(guild_id),
+            'channel_id': str(channel_id),
+            'user_id': str(user_id),
+            'video_id': track.identifier if track else None,
+            'title': track.title if track else None,
+            'artist': track.author if track else None,
+            'duration': track.duration // 1000 if track else 0,  # milliseconds to seconds
+            'success': success
+        }
+        
+        self.insert_stats(data)
+
+    def insert_stats(self, data: dict) -> None:
+        """Insert statistics data"""
         with closing(sqlite3.connect(Config.DB_PATH)) as conn:
             with closing(conn.cursor()) as cursor:
                 cursor.execute(
-                    f"SELECT * FROM {self.statistics} WHERE date=? AND video_id=?",
-                    (date, video_id),
-                )
-                temp = cursor.fetchone()
-
-                return temp
-
-    def get_all(self, date: str) -> tuple[tuple[int, str, int]] | None:
-        """해당 날짜의 모든 데이터를 가져옴"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    f"SELECT * FROM {self.statistics} WHERE date=? ORDER BY count DESC",
-                    (date,),
-                )
-                temp = cursor.fetchall()
-
-                return temp
-
-    def write(self, date: str, video_id: str, edit_count: int = 1) -> None:
-        # Create table if it doesn't exist
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            if edit_count == 1:
-                conn.execute(
-                    f"CREATE TABLE IF NOT EXISTS {self.statistics} (date date, video_id text, count int)"
-                )
-                conn.commit()
-            else:
-                conn.execute(
-                    f"UPDATE {self.statistics} SET count=%s WHERE video_id=%s AND date=%s",
-                    (edit_count, video_id, date),
+                    """
+                INSERT INTO statistics 
+                (date, time, guild_id, channel_id, user_id, video_id, 
+                title, artist, duration, success)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        data.get("date", ""),
+                        data.get("time", ""),
+                        data.get("guild_id", ""),
+                        data.get("channel_id", ""),
+                        data.get("user_id", ""),
+                        data.get("video_id", ""),
+                        data.get("title", ""),
+                        data.get("artist", ""),
+                        data.get("duration", 0),
+                        data.get("success", True),
+                    ),
                 )
                 conn.commit()
 
+    def get_stats(self, start_date=None, end_date=None, guild_id=None):
+        """통계 조회"""
+        query = "SELECT * FROM statistics WHERE 1=1"
+        params = []
 
-if __name__ == "__main__":
-    # For test
-    statistics = Statistics()
-    statistics.up("Youtube_video_id")
+        if start_date:
+            query += " AND date >= ?"
+            params.append(start_date)
+        if end_date:
+            query += " AND date <= ?"
+            params.append(end_date)
+        if guild_id:
+            query += " AND guild_id = ?"
+            params.append(str(guild_id))
+
+        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
+            df = pd.read_sql_query(query, conn, params=params)
+            return df

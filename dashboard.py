@@ -4,12 +4,11 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-import json
-import os
+import psutil
 
 # 페이지 기본 설정
 st.set_page_config(
-    page_title="Music Bot Statistics",
+    page_title="Music Bot Monitoring Dashboard",
     page_icon="🎵",
     layout="wide"
 )
@@ -26,147 +25,175 @@ def load_statistics_data():
     df = pd.read_sql_query("SELECT * FROM statistics", conn)
     if not df.empty:
         df['date'] = pd.to_datetime(df['date'])
+        df['time'] = pd.to_datetime(df['time'], format='%H:%M:%S').dt.time
     return df
 
-# 언어 설정 데이터 로드 함수
-@st.cache_data
-def load_language_data():
-    conn = get_database_connection()
-    return pd.read_sql_query("SELECT * FROM language", conn)
+# 재생 통계 분석 함수
+def analyze_play_statistics(df):
+    if df.empty:
+        return None, None, None, None, None
+    
+    total_plays = len(df)
+    successful_plays = len(df[df['success'] == True])
+    unique_tracks = df['video_id'].nunique()
+    unique_users = df['user_id'].nunique()
+    unique_servers = df['guild_id'].nunique()
+    
+    return total_plays, successful_plays, unique_tracks, unique_users, unique_servers
 
-# 반복 재생 설정 데이터 로드 함수
-@st.cache_data
-def load_loop_settings():
-    conn = get_database_connection()
-    return pd.read_sql_query("SELECT * FROM loop_setting", conn)
-
-# 셔플 설정 데이터 로드 함수
-@st.cache_data
-def load_shuffle_settings():
-    conn = get_database_connection()
-    return pd.read_sql_query("SELECT * FROM shuffle", conn)
+# 시간대별 재생 통계
+def get_hourly_statistics(df):
+    if df.empty:
+        return pd.DataFrame()
+    df['hour'] = pd.to_datetime(df['time'], format='%H:%M:%S').dt.hour
+    return df.groupby('hour').size().reset_index(name='count')
 
 def main():
-    st.title("🎵 Music Bot Statistics Dashboard")
+    st.title("🎵 Music Bot Monitoring Dashboard")
     
     try:
         # 데이터 로드
         df_stats = load_statistics_data()
-        df_language = load_language_data()
-        df_loop = load_loop_settings()
-        df_shuffle = load_shuffle_settings()
         
         # 탭 생성
-        tab1, tab2, tab3 = st.tabs(["재생 통계", "서버 설정", "사용자 설정"])
+        tab1, tab2, tab3, tab4 = st.tabs(["Overview", "Detailed Statistics", "Performance Metrics", "System Health"])
         
         with tab1:
-            st.header("음악 재생 통계")
-            
-            if df_stats.empty:
-                st.warning("아직 재생 통계 데이터가 없습니다.")
-            else:
-                # 날짜 범위 선택
-                col1, col2 = st.columns(2)
+            st.header("Overview")
+            if not df_stats.empty:
+                total_plays, successful_plays, unique_tracks, unique_users, unique_servers = analyze_play_statistics(df_stats)
+                
+                # KPI Metrics
+                col1, col2, col3, col4, col5 = st.columns(5)
                 with col1:
-                    start_date = st.date_input(
-                        "시작일",
-                        min(df_stats['date']).date()
-                    )
+                    st.metric("Total Plays", f"{total_plays:,}")
                 with col2:
-                    end_date = st.date_input(
-                        "종료일",
-                        max(df_stats['date']).date()
-                    )
-                
-                # 데이터 필터링
-                mask = (df_stats['date'].dt.date >= start_date) & (df_stats['date'].dt.date <= end_date)
-                filtered_df = df_stats.loc[mask]
-                
-                if filtered_df.empty:
-                    st.warning("선택한 날짜 범위에 데이터가 없습니다.")
-                else:
-                    # 일별 재생 횟수 차트
-                    daily_plays = filtered_df.groupby('date').sum()['count'].reset_index()
-                    fig_daily = px.line(
-                        daily_plays,
-                        x='date',
-                        y='count',
-                        title='일별 음악 재생 횟수'
-                    )
-                    st.plotly_chart(fig_daily, use_container_width=True)
-                    
-                    # 가장 많이 재생된 곡 Top 10
-                    top_songs = filtered_df.groupby('video_id')['count'].sum().sort_values(ascending=False).head(10)
-                    fig_top = px.bar(
-                        x=top_songs.index,
-                        y=top_songs.values,
-                        title='가장 많이 재생된 곡 Top 10',
-                        labels={'x': '비디오 ID', 'y': '재생 횟수'}
-                    )
-                    st.plotly_chart(fig_top, use_container_width=True)
-                    
-                    # 통계 요약
-                    st.subheader("통계 요약")
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("총 재생 횟수", filtered_df['count'].sum())
-                    with col2:
-                        st.metric("재생된 곡 수", filtered_df['video_id'].nunique())
-                    with col3:
-                        st.metric("일평균 재생 횟수", round(filtered_df['count'].mean(), 1))
-        
-        with tab2:
-            st.header("서버 설정 통계")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                if df_loop.empty:
-                    st.warning("반복 재생 설정 데이터가 없습니다.")
-                else:
-                    # 반복 재생 설정 분포
-                    loop_counts = df_loop['loop_set'].value_counts()
-                    fig_loop = px.pie(
-                        values=loop_counts.values,
-                        names=['Off', 'Single', 'All'] if len(loop_counts) == 3 else loop_counts.index,
-                        title='반복 재생 설정 분포'
-                    )
-                    st.plotly_chart(fig_loop)
-            
-            with col2:
-                if df_shuffle.empty:
-                    st.warning("셔플 설정 데이터가 없습니다.")
-                else:
-                    # 셔플 설정 분포
-                    shuffle_counts = df_shuffle['shuffle'].value_counts()
-                    fig_shuffle = px.pie(
-                        values=shuffle_counts.values,
-                        names=['Off', 'On'] if len(shuffle_counts) == 2 else shuffle_counts.index,
-                        title='셔플 설정 분포'
-                    )
-                    st.plotly_chart(fig_shuffle)
-        
-        with tab3:
-            st.header("사용자 언어 설정")
-            
-            if df_language.empty:
-                st.warning("언어 설정 데이터가 없습니다.")
-            else:
-                # 언어별 사용자 수
-                language_counts = df_language['language'].value_counts()
-                fig_language = px.pie(
-                    values=language_counts.values,
-                    names=language_counts.index,
-                    title='언어별 사용자 분포'
+                    success_rate = (successful_plays / total_plays * 100) if total_plays > 0 else 0
+                    st.metric("Success Rate", f"{success_rate:.1f}%")
+                with col3:
+                    st.metric("Unique Tracks", f"{unique_tracks:,}")
+                with col4:
+                    st.metric("Unique Users", f"{unique_users:,}")
+                with col5:
+                    st.metric("Unique Servers", f"{unique_servers:,}")
+
+                # 일간 트렌드 차트
+                daily_trend = df_stats.groupby('date').size().reset_index(name='plays')
+                fig_trend = px.line(
+                    daily_trend,
+                    x='date',
+                    y='plays',
+                    title='Daily Play Count Trend'
                 )
-                st.plotly_chart(fig_language)
-                
-                # 언어 설정 데이터 테이블
-                st.subheader("상세 언어 설정")
-                st.dataframe(df_language)
+                st.plotly_chart(fig_trend, use_container_width=True)
+
+                # Top Artists Chart
+                top_artists = df_stats['artist'].value_counts().head(10)
+                fig_artists = px.bar(
+                    x=top_artists.index,
+                    y=top_artists.values,
+                    title='Top 10 Artists',
+                    labels={'x': 'Artist', 'y': 'Plays'}
+                )
+                st.plotly_chart(fig_artists, use_container_width=True)
+
+        with tab2:
+            st.header("Detailed Statistics")
             
+            # 날짜 범위 선택
+            col1, col2 = st.columns(2)
+            with col1:
+                start_date = st.date_input(
+                    "Start Date",
+                    min(df_stats['date']).date() if not df_stats.empty else datetime.now().date()
+                )
+            with col2:
+                end_date = st.date_input(
+                    "End Date",
+                    max(df_stats['date']).date() if not df_stats.empty else datetime.now().date()
+                )
+
+            if not df_stats.empty:
+                # 시간대별 재생 통계
+                hourly_stats = get_hourly_statistics(df_stats)
+                fig_hourly = px.bar(
+                    hourly_stats,
+                    x='hour',
+                    y='count',
+                    title='Plays by Hour of Day'
+                )
+                st.plotly_chart(fig_hourly, use_container_width=True)
+
+                # Top Tracks Table
+                st.subheader("Most Played Tracks")
+                top_tracks = df_stats.groupby(['title', 'artist']).size()\
+                    .reset_index(name='plays')\
+                    .sort_values('plays', ascending=False)\
+                    .head(10)
+                st.dataframe(top_tracks, use_container_width=True)
+
+        with tab3:
+            st.header("Performance Metrics")
+            
+            # Success Rate Gauge
+            if not df_stats.empty:
+                success_rate = (successful_plays / total_plays * 100) if total_plays > 0 else 0
+                fig_gauge = go.Figure(go.Indicator(
+                    mode="gauge+number",
+                    value=success_rate,
+                    title={'text': "Play Success Rate"},
+                    domain={'x': [0, 1], 'y': [0, 1]},
+                    gauge={
+                        'axis': {'range': [None, 100]},
+                        'bar': {'color': "darkgreen"},
+                        'steps': [
+                            {'range': [0, 60], 'color': "red"},
+                            {'range': [60, 80], 'color': "yellow"},
+                            {'range': [80, 100], 'color': "lightgreen"}
+                        ]
+                    }
+                ))
+                st.plotly_chart(fig_gauge, use_container_width=True)
+
+                # Duration Distribution
+                fig_duration = px.histogram(
+                    df_stats,
+                    x='duration',
+                    title='Track Duration Distribution',
+                    labels={'duration': 'Duration (seconds)'}
+                )
+                st.plotly_chart(fig_duration, use_container_width=True)
+
+        with tab4:
+            st.header("System Health")
+            
+            # CPU, Memory 사용량 모니터링
+            col1, col2 = st.columns(2)
+            with col1:
+                cpu_usage = psutil.cpu_percent()
+                st.metric("CPU Usage", f"{cpu_usage}%")
+                
+            with col2:
+                memory = psutil.virtual_memory()
+                memory_usage = memory.percent
+                st.metric("Memory Usage", f"{memory_usage}%")
+            
+            # 디스크 사용량
+            disk = psutil.disk_usage('/')
+            disk_usage = disk.percent
+            st.progress(disk_usage / 100)
+            st.text(f"Disk Usage: {disk_usage}%")
+
+        # 설정 섹션
+        with st.expander("Dashboard Settings"):
+            st.write("Update Interval: 5 minutes")
+            st.write("Data Retention: 30 days")
+            if st.button("Clear Cache"):
+                st.cache_data.clear()
+                st.experimental_rerun()
+                
     except Exception as e:
-        st.error(f"데이터 로드 중 오류가 발생했습니다: {str(e)}")
+        st.error(f"An error occurred while loading the dashboard: {str(e)}")
         st.exception(e)
 
 if __name__ == "__main__":

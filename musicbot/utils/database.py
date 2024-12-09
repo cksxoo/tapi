@@ -30,12 +30,28 @@ class Database:
             with closing(conn.cursor()) as cursor:
                 cursor.execute(
                     """
-                    CREATE TABLE IF NOT EXISTS statistics (
-                        date TEXT,
-                        video_id TEXT,
-                        count INTEGER
-                    )
+                CREATE TABLE IF NOT EXISTS statistics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date TEXT,
+                    time TEXT,
+                    guild_id TEXT,
+                    channel_id TEXT,
+                    user_id TEXT,
+                    video_id TEXT,
+                    title TEXT,
+                    artist TEXT,
+                    duration INTEGER,
+                    success BOOLEAN,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+                """
+                )
+                # 인덱스 생성
+                cursor.execute(
                     """
+                CREATE INDEX IF NOT EXISTS idx_date_guild 
+                ON statistics(date, guild_id)
+                """
                 )
                 cursor.execute(
                     """
@@ -181,32 +197,24 @@ class Database:
 
                 return shuffle
 
-
     def set_volume(self, guild_id: int, volume: int) -> None:
         """길드별 볼륨 설정 저장"""
         with closing(sqlite3.connect(Config.DB_PATH)) as conn:
             with closing(conn.cursor()) as cursor:
                 # 길드 ID를 문자열로 변환
                 guild = str(guild_id)
-                
+
                 # 기존 볼륨 설정 확인
-                cursor.execute(
-                    "SELECT * FROM volume WHERE guild_id=?",
-                    (guild,)
-                )
+                cursor.execute("SELECT * FROM volume WHERE guild_id=?", (guild,))
                 db_volume = cursor.fetchone()
-                
+
                 if db_volume is None:
                     # 새로운 볼륨 설정 추가
-                    cursor.execute(
-                        "INSERT INTO volume VALUES(?, ?)",
-                        (guild, volume)
-                    )
+                    cursor.execute("INSERT INTO volume VALUES(?, ?)", (guild, volume))
                 else:
                     # 기존 볼륨 설정 수정
                     cursor.execute(
-                        "UPDATE volume SET volume=? WHERE guild_id=?",
-                        (volume, guild)
+                        "UPDATE volume SET volume=? WHERE guild_id=?", (volume, guild)
                     )
                 conn.commit()
 
@@ -215,10 +223,9 @@ class Database:
         with closing(sqlite3.connect(Config.DB_PATH)) as conn:
             with closing(conn.cursor()) as cursor:
                 cursor.execute(
-                    "SELECT volume FROM volume WHERE guild_id=?",
-                    (str(guild_id),)
+                    "SELECT volume FROM volume WHERE guild_id=?", (str(guild_id),)
                 )
                 result = cursor.fetchone()
-                
+
                 # 결과가 없으면 기본값 100 반환
                 return result[0] if result else 20
