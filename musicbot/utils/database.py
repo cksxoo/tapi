@@ -28,7 +28,6 @@ class Database:
         # Create the database
         with closing(sqlite3.connect(Config.DB_PATH)) as conn:
             with closing(conn.cursor()) as cursor:
-                cursor.execute("DROP TABLE IF EXISTS statistics")
                 cursor.execute(
                     """
                 CREATE TABLE IF NOT EXISTS statistics (
