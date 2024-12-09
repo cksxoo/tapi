@@ -61,6 +61,14 @@ class Database:
                     )
                     """
                 )
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS volume (
+                        guild_id TEXT PRIMARY KEY,
+                        volume INTEGER
+                    )
+                    """
+                )
                 conn.commit()
             print("Database created successfully.")
 
@@ -172,3 +180,45 @@ class Database:
                     shuffle = shuffle[1]
 
                 return shuffle
+
+
+    def set_volume(self, guild_id: int, volume: int) -> None:
+        """길드별 볼륨 설정 저장"""
+        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
+            with closing(conn.cursor()) as cursor:
+                # 길드 ID를 문자열로 변환
+                guild = str(guild_id)
+                
+                # 기존 볼륨 설정 확인
+                cursor.execute(
+                    "SELECT * FROM volume WHERE guild_id=?",
+                    (guild,)
+                )
+                db_volume = cursor.fetchone()
+                
+                if db_volume is None:
+                    # 새로운 볼륨 설정 추가
+                    cursor.execute(
+                        "INSERT INTO volume VALUES(?, ?)",
+                        (guild, volume)
+                    )
+                else:
+                    # 기존 볼륨 설정 수정
+                    cursor.execute(
+                        "UPDATE volume SET volume=? WHERE guild_id=?",
+                        (volume, guild)
+                    )
+                conn.commit()
+
+    def get_volume(self, guild_id: int) -> int:
+        """길드별 볼륨 설정 가져오기"""
+        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor.execute(
+                    "SELECT volume FROM volume WHERE guild_id=?",
+                    (str(guild_id),)
+                )
+                result = cursor.fetchone()
+                
+                # 결과가 없으면 기본값 100 반환
+                return result[0] if result else 20

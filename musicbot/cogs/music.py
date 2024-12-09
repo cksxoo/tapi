@@ -187,6 +187,20 @@ class Music(commands.Cog):
             player = interaction.client.lavalink.player_manager.create(
                 interaction.guild.id
             )
+
+            # 저장된 볼륨 설정 가져오기
+            saved_volume = Database().get_volume(interaction.guild.id)
+            await player.set_volume(saved_volume)
+
+            # 저장된 반복 상태 설정
+            loop = Database().get_loop(interaction.guild.id)
+            if loop is not None:
+                player.set_loop(loop)
+
+            # 저장된 셔플 상태 설정
+            shuffle = Database().get_shuffle(interaction.guild.id)
+            if shuffle is not None:
+                player.set_shuffle(shuffle)
         except Exception as e:
             LOGGER.error(f"Failed to create player: {e}")
             LOGGER.error(
@@ -249,19 +263,6 @@ class Music(commands.Cog):
             raise app_commands.CheckFailure(
                 get_lan(interaction.user.id, "music_come_in_my_voice_channel")
             )
-
-        # 반복 상태 설정
-        loop = Database().get_loop(interaction.guild.id)
-        if loop is not None:
-            player.set_loop(loop)
-
-        # 셔플 상태 설정
-        shuffle = Database().get_shuffle(interaction.guild.id)
-        if shuffle is not None:
-            player.set_shuffle(shuffle)
-
-        # 볼륨 설정
-        await player.set_volume(50)
 
         return True
 
@@ -383,7 +384,11 @@ class Music(commands.Cog):
 
         else:
             track = results.tracks[0]
-            embed.title = get_lan(interaction.user.id, "music_play_music") + "  💿 | " + track.author
+            embed.title = (
+                get_lan(interaction.user.id, "music_play_music")
+                + "  💿 | "
+                + track.author
+            )
             embed.description = f"[{track.title}]({track.uri})"
             thumbnail = track.identifier
 
@@ -500,7 +505,11 @@ class Music(commands.Cog):
 
         else:
             track = results.tracks[0]
-            embed.title = get_lan(interaction.user.id, "music_play_music") + "  💿 | " + track.author
+            embed.title = (
+                get_lan(interaction.user.id, "music_play_music")
+                + "  💿 | "
+                + track.author
+            )
             embed.description = f"[{track.title}]({track.uri})"
             thumbnail = track.uri
 
@@ -546,8 +555,9 @@ class Music(commands.Cog):
         if not player.is_playing:
             await player.play()
 
-
-    @app_commands.command(name="search", description="Search for songs with a given keyword")
+    @app_commands.command(
+        name="search", description="Search for songs with a given keyword"
+    )
     @app_commands.describe(query="Enter the keyword to search for songs")
     @app_commands.check(create_player)
     async def search(self, interaction: discord.Interaction, query: str):
@@ -558,7 +568,7 @@ class Music(commands.Cog):
         if not query:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_search_no_keyword"),
-                color=COLOR_CODE
+                color=COLOR_CODE,
             )
             embed.set_footer(text=BOT_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
@@ -570,7 +580,7 @@ class Music(commands.Cog):
         if not results or not results.tracks:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_search_no_results"),
-                color=COLOR_CODE
+                color=COLOR_CODE,
             )
             embed.set_footer(text=BOT_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
@@ -580,13 +590,13 @@ class Music(commands.Cog):
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_search_results"),
             description=get_lan(interaction.user.id, "music_search_select"),
-            color=COLOR_CODE
+            color=COLOR_CODE,
         )
         for i, track in enumerate(tracks, start=1):
             embed.add_field(
                 name=f"{i}. {track.title}",
                 value=f"{track.author} - {lavalink.format_time(track.duration)}",
-                inline=False
+                inline=False,
             )
         embed.set_footer(text=BOT_NAME_TAG_VER)
 
@@ -599,7 +609,9 @@ class Music(commands.Cog):
         player.add(requester=interaction.user.id, track=track)
 
         embed = discord.Embed(color=COLOR_CODE)
-        embed.title = get_lan(interaction.user.id, "music_play_music") + "  💿 | " + track.author
+        embed.title = (
+            get_lan(interaction.user.id, "music_play_music") + "  💿 | " + track.author
+        )
         embed.description = f"[{track.title}]({track.uri})"
 
         embed.add_field(
@@ -608,18 +620,21 @@ class Music(commands.Cog):
         )
         embed.add_field(
             name=get_lan(interaction.user.id, "music_shuffle"),
-            value=(get_lan(interaction.user.id, "music_shuffle_already_on") if player.shuffle
-                   else get_lan(interaction.user.id, "music_shuffle_already_off")),
-            inline=True
+            value=(
+                get_lan(interaction.user.id, "music_shuffle_already_on")
+                if player.shuffle
+                else get_lan(interaction.user.id, "music_shuffle_already_off")
+            ),
+            inline=True,
         )
         embed.add_field(
             name=get_lan(interaction.user.id, "music_repeat"),
             value=[
                 get_lan(interaction.user.id, "music_repeat_already_off"),
                 get_lan(interaction.user.id, "music_repeat_already_one"),
-                get_lan(interaction.user.id, "music_repeat_already_on")
+                get_lan(interaction.user.id, "music_repeat_already_on"),
             ][player.loop],
-            inline=True
+            inline=True,
         )
 
         embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
@@ -628,7 +643,6 @@ class Music(commands.Cog):
 
         if not player.is_playing:
             await player.play()
-
 
     @app_commands.command(
         name="disconnect",
@@ -754,7 +768,6 @@ class Music(commands.Cog):
         embed.set_footer(text=BOT_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
-
     @app_commands.command(name="queue", description="Send music queue!")
     @app_commands.check(create_player)
     async def queue(self, interaction: discord.Interaction):
@@ -764,7 +777,9 @@ class Music(commands.Cog):
             player = self.bot.lavalink.player_manager.get(interaction.guild.id)
             if not player.queue:
                 embed = discord.Embed(
-                    title=get_lan(interaction.user.id, "music_no_music_in_the_playlist"),
+                    title=get_lan(
+                        interaction.user.id, "music_no_music_in_the_playlist"
+                    ),
                     description="",
                     color=COLOR_CODE,
                 )
@@ -784,14 +799,18 @@ class Music(commands.Cog):
 
                 @discord.ui.button(label="Previous", style=discord.ButtonStyle.gray)
                 async def previous_page(
-                    self, button_interaction: discord.Interaction, button: discord.ui.Button
+                    self,
+                    button_interaction: discord.Interaction,
+                    button: discord.ui.Button,
                 ):
                     self.current_page = (self.current_page - 1) % len(pages)
                     await self.update_message(button_interaction)
 
                 @discord.ui.button(label="Next", style=discord.ButtonStyle.gray)
                 async def next_page(
-                    self, button_interaction: discord.Interaction, button: discord.ui.Button
+                    self,
+                    button_interaction: discord.Interaction,
+                    button: discord.ui.Button,
                 ):
                     self.current_page = (self.current_page + 1) % len(pages)
                     await self.update_message(button_interaction)
@@ -804,15 +823,17 @@ class Music(commands.Cog):
                     ):
                         queue_list += f"`{index}.` [**{track.title}**]({track.uri})\n"
                     embed = discord.Embed(
-                        description=get_lan(button_interaction.user.id, "music_q").format(
-                            lenQ=len(player.queue), queue_list=queue_list
-                        ),
+                        description=get_lan(
+                            button_interaction.user.id, "music_q"
+                        ).format(lenQ=len(player.queue), queue_list=queue_list),
                         color=COLOR_CODE,
                     )
                     embed.set_footer(
                         text=f"{get_lan(button_interaction.user.id, 'music_page')} {self.current_page + 1}/{len(pages)}\n{BOT_NAME_TAG_VER}"
                     )
-                    await button_interaction.response.edit_message(embed=embed, view=self)
+                    await button_interaction.response.edit_message(
+                        embed=embed, view=self
+                    )
 
             view = QueuePaginator()
             queue_list = ""
@@ -980,6 +1001,7 @@ class Music(commands.Cog):
             )
             embed.set_footer(text=BOT_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
+
         if volume > 1000 or volume < 1:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_input_over_vol"),
@@ -990,6 +1012,8 @@ class Music(commands.Cog):
             return await interaction.followup.send(embed=embed)
 
         await player.set_volume(volume)
+        # 볼륨 설정을 DB에 저장
+        Database().set_volume(interaction.guild.id, volume)
 
         volicon = await volumeicon(player.volume)
         embed = discord.Embed(
@@ -1291,6 +1315,7 @@ async def setup(bot):
     await bot.add_cog(Music(bot))
     LOGGER.info("Music loaded!")
 
+
 class SearchSelect(discord.ui.Select):
     def __init__(self, tracks, cog, interaction):
         self.tracks = tracks
@@ -1317,8 +1342,8 @@ class SearchSelect(discord.ui.Select):
         selected_track = self.tracks[selected_index]
         await self.cog.play_search_result(interaction, selected_track)
 
+
 class SearchView(discord.ui.View):
     def __init__(self, tracks, cog, interaction):
         super().__init__()
         self.add_item(SearchSelect(tracks, cog, interaction))
-

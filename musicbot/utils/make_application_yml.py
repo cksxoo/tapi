@@ -60,11 +60,7 @@ plugins:
     # Clients are queried in the order they are given (so the first client is queried first and so on...)
     clients:
       - ANDROID
-      - ANDROID_MUSIC
       - IOS
-      - MOBILE
-      - WEB
-      - TV_EMBED
     # You can configure individual clients with the following.
     # Any options or clients left unspecified will use their default values,
     # which enables everything for all clients.
