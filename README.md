@@ -4,10 +4,10 @@
 1. `python -m musicbot`
 
 
-## docker-compose
+## docker compose
 
-- docker-compose up -d
-- docker-compose up -d --build
+- docker compose up -d
+- docker compose up -d --build
 
-- docker-compose down -v
-- docker-compose down --rmi all
+- docker compose down -v
+- docker compose down --rmi all
