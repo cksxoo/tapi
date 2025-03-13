@@ -162,11 +162,11 @@ lavalink:
       rotation: true
       channelMix: true
       lowPass: true
-    bufferDurationMs: 400 # NAS 버퍼의 지속 시간. 값이 높을수록 더 긴 GC 일시 중지에 대해 더 잘 처리됩니다. JDA-NAS를 비활성화하려면 Duration <= 0입니다. 최소 40ms, 값이 낮을수록 일시 중지가 발생할 수 있습니다.
-    frameBufferDurationMs: 5000 # 버퍼링할 오디오 시간(밀리초)
+    bufferDurationMs: 1000 # NAS 버퍼의 지속 시간. 값이 높을수록 더 긴 GC 일시 중지에 대해 더 잘 처리됩니다. JDA-NAS를 비활성화하려면 Duration <= 0입니다. 최소 40ms, 값이 낮을수록 일시 중지가 발생할 수 있습니다.
+    frameBufferDurationMs: 10000 # 버퍼링할 오디오 시간(밀리초)
     opusEncodingQuality: 10 # Opus 인코더 품질. 유효한 값의 범위는 0에서 10까지입니다. 여기서 10은 최상의 품질이지만 CPU를 가장 많이 사용합니다.
     resamplingQuality: HIGH # 리샘플링 작업의 품질. 유효한 값은 LOW, MEDIUM 및 HIGH입니다. 여기서 HIGH는 CPU를 가장 많이 사용합니다.
-    trackStuckThresholdMs: 10000 # 트랙이 멈출 수 있는 시간에 대한 임계값입니다. 오디오 데이터를 반환하지 않으면 트랙이 멈춥니다.
+    trackStuckThresholdMs: 20000 # 트랙이 멈출 수 있는 시간에 대한 임계값입니다. 오디오 데이터를 반환하지 않으면 트랙이 멈춥니다.
     useSeekGhosting: true # 탐색 고스팅은 탐색이 진행되는 동안 오디오 버퍼가 비워질 때까지 또는 탐색이 준비될 때까지 읽히는 효과입니다.
     youtubePlaylistLoadLimit: 6 # 각 100페이지의 페이지 수
     playerUpdateInterval: 5 # 플레이어 업데이트를 클라이언트에 보내는 빈도(초)
