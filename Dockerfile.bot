@@ -25,9 +25,9 @@ RUN curl -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.0.8/L
 # Download plugins
 RUN mkdir -p plugins
 
-RUN curl -L "https://github.com/lavalink-devs/youtube-source/releases/download/1.11.0/youtube-plugin-1.11.5.jar" -o plugins/youtube-plugin.jar
+RUN curl -L "https://github.com/lavalink-devs/youtube-source/releases/download/1.11.5/youtube-plugin-1.11.5.jar" -o plugins/youtube-plugin.jar
 
-RUN curl -L "https://github.com/topi314/LavaSrc/releases/download/4.3.0/lavasrc-plugin-4.3.0.jar" -o plugins/lavasrc-plugin.jar
+RUN curl -L "https://github.com/topi314/LavaSrc/releases/download/4.4.2/lavasrc-plugin-4.4.2.jar" -o plugins/lavasrc-plugin.jar
 
 # Copy everything except what's in volumes
 COPY . .
