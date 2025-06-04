@@ -60,7 +60,6 @@ plugins:
     clients:
       - WEB
       - IOS
-      - ANDROID_MUSIC
     # You can configure individual clients with the following.
     # which enables everything for all clients.
 #    WEB: # names are specified as they are written below under "Available Clients".
