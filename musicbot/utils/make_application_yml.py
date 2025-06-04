@@ -59,8 +59,8 @@ plugins:
     # The clients to use for track loading. See below for a list of valid "clients": ["WEB", "ANDROID_MUSIC", "IOS"] # Trying ANDROID_MUSIC based on recent reports queried in the order they are given (so the first client is queried first and so on...)
     clients:
       - WEB
-      - ANDROID_MUSIC
       - IOS
+      - ANDROID_MUSIC
     # You can configure individual clients with the following.
     # which enables everything for all clients.
 #    WEB: # names are specified as they are written below under "Available Clients".
@@ -167,7 +167,7 @@ lavalink:
       rotation: true
       channelMix: true
       lowPass: true
-    bufferDurationMs: 1000 # NAS 버퍼의 지속 시간. 값이 높을수록 더 긴 GC 일시 중지에 대해 더 잘 처리됩니다. JDA-NAS를 비활성화하려면 Duration <= 0입니다. 최소 40ms, 값이 낮을수록 일시 중지가 발생할 수 있습니다.
+    bufferDurationMs: 500 # NAS 버퍼의 지속 시간. 값이 높을수록 더 긴 GC 일시 중지에 대해 더 잘 처리됩니다. JDA-NAS를 비활성화하려면 Duration <= 0입니다. 최소 40ms, 값이 낮을수록 일시 중지가 발생할 수 있습니다.
     frameBufferDurationMs: 10000 # 버퍼링할 오디오 시간(밀리초)
     opusEncodingQuality: 10 # Opus 인코더 품질. 유효한 값의 범위는 0에서 10까지입니다. 여기서 10은 최상의 품질이지만 CPU를 가장 많이 사용합니다.
     resamplingQuality: HIGH # 리샘플링 작업의 품질. 유효한 값은 LOW, MEDIUM 및 HIGH입니다. 여기서 HIGH는 CPU를 가장 많이 사용합니다.
@@ -211,12 +211,15 @@ logging:
 
   level:
     root: INFO
-    lavalink: INFO
+    lavalink: DEBUG
+    lavalink.server.io.SocketContext: TRACE
+    com.sedmelluq.discord.lavaplayer.tools.ExceptionTools: DEBUG
+    dev.lavalink.youtube: DEBUG
 
   request:
     enabled: true
     includeClientInfo: true
-    includeHeaders: true
+    includeHeaders: false
     includeQueryString: true
     includePayload: true
     maxPayloadLength: 10000

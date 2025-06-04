@@ -36,9 +36,9 @@ WORKDIR /app
 
 # Install runtime system dependencies (ffmpeg for audio, JRE for Lavalink)
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     ffmpeg \
-    default-jre \
+    openjdk-17-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python virtual environment from builder stage
