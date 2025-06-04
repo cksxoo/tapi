@@ -56,17 +56,16 @@ plugins:
     defaultSearchProvider: ytsearch # The default search provider to use when none is specified.
     allowDirectVideoIds: true # Whether just video IDs can match. If false, only complete URLs will be loaded.
     allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
-    # The clients to use for track loading. See below for a list of valid clients.
-    # Clients are queried in the order they are given (so the first client is queried first and so on...)
+    # The clients to use for track loading. See below for a list of valid "clients": ["WEB", "ANDROID_MUSIC", "IOS"] # Trying ANDROID_MUSIC based on recent reports queried in the order they are given (so the first client is queried first and so on...)
     clients:
-      - ANDROID
+      - WEB
+      - ANDROID_MUSIC
       - IOS
     # You can configure individual clients with the following.
-    # Any options or clients left unspecified will use their default values,
     # which enables everything for all clients.
-    WEB: # names are specified as they are written below under "Available Clients".
-      # This will disable using the WEB client for video playback.
-      playback: false
+#    WEB: # names are specified as they are written below under "Available Clients".
+#      # This will disable using the WEB client for video playback.
+#      playback: false
     TVHTML5EMBEDDED:
       # The below config disables everything except playback for this client.
       playlistLoading: false # Disables loading of playlists and mixes for this client.
@@ -99,6 +98,12 @@ plugins:
       yandexmusic: false # Enable Yandex Music source
       flowerytts: false # Enable Flowery TTs source
       youtube: true # Enable YouTube search source (https://github.com/topi314/LavaSearch)
+    # Lavalink specific performance and quality settings
+    nonAllocatingFrameBuffer: true
+    bufferDurationMs: 1000
+    frameBufferDurationMs: 10000
+    opusEncodingQuality: 8
+    resamplingQuality: LOW
     lyrics-sources:
       spotify: false # Enable Spotify lyrics source
       deezer: false # Enable Deezer lyrics source
