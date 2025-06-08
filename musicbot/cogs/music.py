@@ -292,8 +292,20 @@ class Music(commands.Cog):
         guild_id = event.player.guild_id
         guild = self.bot.get_guild(guild_id)
 
-        if guild is not None:
-            await guild.voice_client.disconnect(force=True)
+        # Check if the voice client exists and if the player is connected
+        if guild and guild.voice_client and event.player.is_connected:
+            # Optional: Add a small delay if needed, or specific checks
+            # before disconnecting.
+            # For example, ensure the player is truly stopped or idle.
+            # if event.player.current is None and not event.player.is_playing:
+            try:
+                await guild.voice_client.disconnect(force=True)
+            except Exception as e:
+                print(f"Error disconnecting voice client: {e}") # Add logging for any potential errors during disconnect
+        # elif guild and guild.voice_client:
+            # This case means voice_client exists but player is not connected according to lavalink
+            # Potentially log this state or handle as an edge case if necessary
+            # print(f"Voice client exists for guild {guild_id} but player is not connected.")
 
     @app_commands.command(name="connect", description="Connect to voice channel!")
     @app_commands.check(create_player)
