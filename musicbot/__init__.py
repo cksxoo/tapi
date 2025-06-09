@@ -8,7 +8,7 @@ from musicbot.utils.database import Database
 
 
 # Bot version
-BOT_VER = "v0.3"
+BOT_VER = "v0.4"
 
 # enable logging
 logging.basicConfig(

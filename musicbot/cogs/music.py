@@ -9,10 +9,7 @@ import yt_dlp
 import discord
 from discord import app_commands
 
-# from discord import option
-from discord.ext import commands
-
-# from discord.ext import commands, pages
+from discord.ext import commands  # Re-enabled this line
 
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent, TrackExceptionEvent
@@ -292,21 +289,16 @@ class Music(commands.Cog):
     async def on_queue_end(self, event: QueueEndEvent):
         guild_id = event.player.guild_id
         guild = self.bot.get_guild(guild_id)
-        
+
         # Check if the voice client exists and if the player is connected
         if guild and guild.voice_client and event.player.is_connected:
             # Optional: Add a small delay if needed, or specific checks
             # before disconnecting.
             # For example, ensure the player is truly stopped or idle.
-            # if event.player.current is None and not event.player.is_playing:
             try:
                 await guild.voice_client.disconnect(force=True)
             except Exception as e:
-                print(f"Error disconnecting voice client: {e}") # Add logging for any potential errors during disconnect
-        # elif guild and guild.voice_client:
-            # This case means voice_client exists but player is not connected according to lavalink
-            # Potentially log this state or handle as an edge case if necessary
-            # print(f"Voice client exists for guild {guild_id} but player is not connected.")
+                LOGGER.error(f"Error disconnecting voice client: {e}")
 
     @lavalink.listener(TrackExceptionEvent)
     async def on_track_exception(self, event: TrackExceptionEvent):
@@ -315,73 +307,107 @@ class Music(commands.Cog):
         original_track_title = event.track.title
         requester = event.track.requester
 
-        LOGGER.error(f"TrackExceptionEvent: '{event.exception.message}' for track '{original_track_title}' (URI: {original_track_uri}), Severity: {event.exception.severity}")
+        LOGGER.error(
+            f"TrackExceptionEvent: '{event.exception.message}' for track '{original_track_title}' (URI: {original_track_uri}), Severity: {event.exception.severity}"
+        )
 
         # Try yt-dlp fallback only for YouTube watch URLs and specific severities/messages
-        if "youtube.com/watch" in original_track_uri and \
-           event.exception.severity in ["SUSPICIOUS", "COMMON", "FAULT"] and \
-           ("unavailable" in event.exception.message.lower() or 
-            "copyright" in event.exception.message.lower() or 
-            "playback on other websites has been disabled" in event.exception.message.lower() or
-            "requires payment" in event.exception.message.lower()):
-            
-            LOGGER.info(f"Attempting yt-dlp fallback for failed track: {original_track_uri}")
+        if (
+            "youtube.com/watch" in original_track_uri
+            and event.exception.severity in ["SUSPICIOUS", "COMMON", "FAULT"]
+            and (
+                "unavailable" in event.exception.message.lower()
+                or "copyright" in event.exception.message.lower()
+                or "playback on other websites has been disabled"
+                in event.exception.message.lower()
+                or "requires payment" in event.exception.message.lower()
+            )
+        ):
+
+            LOGGER.info(
+                f"Attempting yt-dlp fallback for failed track: {original_track_uri}"
+            )
             try:
                 ydl_opts = {
-                    'format': 'bestaudio/best',
-                    'noplaylist': True,
-                    'quiet': True,
-                    'no_warnings': True,
-                    'skip_download': True,
-                    'source_address': '0.0.0.0'  # Ensure Lavalink can access if on different network interface
+                    "format": "bestaudio/best",
+                    "noplaylist": True,
+                    "quiet": True,
+                    "no_warnings": True,
+                    "skip_download": True,
+                    "source_address": "0.0.0.0",  # Ensure Lavalink can access if on different network interface
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(original_track_uri, download=False)
-                
+
                 stream_url_from_yt_dlp = None
-                if info and 'url' in info:
-                    stream_url_from_yt_dlp = info['url']
-                elif info and info.get('entries') and info['entries'][0].get('url'): # Should not happen with noplaylist=True
-                    stream_url_from_yt_dlp = info['entries'][0]['url']
+                if info and "url" in info:
+                    stream_url_from_yt_dlp = info["url"]
+                elif (
+                    info and info.get("entries") and info["entries"][0].get("url")
+                ):  # Should not happen with noplaylist=True
+                    stream_url_from_yt_dlp = info["entries"][0]["url"]
 
                 if stream_url_from_yt_dlp:
-                    LOGGER.info(f"yt-dlp provided stream URL for '{original_track_title}': {stream_url_from_yt_dlp}")
+                    LOGGER.info(
+                        f"yt-dlp provided stream URL for '{original_track_title}': {stream_url_from_yt_dlp}"
+                    )
                     new_results = await player.node.get_tracks(stream_url_from_yt_dlp)
                     if new_results and new_results.tracks:
                         new_track = new_results.tracks[0]
-                        new_track.requester = requester # Preserve original requester
-                        
+                        new_track.requester = requester  # Preserve original requester
+
                         # Add to front of queue. If player stopped due to exception, this should play next.
                         player.add(track=new_track, requester=requester, index=0)
-                        LOGGER.info(f"Added yt-dlp fallback track '{new_track.title}' to front of queue for guild {player.guild_id}.")
-                        
+                        LOGGER.info(
+                            f"Added yt-dlp fallback track '{new_track.title}' to front of queue for guild {player.guild_id}."
+                        )
+
                         # If player is not playing (e.g., exception stopped it and didn't auto-play next)
-                        if not player.is_playing and not player.paused and player.is_connected:
-                            await player.play() # Start playing the new track
-                        return # yt-dlp fallback initiated
+                        if (
+                            not player.is_playing
+                            and not player.paused
+                            and player.is_connected
+                        ):
+                            await player.play()  # Start playing the new track
+                        return  # yt-dlp fallback initiated
                     else:
-                        LOGGER.warning(f"yt-dlp got a stream URL, but Lavalink couldn't load it as a track: {stream_url_from_yt_dlp}")
+                        LOGGER.warning(
+                            f"yt-dlp got a stream URL, but Lavalink couldn't load it as a track: {stream_url_from_yt_dlp}"
+                        )
                 else:
-                    LOGGER.warning(f"yt-dlp did not find a streamable URL for: {original_track_uri}")
+                    LOGGER.warning(
+                        f"yt-dlp did not find a streamable URL for: {original_track_uri}"
+                    )
 
             except Exception as e:
-                LOGGER.error(f"yt-dlp fallback in on_track_exception failed for '{original_track_uri}': {e}")
-        
+                LOGGER.error(
+                    f"yt-dlp fallback in on_track_exception failed for '{original_track_uri}': {e}"
+                )
+
         # If fallback was not attempted or failed, send a message to the user
-        channel_id = player.fetch('channel')
+        channel_id = player.fetch("channel")
         if channel_id:
             channel = self.bot.get_channel(int(channel_id))
             if channel:
                 embed = discord.Embed(
-                    title=get_lan(requester or self.bot.user.id, "music_play_fail_title"), # Use requester's language or default
-                    description=get_lan(requester or self.bot.user.id, "music_play_fail_description").format(track_title=original_track_title, error_message=event.exception.message),
-                    color=COLOR_CODE
+                    title=get_lan(
+                        requester or self.bot.user.id, "music_play_fail_title"
+                    ),  # Use requester's language or default
+                    description=get_lan(
+                        requester or self.bot.user.id, "music_play_fail_description"
+                    ).format(
+                        track_title=original_track_title,
+                        error_message=event.exception.message,
+                    ),
+                    color=COLOR_CODE,
                 )
                 embed.set_footer(text=BOT_NAME_TAG_VER)
                 try:
                     await channel.send(embed=embed)
                 except discord.HTTPException as e:
-                    LOGGER.error(f"Failed to send track exception message to channel {channel_id}: {e}")
+                    LOGGER.error(
+                        f"Failed to send track exception message to channel {channel_id}: {e}"
+                    )
 
     @app_commands.command(name="connect", description="Connect to voice channel!")
     @app_commands.check(create_player)
@@ -414,69 +440,94 @@ class Music(commands.Cog):
             player = self.bot.lavalink.player_manager.get(interaction.guild.id)
 
             original_query_stripped = query.strip("<>")
-            
+
             current_lavalink_query = original_query_stripped
             is_search_query = not url_rx.match(original_query_stripped)
             if is_search_query:
                 current_lavalink_query = f"ytsearch:{original_query_stripped}"
 
             nofind = 0
-            yt_dlp_attempted_for_url = False # Flag to ensure yt-dlp is tried only once for a failing URL
+            yt_dlp_attempted_for_url = (
+                False  # Flag to ensure yt-dlp is tried only once for a failing URL
+            )
 
             while True:
                 results = await player.node.get_tracks(current_lavalink_query)
 
-                if results.load_type == LoadType.EMPTY or not results or not results.tracks:
+                if (
+                    results.load_type == LoadType.EMPTY
+                    or not results
+                    or not results.tracks
+                ):
                     if not is_search_query and not yt_dlp_attempted_for_url:
                         yt_dlp_attempted_for_url = True
-                        LOGGER.info(f"Lavalink failed for URL '{original_query_stripped}'. Trying yt-dlp.")
+                        LOGGER.info(
+                            f"Lavalink failed for URL '{original_query_stripped}'. Trying yt-dlp."
+                        )
                         try:
                             ydl_opts = {
-                                'format': 'bestaudio/best',
-                                'noplaylist': True,
-                                'quiet': True,
-                                'no_warnings': True,
-                                'skip_download': True,
-                                'source_address': '0.0.0.0' # Bind to all interfaces for Lavalink access
+                                "format": "bestaudio/best",
+                                "noplaylist": True,
+                                "quiet": True,
+                                "no_warnings": True,
+                                "skip_download": True,
+                                "source_address": "0.0.0.0",  # Bind to all interfaces for Lavalink access
                             }
                             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                                info = ydl.extract_info(original_query_stripped, download=False)
-                                
+                                info = ydl.extract_info(
+                                    original_query_stripped, download=False
+                                )
+
                                 stream_url_from_yt_dlp = None
-                                if info and 'url' in info: # Direct stream URL from yt-dlp
-                                    stream_url_from_yt_dlp = info['url']
-                                elif info and info.get('entries') and info['entries'][0].get('url'): # Fallback for some cases like playlist with noplaylist=True
-                                    stream_url_from_yt_dlp = info['entries'][0]['url']
+                                if (
+                                    info and "url" in info
+                                ):  # Direct stream URL from yt-dlp
+                                    stream_url_from_yt_dlp = info["url"]
+                                elif (
+                                    info
+                                    and info.get("entries")
+                                    and info["entries"][0].get("url")
+                                ):  # Fallback for some cases like playlist with noplaylist=True
+                                    stream_url_from_yt_dlp = info["entries"][0]["url"]
 
                                 if stream_url_from_yt_dlp:
-                                    LOGGER.info(f"yt-dlp provided stream URL: {stream_url_from_yt_dlp}")
+                                    LOGGER.info(
+                                        f"yt-dlp provided stream URL: {stream_url_from_yt_dlp}"
+                                    )
                                     current_lavalink_query = stream_url_from_yt_dlp
                                     # Reset nofind for the new URL attempt, or just continue to retry with new query
-                                    # nofind = 0 # Optional: reset retries for the new URL
-                                    continue # Retry the Lavalink get_tracks with the new yt-dlp URL
+                                    continue  # Retry the Lavalink get_tracks with the new yt-dlp URL
                                 else:
-                                    LOGGER.warning(f"yt-dlp did not find a streamable URL for: {original_query_stripped}")
+                                    LOGGER.warning(
+                                        f"yt-dlp did not find a streamable URL for: {original_query_stripped}"
+                                    )
                         except Exception as e:
-                            LOGGER.error(f"Error during yt-dlp processing for '{original_query_stripped}': {e}")
-                    
+                            LOGGER.error(
+                                f"Error during yt-dlp processing for '{original_query_stripped}': {e}"
+                            )
+
                     # If yt-dlp was attempted and failed, or if it's a search query, handle retries/failure
                     if nofind < 3:
-                        # If it was a URL and yt-dlp path was taken and failed to provide a new URL, 
+                        # If it was a URL and yt-dlp path was taken and failed to provide a new URL,
                         # we should not retry the original bad URL with Lavalink multiple times.
                         if not is_search_query and yt_dlp_attempted_for_url:
-                            nofind = 3 # Force failure after one yt-dlp attempt for a URL
+                            nofind = (
+                                3  # Force failure after one yt-dlp attempt for a URL
+                            )
                         else:
                             nofind += 1
-                    
+
                     if nofind >= 3:
                         embed = discord.Embed(
-                            title=get_lan(interaction.user.id, "music_can_not_find_anything"),
-                            description=f"Query: {original_query_stripped}", # Added original query for context
+                            title=get_lan(
+                                interaction.user.id, "music_can_not_find_anything"
+                            ),
+                            description=f"Query: {original_query_stripped}",  # Added original query for context
                             color=COLOR_CODE,
                         )
                         embed.set_footer(text=BOT_NAME_TAG_VER)
                         return await interaction.followup.send(embed=embed)
-                else: # Lavalink found tracks
+                else:  # Lavalink found tracks
                     break
 
             embed = discord.Embed(color=COLOR_CODE)
@@ -639,8 +690,6 @@ class Music(commands.Cog):
                 if trackcount != 1:
                     thumbnail = track.uri
                     trackcount = 1
-                # Music statistical(for playlist)
-                # Statistics().up(track.identifier)
 
                 # Add all of the tracks from the playlist to the queue.
                 player.add(requester=interaction.user.id, track=track)
@@ -657,9 +706,6 @@ class Music(commands.Cog):
             )
             embed.description = f"[{track.title}]({track.uri})"
             thumbnail = track.uri
-
-            # Music statistical
-            # Statistics().up(track.identifier)
 
             # You can attach additional information to audiotracks through kwargs, however this involves
             # constructing the AudioTrack class yourself.
