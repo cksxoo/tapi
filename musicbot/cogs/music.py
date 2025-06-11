@@ -301,26 +301,22 @@ class Music(commands.Cog):
                 LOGGER.error(f"Error disconnecting voice client: {e}")
 
     @lavalink.listener(TrackExceptionEvent)
-    async def on_track_exception(self, event: TrackExceptionEvent):
-        player = event.player
-        original_track_uri = event.track.uri
-        original_track_title = event.track.title
-        requester = event.track.requester
+    async def on_track_exception(self, event: TrackExceptionEvent):  # Corrected type hint
+        original_track_uri = event.track.uri  # Defined original_track_uri
+        original_track_title = event.track.title  # Defined original_track_title
+        player = event.player  # Defined player
+        requester = event.track.requester # Define requester from event.track
 
-        LOGGER.error(
-            f"TrackExceptionEvent: '{event.exception.message}' for track '{original_track_title}' (URI: {original_track_uri}), Severity: {event.exception.severity}"
-        )
-
-        # Try yt-dlp fallback only for YouTube watch URLs and specific severities/messages
+        # The existing conditional block, with corrections
         if (
             "youtube.com/watch" in original_track_uri
-            and event.exception.severity in ["SUSPICIOUS", "COMMON", "FAULT"]
+            and event.severity in ["SUSPICIOUS", "COMMON", "FAULT"]  # Changed from event.exception.severity
             and (
-                "unavailable" in event.exception.message.lower()
-                or "copyright" in event.exception.message.lower()
+                "unavailable" in event.message.lower()  # Changed from event.exception.message
+                or "copyright" in event.message.lower()  # Changed from event.exception.message
                 or "playback on other websites has been disabled"
-                in event.exception.message.lower()
-                or "requires payment" in event.exception.message.lower()
+                in event.message.lower()  # Changed from event.exception.message
+                or "requires payment" in event.message.lower()  # Changed from event.exception.message
             )
         ):
 
@@ -385,7 +381,7 @@ class Music(commands.Cog):
                 )
 
         # If fallback was not attempted or failed, send a message to the user
-        channel_id = player.fetch("channel")
+        channel_id = player.fetch("channel")  # 'player' is now correctly defined
         if channel_id:
             channel = self.bot.get_channel(int(channel_id))
             if channel:
@@ -397,7 +393,7 @@ class Music(commands.Cog):
                         requester or self.bot.user.id, "music_play_fail_description"
                     ).format(
                         track_title=original_track_title,
-                        error_message=event.exception.message,
+                        error_message=event.message,  # Changed from event.exception.message
                     ),
                     color=COLOR_CODE,
                 )
