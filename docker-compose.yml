@@ -11,6 +11,7 @@ services:
       - ./plugins:/app/plugins
     environment:
       - PYTHONUNBUFFERED=1
+      - TZ=Asia/Seoul
     restart: unless-stopped
 
   dashboard:
@@ -23,6 +24,7 @@ services:
       - ./musicbot:/app/musicbot  # Share the same database with the bot
     environment:
       - PYTHONUNBUFFERED=1
+      - TZ=Asia/Seoul
     depends_on:
       - bot
     restart: unless-stopped
