@@ -1,13 +1,7 @@
-import re
-import json
 import time
 import psutil
 import discord
-import requests
-import lavalink
-import platform
 import datetime
-import subprocess
 from discord import app_commands
 from discord.ext import commands
 

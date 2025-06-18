@@ -1,7 +1,7 @@
 services:
   bot:
     build: 
-      context: .
+      context: ./musicbot
       dockerfile: Dockerfile.bot
     ports:
       - "2333:2333"  # Lavalink port
@@ -16,7 +16,7 @@ services:
 
   dashboard:
     build:
-      context: .
+      context: ./dashboard
       dockerfile: Dockerfile.dashboard
     ports:
       - "8501:8501"  # Streamlit port

@@ -11,7 +11,7 @@ topggpy
 pymysql
 soundcloud-lib
 yt-dlp
+PyNaCl
+youtube_dl
 
-streamlit
-plotly
 pandas

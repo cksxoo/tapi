@@ -1,11 +1,11 @@
 # ---- Builder Stage ----
-FROM python:3.10-slim AS builder
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install build-time system dependencies (curl for downloading, build-essential for pip packages)
+# Install build-time system dependencies
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
@@ -18,43 +18,40 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir PyNaCl youtube_dl
+# Ensure PyNaCl and youtube_dl are in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Download Lavalink.jar
 RUN curl -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.0.8/Lavalink.jar" -o Lavalink.jar
 
-# Download plugins
+# Download plugins - Lavalink will download these dynamically based on config
 # RUN mkdir -p plugins
 # RUN curl -L "https://github.com/lavalink-devs/youtube-source/releases/download/1.11.5/youtube-plugin-1.11.5.jar" -o plugins/youtube-plugin.jar
 # RUN curl -L "https://github.com/topi314/LavaSrc/releases/download/4.4.2/lavasrc-plugin-4.4.2.jar" -o plugins/lavasrc-plugin.jar
 
 # ---- Final Stage ----
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime system dependencies (ffmpeg for audio, JRE for Lavalink)
+# Install runtime system dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ffmpeg \
     openjdk-17-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python virtual environment from builder stage
+# Copy virtual environment from builder stage
 COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy Lavalink.jar and plugins from builder stage
-COPY --from=builder /app/Lavalink.jar Lavalink.jar
-# COPY --from=builder /app/plugins plugins/
+# Copy Lavalink.jar from builder stage
+COPY --from=builder /app/Lavalink.jar .
 
 # Create necessary runtime directories
 RUN mkdir -p musicbot/db logs
 
 # Copy application code
-# This should be one of the last steps to leverage caching for dependencies
 COPY . .
 
 # Set the default command to run the bot
-CMD ["python", "-m", "musicbot"]
+CMD ["/opt/venv/bin/python", "-m", "musicbot"]

@@ -3,7 +3,7 @@ import discord
 import asyncio
 import multiprocessing
 from discord.ext import commands
-from musicbot.lavalinkstart import start_lavalink, download_lavalink
+from musicbot.utils.lavalinkstart import start_lavalink, download_lavalink
 import lavalink
 
 from musicbot import (
