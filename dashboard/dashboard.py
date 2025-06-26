@@ -51,14 +51,18 @@ def get_hourly_statistics(df):
 def main():
     st.title("🎵 Music Bot Monitoring Dashboard")
 
-    # Sidebar for controls
-    st.sidebar.title("Dashboard Controls")
-    auto_refresh = st.sidebar.checkbox("Enable Auto-Refresh", True)
-    refresh_interval = st.sidebar.number_input("Refresh Interval (seconds)", min_value=5, max_value=300, value=60)
-
-    if st.sidebar.button("Refresh Now"):
-        st.cache_resource.clear()
-        st.rerun()
+    # 대시보드 컨트롤
+    with st.expander("⚙️ Dashboard Controls & Settings"):
+        col1, col2, col3 = st.columns([2, 2, 1])
+        with col1:
+            auto_refresh = st.checkbox("Enable Auto-Refresh", True)
+        with col2:
+            refresh_interval = st.number_input("Refresh Interval (seconds)", min_value=5, max_value=300, value=60)
+        with col3:
+            st.write("") # Vertical alignment hack
+            if st.button("Refresh Now", use_container_width=True):
+                st.cache_resource.clear()
+                st.rerun()
 
     try:
         # 데이터 로드
