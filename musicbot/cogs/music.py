@@ -171,7 +171,7 @@ class Music(commands.Cog):
         else:
             print(traceback.format_exc())
 
-    async def _ensure_voice_and_player(self, interaction: discord.Interaction):
+    async def create_player(interaction: discord.Interaction):
         """
         A check that is invoked before any commands marked with `@app_commands.check(create_player)` can run.
 
@@ -261,6 +261,8 @@ class Music(commands.Cog):
             raise app_commands.CheckFailure(
                 get_lan(interaction.user.id, "music_come_in_my_voice_channel")
             )
+
+        return True
 
     @lavalink.listener(TrackStartEvent)
     async def on_track_start(self, event: TrackStartEvent):
@@ -426,39 +428,31 @@ class Music(commands.Cog):
                         f"Failed to send track exception message to channel {channel_id}: {e}"
                     )
 
-    @app_commands.command(
-        name="connect", description="Connects to a voice channel."
-    )
+    @app_commands.command(name="connect", description="Connect to voice channel!")
+    @app_commands.check(create_player)
     async def connect(self, interaction: discord.Interaction):
-        """Connects the bot to the voice channel you are in."""
-        await interaction.response.defer(ephemeral=True)
-        try:
-            await self._ensure_voice_and_player(interaction)
-        except app_commands.CheckFailure as e:
-            await interaction.followup.send(str(e), ephemeral=True)
-            return
-
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+        if not player.is_connected:
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "music_connect_voice_channel"),
+                color=COLOR_CODE,
+            )
+            embed.set_footer(text=BOT_NAME_TAG_VER)
+            await interaction.response.send_message(embed=embed)
         embed = discord.Embed(
-            title=get_lan(interaction.user.id, "music_connected").format(
-                voice_channel=interaction.user.voice.channel.name
-            ),
+            title=get_lan(interaction.user.id, "music_already_connected_voice_channel"),
             color=COLOR_CODE,
         )
         embed.set_footer(text=BOT_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
         name="play", description="Searches and plays a song from a given query."
     )
     @app_commands.describe(query="찾고싶은 음악의 제목이나 링크를 입력하세요")
+    @app_commands.check(create_player)
     async def play(self, interaction: discord.Interaction, query: str):
         await interaction.response.defer()
-
-        try:
-            await self._ensure_voice_and_player(interaction)
-        except app_commands.CheckFailure as e:
-            await interaction.followup.send(str(e))
-            return
 
         try:
             # Get the player for this guild from cache.
