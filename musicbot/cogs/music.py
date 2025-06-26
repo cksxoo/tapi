@@ -266,17 +266,6 @@ class Music(commands.Cog):
 
     @lavalink.listener(TrackStartEvent)
     async def on_track_start(self, event: TrackStartEvent):
-        # Log successful play
-        try:
-            Statistics().record_play(
-                track=event.track,
-                guild_id=event.player.guild_id,
-                channel_id=event.player.fetch('channel'),
-                user_id=event.track.requester,
-                success=True
-            )
-        except Exception as e:
-            LOGGER.error(f"Error recording play statistics: {e}")
         guild_id = event.player.guild_id
         channel_id = event.player.fetch("channel")
         guild = self.bot.get_guild(guild_id)
@@ -390,18 +379,6 @@ class Music(commands.Cog):
                 LOGGER.error(
                     f"yt-dlp fallback in on_track_exception failed for '{original_track_uri}': {e}"
                 )
-
-        # Log failed play
-        try:
-            Statistics().record_play(
-                track=event.track,
-                guild_id=player.guild_id,
-                channel_id=player.fetch('channel'),
-                user_id=requester,
-                success=False
-            )
-        except Exception as e:
-            LOGGER.error(f"Error recording failed play statistics: {e}")
 
         # If fallback was not attempted or failed, send a message to the user
         channel_id = player.fetch("channel")  # 'player' is now correctly defined
