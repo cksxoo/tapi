@@ -5,6 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import psutil
+import time
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -19,7 +20,6 @@ def get_database_connection():
     return sqlite3.connect('musicbot/db/discord.db', check_same_thread=False)
 
 # 통계 데이터 로드 함수
-@st.cache_data
 def load_statistics_data():
     conn = get_database_connection()
     df = pd.read_sql_query("SELECT * FROM statistics", conn)
@@ -50,7 +50,16 @@ def get_hourly_statistics(df):
 
 def main():
     st.title("🎵 Music Bot Monitoring Dashboard")
-    
+
+    # Sidebar for controls
+    st.sidebar.title("Dashboard Controls")
+    auto_refresh = st.sidebar.checkbox("Enable Auto-Refresh", True)
+    refresh_interval = st.sidebar.number_input("Refresh Interval (seconds)", min_value=5, max_value=300, value=60)
+
+    if st.sidebar.button("Refresh Now"):
+        st.cache_resource.clear()
+        st.rerun()
+
     try:
         # 데이터 로드
         df_stats = load_statistics_data()
@@ -184,17 +193,13 @@ def main():
             st.progress(disk_usage / 100)
             st.text(f"Disk Usage: {disk_usage}%")
 
-        # 설정 섹션
-        with st.expander("Dashboard Settings"):
-            st.write("Update Interval: 5 minutes")
-            st.write("Data Retention: 30 days")
-            if st.button("Clear Cache"):
-                st.cache_data.clear()
-                st.experimental_rerun()
-                
     except Exception as e:
         st.error(f"An error occurred while loading the dashboard: {str(e)}")
         st.exception(e)
+
+    if auto_refresh:
+        time.sleep(refresh_interval)
+        st.rerun()
 
 if __name__ == "__main__":
     main()
