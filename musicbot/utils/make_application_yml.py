@@ -211,7 +211,7 @@ logging:
   level:
     root: INFO
     lavalink: DEBUG
-    lavalink.server.io.SocketContext: TRACE
+    lavalink.server.io.SocketContext: INFO
     com.sedmelluq.discord.lavaplayer.tools.ExceptionTools: DEBUG
     dev.lavalink.youtube: DEBUG
 
