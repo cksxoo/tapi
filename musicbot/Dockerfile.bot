@@ -21,6 +21,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Ensure PyNaCl and youtube_dl are in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Upgrade yt-dlp to the latest version to keep up with YouTube changes
+RUN pip install --no-cache-dir --upgrade yt-dlp
+
 # Download Lavalink.jar
 RUN curl -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.1.1/Lavalink.jar" -o Lavalink.jar
 
