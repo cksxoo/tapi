@@ -22,7 +22,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download Lavalink.jar
-RUN curl -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.0.8/Lavalink.jar" -o Lavalink.jar
+RUN curl -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.1.1/Lavalink.jar" -o Lavalink.jar
 
 # Download plugins - Lavalink will download these dynamically based on config
 # RUN mkdir -p plugins
