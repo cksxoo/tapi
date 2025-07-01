@@ -58,8 +58,10 @@ plugins:
     allowDirectPlaylistIds: true # Whether just playlist IDs can match. If false, only complete URLs will be loaded.
     # The clients to use for track loading. See below for a list of valid "clients": ["WEB", "ANDROID_MUSIC", "IOS"] # Trying ANDROID_MUSIC based on recent reports queried in the order they are given (so the first client is queried first and so on...)
     clients:
+      - MUSIC
+      - ANDROID_VR
       - WEB
-      - IOS
+      - WEBEMBEDDED
     # You can configure individual clients with the following.
     # which enables everything for all clients.
 #    WEB: # names are specified as they are written below under "Available Clients".
