@@ -4,7 +4,12 @@ import pandas as pd
 import time
 import logging
 import sys
+import os
 from datetime import datetime
+
+# 로그 디렉토리 생성
+log_dir = "/app/logs"
+os.makedirs(log_dir, exist_ok=True)
 
 # 로깅 설정
 logging.basicConfig(
@@ -12,7 +17,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
         logging.StreamHandler(sys.stdout),
-        logging.FileHandler("/app/logs/exporter.log"),
+        logging.FileHandler(os.path.join(log_dir, "exporter.log")),
     ],
 )
 logger = logging.getLogger("music-bot-exporter")
