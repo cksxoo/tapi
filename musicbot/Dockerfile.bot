@@ -42,5 +42,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 # 애플리케이션 코드 복사
 COPY . .
 
-# 실행 명령 (필요시 추가)
-# CMD ["python", "bot.py"]
+# 실행 명령
+CMD ["/opt/venv/bin/python", "-m", "musicbot"]

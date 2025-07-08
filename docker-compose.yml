@@ -56,6 +56,8 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_TOKEN_ROTATION_INTERVAL_MINUTES=1440
+      - GF_SESSION_LIFETIME=24h
     depends_on:
       - prometheus
     restart: unless-stopped

@@ -8,4 +8,5 @@ datasources:
     url: http://prometheus:9090
     isDefault: true
     version: 1
-    editable: false
+    editable: true
+    uid: PBFA97CFB590B2093
