@@ -14,21 +14,7 @@ services:
       - TZ=Asia/Seoul
     restart: unless-stopped
 
-  dashboard:
-    build:
-      context: ./dashboard
-      dockerfile: Dockerfile.dashboard
-    ports:
-      - "8501:8501"  # Streamlit port
-    volumes:
-      - ./musicbot:/app/musicbot  # Share the same database with the bot
-    environment:
-      - PYTHONUNBUFFERED=1
-      - TZ=Asia/Seoul
-    depends_on:
-      - bot
-    restart: unless-stopped
-    
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
