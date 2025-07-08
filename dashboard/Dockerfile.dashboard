@@ -1,51 +1,37 @@
 # ---- Builder Stage ----
-# Use an alias "builder" for this stage
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install build-time system dependencies (if any are needed for dashboard dependencies)
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# 최적화된 apt-get 설치
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends -qq \
     build-essential \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
+# 요구사항 파일 복사 및 의존성 설치
 COPY requirements.txt .
-
-# Create and activate virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Install Python dependencies
-# Ensure streamlit, pandas, plotly are in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python -m venv /opt/venv && \
+    PATH="/opt/venv/bin:$PATH" && \
+    pip install --no-cache-dir -r requirements.txt
 
 # ---- Final Stage ----
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy virtual environment from builder stage
+# 빌더 스테이지에서 가상 환경 복사
 COPY --from=builder /opt/venv /opt/venv
-
-# Copy application code
-COPY dashboard.py .
-# If you have other dashboard-specific files (e.g., static assets, other .py files), copy them too.
-# e.g., COPY static/ static/
-
-# Add venv to PATH in the final image
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Environment variables like PYTHONUNBUFFERED and TZ are typically set in docker-compose.yml
-# EXPOSE 8501 # Port exposure is handled by docker-compose.yml
+# 애플리케이션 코드 복사
+COPY dashboard.py .
 
-
-# Expose Streamlit port
-EXPOSE 8501
-
-# Set Streamlit configurations
+# Streamlit 설정
 ENV STREAMLIT_SERVER_PORT=8501
 ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
-# Add a command to run Streamlit (assuming dashboard.py is the target)
+EXPOSE 8501
+
+# 실행 명령
 CMD ["streamlit", "run", "dashboard.py"]

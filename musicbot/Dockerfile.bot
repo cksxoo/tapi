@@ -3,58 +3,44 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install build-time system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# 최적화된 apt-get 설치
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends -qq \
     build-essential \
     curl \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
+# 요구사항 파일 복사 및 의존성 설치
 COPY requirements.txt .
+RUN python -m venv /opt/venv && \
+    PATH="/opt/venv/bin:$PATH" && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir --upgrade yt-dlp
 
-# Create and activate virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Install Python dependencies
-# Ensure PyNaCl and youtube_dl are in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Upgrade yt-dlp to the latest version to keep up with YouTube changes
-RUN pip install --no-cache-dir --upgrade yt-dlp
-
-# Download Lavalink.jar
-RUN curl -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.1.1/Lavalink.jar" -o Lavalink.jar
-
-# Download plugins - Lavalink will download these dynamically based on config
-# RUN mkdir -p plugins
-# RUN curl -L "https://github.com/lavalink-devs/youtube-source/releases/download/1.11.5/youtube-plugin-1.11.5.jar" -o plugins/youtube-plugin.jar
-# RUN curl -L "https://github.com/topi314/LavaSrc/releases/download/4.4.2/lavasrc-plugin-4.4.2.jar" -o plugins/lavasrc-plugin.jar
+# Lavalink.jar 다운로드
+RUN curl -s -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.1.1/Lavalink.jar" -o Lavalink.jar
 
 # ---- Final Stage ----
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# 런타임 시스템 의존성 설치 (최적화)
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends -qq \
     ffmpeg \
     openjdk-17-jre-headless \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual environment from builder stage
+# 빌더 스테이지에서 필요한 파일 복사
 COPY --from=builder /opt/venv /opt/venv
-
-# Copy Lavalink.jar from builder stage
 COPY --from=builder /app/Lavalink.jar .
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Create necessary runtime directories
-RUN mkdir -p musicbot/db logs
-
-# Copy application code
+# 애플리케이션 코드 복사
 COPY . .
 
-# Set the default command to run the bot
-CMD ["/opt/venv/bin/python", "-m", "musicbot"]
+# 실행 명령 (필요시 추가)
+# CMD ["python", "bot.py"]
