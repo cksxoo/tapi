@@ -1,5 +1,6 @@
 services:
   bot:
+    image: music-bot:latest
     build: 
       context: ./musicbot
       dockerfile: Dockerfile.bot
@@ -65,6 +66,7 @@ services:
     restart: unless-stopped
 
   music-bot-exporter:
+    image: music-exporter:latest
     build:
       context: ./exporter
       dockerfile: Dockerfile.exporter
