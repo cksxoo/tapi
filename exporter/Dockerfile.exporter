@@ -5,6 +5,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 로그 디렉토리 생성
+RUN mkdir -p /app/logs
+
 COPY exporter.py .
 
 EXPOSE 8000

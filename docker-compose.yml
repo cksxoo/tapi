@@ -75,6 +75,7 @@ services:
       - "8000:8000"
     volumes:
       - ./musicbot/db:/app/musicbot/db
+      - ./logs:/app/logs
     restart: unless-stopped
 
 volumes:
