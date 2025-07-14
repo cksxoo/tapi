@@ -174,8 +174,8 @@ lavalink:
     resamplingQuality: HIGH # 리샘플링 작업의 품질. 유효한 값은 LOW, MEDIUM 및 HIGH입니다. 여기서 HIGH는 CPU를 가장 많이 사용합니다.
     trackStuckThresholdMs: 20000 # 트랙이 멈출 수 있는 시간에 대한 임계값입니다. 오디오 데이터를 반환하지 않으면 트랙이 멈춥니다.
     useSeekGhosting: true # 탐색 고스팅은 탐색이 진행되는 동안 오디오 버퍼가 비워질 때까지 또는 탐색이 준비될 때까지 읽히는 효과입니다.
-    youtubePlaylistLoadLimit: 6 # 각 100페이지의 페이지 수
-    playerUpdateInterval: 10 # 플레이어 업데이트를 클라이언트에 보내는 빈도(초)
+    youtubePlaylistLoadLimit: 3 # 각 100페이지의 페이지 수 (라즈베리 파이 환경에 최적화)
+    playerUpdateInterval: 15 # 플레이어 업데이트를 클라이언트에 보내는 빈도(초) (라즈베리 파이 환경에 최적화)
     youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
     gc-warnings: true
@@ -212,10 +212,10 @@ logging:
 
   level:
     root: INFO
-    lavalink: DEBUG
+    lavalink: INFO
     lavalink.server.io.SocketContext: INFO
-    com.sedmelluq.discord.lavaplayer.tools.ExceptionTools: DEBUG
-    dev.lavalink.youtube: DEBUG
+    com.sedmelluq.discord.lavaplayer.tools.ExceptionTools: INFO
+    dev.lavalink.youtube: INFO
 
   request:
     enabled: true
@@ -223,13 +223,13 @@ logging:
     includeHeaders: false
     includeQueryString: true
     includePayload: true
-    maxPayloadLength: 10000
+    maxPayloadLength: 1000
 
 
   logback:
     rollingpolicy:
-      max-file-size: 1GB
-      max-history: 30
+      max-file-size: 100MB
+      max-history: 14
 """
     )
 
