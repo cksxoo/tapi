@@ -148,7 +148,6 @@ def update_all_metrics():
             HOURLY_PLAYS.labels(hour=hour).set(count)
         
         # 마지막 업데이트 시간 설정
-        global last_update_time
         last_update_time = datetime.now(KST)
         LAST_SCRAPE_TIMESTAMP.set(last_update_time.timestamp())
         
@@ -163,6 +162,7 @@ def update_all_metrics():
 
 # 증분 업데이트 (마지막 업데이트 이후 새 레코드만 처리)
 def update_incremental_metrics():
+    global last_update_time
     if not last_update_time:
         update_all_metrics()
         return
@@ -266,7 +266,6 @@ def update_incremental_metrics():
             HOURLY_PLAYS.labels(hour=hour).set(count)
         
         # 마지막 업데이트 시간 갱신
-        global last_update_time
         last_update_time = datetime.now(KST)
         LAST_SCRAPE_TIMESTAMP.set(last_update_time.timestamp())
         
@@ -281,6 +280,7 @@ def update_incremental_metrics():
 
 # 메트릭 업데이트 함수 (전체 또는 증분)
 def update_metrics_from_db():
+    global last_update_time
     # 주기적으로 전체 메트릭을 갱신하고, 그 사이에는 증분 업데이트
     current_time = datetime.now(KST)
     
