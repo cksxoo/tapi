@@ -92,6 +92,7 @@ def ensure_database_indexes():
 
 # 전체 메트릭 업데이트 (초기 실행 또는 주기적인 전체 갱신)
 def update_all_metrics():
+    global last_update_time
     try:
         conn = sqlite3.connect("/app/musicbot/db/discord.db")
         cursor = conn.cursor()
