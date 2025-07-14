@@ -267,6 +267,7 @@ def update_incremental_metrics():
             HOURLY_PLAYS.labels(hour=hour).set(count)
         
         # 마지막 업데이트 시간 갱신
+        global last_update_time
         last_update_time = datetime.now(KST)
         LAST_SCRAPE_TIMESTAMP.set(last_update_time.timestamp())
         
