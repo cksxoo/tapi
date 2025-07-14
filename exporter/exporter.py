@@ -32,6 +32,18 @@ UNIQUE_TRACKS = Gauge("music_bot_unique_tracks", "Number of unique tracks played
 UNIQUE_USERS = Gauge("music_bot_unique_users", "Number of unique users")
 UNIQUE_SERVERS = Gauge("music_bot_unique_servers", "Number of unique servers")
 HOURLY_PLAYS = Gauge("music_bot_hourly_plays", "Plays by hour of day", ["hour"])
+
+# 새로운 메트릭 추가
+DAILY_PLAYS = Gauge("music_bot_daily_plays", "Plays in the last 24 hours")
+WEEKLY_PLAYS = Gauge("music_bot_weekly_plays", "Plays in the last 7 days")
+MONTHLY_PLAYS = Gauge("music_bot_monthly_plays", "Plays in the last 30 days")
+TOP_TRACKS = Gauge("music_bot_top_tracks", "Most played tracks", ["video_id", "title"])
+TOP_USERS = Gauge("music_bot_top_users", "Most active users", ["user_id"])
+PLAYS_PER_HOUR = Gauge("music_bot_plays_per_hour", "Average plays per hour")
+ACTIVE_SERVERS_TODAY = Gauge("music_bot_active_servers_today", "Servers active in the last 24 hours")
+FAILED_PLAYS = Gauge("music_bot_failed_plays", "Number of failed plays")
+AVERAGE_SESSION_LENGTH = Gauge("music_bot_avg_session_length", "Average session length in minutes")
+
 SCRAPE_ERRORS = Counter(
     "music_bot_scrape_errors", "Number of errors during metrics collection"
 )
@@ -48,7 +60,12 @@ class MetricsCollector:
             "unique_tracks": 0,
             "unique_users": 0,
             "unique_servers": 0,
-            "hourly_plays": {str(hour): 0 for hour in range(24)}
+            "hourly_plays": {str(hour): 0 for hour in range(24)},
+            "daily_plays": 0,
+            "weekly_plays": 0,
+            "monthly_plays": 0,
+            "failed_plays": 0,
+            "active_servers_today": 0
         }
     
     def initialize_hourly_metrics(self):
@@ -63,30 +80,50 @@ class MetricsCollector:
             cursor = conn.cursor()
             
             # 기존 인덱스 확인
+            indexes_to_create = []
+            
             cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_video_id'")
             if not cursor.fetchone():
-                logger.info("video_id 인덱스 생성 중...")
-                cursor.execute("CREATE INDEX idx_video_id ON statistics(video_id)")
+                indexes_to_create.append(("idx_video_id", "CREATE INDEX idx_video_id ON statistics(video_id)"))
                 
             cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_user_id'")
             if not cursor.fetchone():
-                logger.info("user_id 인덱스 생성 중...")
-                cursor.execute("CREATE INDEX idx_user_id ON statistics(user_id)")
+                indexes_to_create.append(("idx_user_id", "CREATE INDEX idx_user_id ON statistics(user_id)"))
                 
             cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_time'")
             if not cursor.fetchone():
-                logger.info("time 인덱스 생성 중...")
-                cursor.execute("CREATE INDEX idx_time ON statistics(time)")
+                indexes_to_create.append(("idx_time", "CREATE INDEX idx_time ON statistics(time)"))
                 
             cursor.execute("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_created_at'")
             if not cursor.fetchone():
-                logger.info("created_at 인덱스 생성 중...")
-                cursor.execute("CREATE INDEX idx_created_at ON statistics(created_at)")
+                indexes_to_create.append(("idx_created_at", "CREATE INDEX idx_created_at ON statistics(created_at)"))
+            
+            if indexes_to_create:
+                logger.info(f"생성이 필요한 인덱스: {[idx[0] for idx in indexes_to_create]}")
                 
-            conn.commit()
-            logger.info("데이터베이스 인덱스 확인 완료")
+                for index_name, create_sql in indexes_to_create:
+                    try:
+                        logger.info(f"{index_name} 인덱스 생성 중...")
+                        cursor.execute(create_sql)
+                    except sqlite3.OperationalError as e:
+                        if "readonly database" in str(e).lower():
+                            logger.warning(f"데이터베이스가 읽기 전용입니다. {index_name} 인덱스 생성을 건너뜁니다.")
+                        else:
+                            logger.error(f"{index_name} 인덱스 생성 중 오류: {str(e)}")
+                
+                try:
+                    conn.commit()
+                    logger.info("데이터베이스 인덱스 생성 완료")
+                except sqlite3.OperationalError as e:
+                    if "readonly database" in str(e).lower():
+                        logger.warning("데이터베이스가 읽기 전용입니다. 인덱스 생성 변경사항을 커밋할 수 없습니다.")
+                    else:
+                        logger.error(f"인덱스 커밋 중 오류: {str(e)}")
+            else:
+                logger.info("모든 필요한 인덱스가 이미 존재합니다.")
+                
         except Exception as e:
-            logger.error(f"인덱스 생성 중 오류 발생: {str(e)}")
+            logger.error(f"인덱스 확인 중 오류 발생: {str(e)}")
         finally:
             if conn:
                 conn.close()
@@ -102,6 +139,7 @@ class MetricsCollector:
                 SELECT 
                     COUNT(*) as total_plays,
                     SUM(CASE WHEN success = 1 THEN 1 ELSE 0 END) as successful_plays,
+                    SUM(CASE WHEN success = 0 THEN 1 ELSE 0 END) as failed_plays,
                     COUNT(DISTINCT video_id) as unique_tracks,
                     COUNT(DISTINCT user_id) as unique_users,
                     COUNT(DISTINCT guild_id) as unique_servers
@@ -110,22 +148,68 @@ class MetricsCollector:
             
             result = cursor.fetchone()
             if result:
-                total_plays, successful_plays, unique_tracks, unique_users, unique_servers = result
+                total_plays, successful_plays, failed_plays, unique_tracks, unique_users, unique_servers = result
                 
                 # 캐시 업데이트
                 self.cached_metrics["total_plays"] = total_plays
                 self.cached_metrics["successful_plays"] = successful_plays
+                self.cached_metrics["failed_plays"] = failed_plays
                 self.cached_metrics["unique_tracks"] = unique_tracks
                 self.cached_metrics["unique_users"] = unique_users
                 self.cached_metrics["unique_servers"] = unique_servers
                 
                 # 메트릭 설정
                 TOTAL_PLAYS.set(total_plays)
+                FAILED_PLAYS.set(failed_plays)
                 success_rate = (successful_plays / total_plays * 100) if total_plays > 0 else 0
                 SUCCESS_RATE.set(success_rate)
                 UNIQUE_TRACKS.set(unique_tracks)
                 UNIQUE_USERS.set(unique_users)
                 UNIQUE_SERVERS.set(unique_servers)
+            
+            # 시간별 통계
+            current_time = datetime.now(KST)
+            
+            # 최근 24시간 재생 수
+            cursor.execute("""
+                SELECT COUNT(*) FROM statistics 
+                WHERE datetime(created_at) >= datetime('now', '-1 day')
+            """)
+            daily_plays = cursor.fetchone()[0]
+            self.cached_metrics["daily_plays"] = daily_plays
+            DAILY_PLAYS.set(daily_plays)
+            
+            # 최근 7일 재생 수
+            cursor.execute("""
+                SELECT COUNT(*) FROM statistics 
+                WHERE datetime(created_at) >= datetime('now', '-7 days')
+            """)
+            weekly_plays = cursor.fetchone()[0]
+            self.cached_metrics["weekly_plays"] = weekly_plays
+            WEEKLY_PLAYS.set(weekly_plays)
+            
+            # 최근 30일 재생 수
+            cursor.execute("""
+                SELECT COUNT(*) FROM statistics 
+                WHERE datetime(created_at) >= datetime('now', '-30 days')
+            """)
+            monthly_plays = cursor.fetchone()[0]
+            self.cached_metrics["monthly_plays"] = monthly_plays
+            MONTHLY_PLAYS.set(monthly_plays)
+            
+            # 오늘 활성 서버 수
+            cursor.execute("""
+                SELECT COUNT(DISTINCT guild_id) FROM statistics 
+                WHERE date(created_at) = date('now')
+            """)
+            active_servers_today = cursor.fetchone()[0]
+            self.cached_metrics["active_servers_today"] = active_servers_today
+            ACTIVE_SERVERS_TODAY.set(active_servers_today)
+            
+            # 시간당 평균 재생 수 (최근 24시간 기준)
+            if daily_plays > 0:
+                plays_per_hour = daily_plays / 24
+                PLAYS_PER_HOUR.set(plays_per_hour)
             
             # 시간대별 통계 (단일 쿼리)
             cursor.execute("""
@@ -148,11 +232,44 @@ class MetricsCollector:
             for hour, count in hourly_data.items():
                 HOURLY_PLAYS.labels(hour=hour).set(count)
             
+            # 인기 트랙 Top 5 (제목이 있는 경우만)
+            cursor.execute("""
+                SELECT video_id, title, COUNT(*) as play_count 
+                FROM statistics 
+                WHERE title IS NOT NULL AND title != '' 
+                GROUP BY video_id, title 
+                ORDER BY play_count DESC 
+                LIMIT 5
+            """)
+            
+            # 기존 top_tracks 메트릭 초기화
+            TOP_TRACKS._metrics.clear()
+            for row in cursor.fetchall():
+                video_id, title, play_count = row
+                # 제목이 너무 길면 잘라서 표시
+                display_title = title[:50] + "..." if len(title) > 50 else title
+                TOP_TRACKS.labels(video_id=video_id, title=display_title).set(play_count)
+            
+            # 활성 사용자 Top 5
+            cursor.execute("""
+                SELECT user_id, COUNT(*) as play_count 
+                FROM statistics 
+                GROUP BY user_id 
+                ORDER BY play_count DESC 
+                LIMIT 5
+            """)
+            
+            # 기존 top_users 메트릭 초기화
+            TOP_USERS._metrics.clear()
+            for row in cursor.fetchall():
+                user_id, play_count = row
+                TOP_USERS.labels(user_id=str(user_id)).set(play_count)
+            
             # 마지막 업데이트 시간 설정
             self.last_update_time = datetime.now(KST)
             LAST_SCRAPE_TIMESTAMP.set(self.last_update_time.timestamp())
             
-            logger.info(f"전체 메트릭 업데이트 완료 - 총 재생: {total_plays}, 성공률: {success_rate:.1f}%")
+            logger.info(f"전체 메트릭 업데이트 완료 - 총 재생: {total_plays}, 성공률: {success_rate:.1f}%, 일일 재생: {daily_plays}")
             
         except Exception as e:
             SCRAPE_ERRORS.inc()
