@@ -76,6 +76,8 @@ services:
     volumes:
       - ./musicbot/db:/app/musicbot/db
       - ./logs:/app/logs
+    environment:
+      - TZ=Asia/Seoul
     restart: unless-stopped
 
 volumes:

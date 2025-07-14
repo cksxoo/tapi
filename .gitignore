@@ -168,3 +168,5 @@ logs/
 db/
 
 !docker-compose.yml
+
+*.sh

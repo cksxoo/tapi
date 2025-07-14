@@ -6,10 +6,14 @@ import logging
 import sys
 import os
 from datetime import datetime
+import pytz
 
 # 로그 디렉토리 생성
 log_dir = "/app/logs"
 os.makedirs(log_dir, exist_ok=True)
+
+# 한국 시간대 설정
+KST = pytz.timezone('Asia/Seoul')
 
 # 로깅 설정
 logging.basicConfig(
@@ -85,8 +89,8 @@ def update_metrics_from_db():
         for _, row in hourly_df.iterrows():
             HOURLY_PLAYS.labels(hour=row["hour"]).set(row["count"])
 
-        # 마지막 성공적인 스크랩 시간 기록
-        LAST_SCRAPE_TIMESTAMP.set(datetime.now().timestamp())
+        # 마지막 성공적인 스크랩 시간 기록 (한국 시간)
+        LAST_SCRAPE_TIMESTAMP.set(datetime.now(KST).timestamp())
 
         logger.info("메트릭 업데이트 완료")
     except Exception as e:
@@ -105,4 +109,4 @@ if __name__ == "__main__":
     # 주기적으로 메트릭 업데이트
     while True:
         update_metrics_from_db()
-        time.sleep(60)  # 1분마다 업데이트
+        time.sleep(300)  # 5분마다 업데이트
