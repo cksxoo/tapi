@@ -299,7 +299,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "music_bot_daily_plays",
+          "expr": "music_bot_total_plays",
           "legendFormat": "24시간 재생",
           "range": true,
           "refId": "A"
@@ -502,13 +502,13 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-24h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "Asia/Seoul",
   "title": "음악 봇 대시보드",
   "uid": "music-bot-dashboard",
-  "version": 3,
+  "version": 4,
   "weekStart": ""
 }
