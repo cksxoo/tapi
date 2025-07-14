@@ -509,6 +509,6 @@
   "timezone": "Asia/Seoul",
   "title": "음악 봇 대시보드",
   "uid": "music-bot-dashboard",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
