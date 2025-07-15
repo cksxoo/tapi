@@ -33,11 +33,11 @@ class About(commands.Cog):
             description=ABOUT_BOT,
             color=COLOR_CODE,
         )
-        embed.add_field(
-            name="Github",
-            value="[music_bot](https://github.com/leechanwoo-kor/music_bot)",
-            inline=False,
-        )
+        # embed.add_field(
+        #     name="Github",
+        #     value="[music_bot](https://github.com/leechanwoo-kor/music_bot)",
+        #     inline=False,
+        # )
         embed.add_field(
             name=get_lan(interaction.user.id, "about_guild_count"),
             value=str(len(self.bot.guilds)),

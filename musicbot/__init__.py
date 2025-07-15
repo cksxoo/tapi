@@ -8,7 +8,7 @@ from musicbot.utils.database import Database
 
 
 # Bot version
-BOT_VER = "v0.4"
+BOT_VER = "v0.5"
 
 # enable logging
 logging.basicConfig(
@@ -17,10 +17,10 @@ logging.basicConfig(
 
 LOGGER = logging.getLogger(__name__)
 
-# if version < 3.10, stop bot.
+# if version < 3.11, stop bot.
 if sys.version_info[0] < 3 or sys.version_info[1] < 10:
     LOGGER.error(
-        "3.10 버전 이상의 Python 이 있어야 합니다. 여러 기능이 Python3.10 버전을 따릅니다. 봇 종료."
+        "3.11 버전 이상의 Python 이 있어야 합니다. 여러 기능이 Python3.11 버전을 따릅니다. 봇 종료."
     )
     quit(1)
 
