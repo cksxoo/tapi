@@ -18,8 +18,6 @@ from lavalink.server import LoadType
 
 from musicbot.utils.language import get_lan
 from musicbot.utils.volumeicon import volumeicon
-from musicbot.utils.get_chart import get_melon, get_billboard, get_billboardjp
-from musicbot.utils.play_list import play_list
 from musicbot.utils.statistics import Statistics
 from musicbot import (
     LOGGER,
@@ -218,24 +216,29 @@ class Music(commands.Cog):
             "scplay",
             "search",
             "connect",
-            "list",
-            "chartplay",
         )
 
         voice_client = interaction.guild.voice_client
 
         if not interaction.user.voice or not interaction.user.voice.channel:
-            # 사용자가 음성 채널에 들어가지 않았을 때 더 친절한 안내 메시지를 제공합니다
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_not_in_voice_channel_title"),
-                description=get_lan(interaction.user.id, "music_not_in_voice_channel_description"),
-                color=COLOR_CODE
+                description=get_lan(
+                    interaction.user.id, "music_not_in_voice_channel_description"
+                ),
+                color=COLOR_CODE,
             )
-            embed.set_footer(text=get_lan(interaction.user.id, "music_not_in_voice_channel_footer") + "\n" + BOT_NAME_TAG_VER)
-            
+            embed.set_footer(
+                text=get_lan(interaction.user.id, "music_not_in_voice_channel_footer")
+                + "\n"
+                + BOT_NAME_TAG_VER
+            )
+
             # 음성 채널 아이콘 이미지를 추가하여 시각적으로 더 명확하게 안내합니다
-            embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1043307948483653642/1043308015911542794/headphones.png")
-            
+            embed.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/1043307948483653642/1043308015911542794/headphones.png"
+            )
+
             # 비동기 응답을 보내고 체크 실패를 발생시켜 명령어 실행을 중단합니다
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return False
@@ -312,22 +315,32 @@ class Music(commands.Cog):
                 LOGGER.error(f"Error disconnecting voice client: {e}")
 
     @lavalink.listener(TrackExceptionEvent)
-    async def on_track_exception(self, event: TrackExceptionEvent):  # Corrected type hint
+    async def on_track_exception(
+        self, event: TrackExceptionEvent
+    ):  # Corrected type hint
         original_track_uri = event.track.uri  # Defined original_track_uri
         original_track_title = event.track.title  # Defined original_track_title
         player = event.player  # Defined player
-        requester = event.track.requester # Define requester from event.track
+        requester = event.track.requester  # Define requester from event.track
 
         # The existing conditional block, with corrections
         if (
             "youtube.com/watch" in original_track_uri
-            and event.severity in ["SUSPICIOUS", "COMMON", "FAULT"]  # Changed from event.exception.severity
+            and event.severity
+            in [
+                "SUSPICIOUS",
+                "COMMON",
+                "FAULT",
+            ]  # Changed from event.exception.severity
             and (
-                "unavailable" in event.message.lower()  # Changed from event.exception.message
-                or "copyright" in event.message.lower()  # Changed from event.exception.message
+                "unavailable"
+                in event.message.lower()  # Changed from event.exception.message
+                or "copyright"
+                in event.message.lower()  # Changed from event.exception.message
                 or "playback on other websites has been disabled"
                 in event.message.lower()  # Changed from event.exception.message
-                or "requires payment" in event.message.lower()  # Changed from event.exception.message
+                or "requires payment"
+                in event.message.lower()  # Changed from event.exception.message
             )
         ):
 
@@ -1277,236 +1290,6 @@ class Music(commands.Cog):
         )
         embed.set_footer(text=BOT_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
-
-    @app_commands.command(
-        name="chartplay",
-        description="Add the top songs on the selected chart to your playlist!",
-    )
-    @app_commands.describe(
-        chart="Choose chart", count="Enter the number of chart songs to play"
-    )
-    @app_commands.choices(
-        chart=[
-            app_commands.Choice(name="Melon", value="MELON"),
-            app_commands.Choice(name="Billboard", value="BILLBOARD"),
-            app_commands.Choice(name="Billboard Japan", value="BILLBOARD JAPAN"),
-        ]
-    )
-    @app_commands.check(create_player)
-    async def chartplay(
-        self, interaction: discord.Interaction, chart: str, count: int = 10
-    ):
-        await interaction.response.defer()
-
-        embed = None
-        artist = None
-        title = None
-        playmsg = None
-
-        count = max(1, min(count, 100))
-
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        if chart == "MELON":
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_parsing_melon"),
-                color=COLOR_CODE,
-            )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
-            playmsg = await interaction.followup.send(embed=embed)
-            title, artist = await get_melon(count)
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_melon_chart_play"),
-                color=COLOR_CODE,
-            )
-        elif chart == "BILLBOARD":
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_parsing_billboard"),
-                color=COLOR_CODE,
-            )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
-            playmsg = await interaction.followup.send(embed=embed)
-            title, artist = await get_billboard(count)
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_billboard_chart_play"),
-                color=COLOR_CODE,
-            )
-        elif chart == "BILLBOARD JAPAN":
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_parsing_billboardjp"),
-                color=COLOR_CODE,
-            )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
-            playmsg = await interaction.followup.send(embed=embed)
-            title, artist = await get_billboardjp(count)
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_billboardjp_chart_play"),
-                color=COLOR_CODE,
-            )
-
-        musics = [
-            f"{artist[i]} {title[i]}"
-            for i in range(count)
-            if artist is not None and title is not None
-        ]
-
-        playmsg, player, thumbnail, playmusic, passmusic = await play_list(
-            player, interaction, musics, playmsg
-        )
-
-        if embed is not None:
-            embed.add_field(
-                name=get_lan(interaction.user.id, "music_played_music"),
-                value=playmusic,
-                inline=False,
-            )
-            embed.add_field(
-                name=get_lan(interaction.user.id, "music_can_not_find_music"),
-                value=passmusic,
-                inline=False,
-            )
-            if thumbnail is not None:
-                embed.set_thumbnail(url=f"http://img.youtube.com/vi/{thumbnail}/0.jpg")
-            embed.set_footer(text=BOT_NAME_TAG_VER)
-            await playmsg.edit(embed=embed)
-            if not player.is_playing:
-                await player.play()
-
-    @app_commands.command(
-        name="list", description="Load playlists or play the music from that playlist!"
-    )
-    @app_commands.describe(arg="재생할 플레이리스트의 제목을 입력해 주세요")
-    @app_commands.check(create_player)
-    async def list(self, interaction: discord.Interaction, arg: str = None):
-        await interaction.response.defer()
-
-        anilistpath = "musicbot/anilist"
-
-        files = [
-            file.replace(".txt", "")
-            for file in os.listdir(anilistpath)
-            if file.endswith(".txt")
-        ]
-        files = sorted(files)
-
-        if arg == "-a":
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_len_list").format(
-                    files_len=len(files)
-                ),
-                description=get_lan(interaction.user.id, "music_len_list").format(
-                    files_len=len(files)
-                ),
-                color=COLOR_CODE,
-            )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
-
-        if arg is not None:
-            try:
-                if arg not in files:
-                    arg = difflib.get_close_matches(arg, files, 1, 0.65)[0]
-                    if arg is None:
-                        raise Exception("Can't find music")
-
-                with open(f"{anilistpath}/{arg}.txt", "r") as f:
-                    list_str = f.read()
-
-            except Exception:
-                embed = discord.Embed(
-                    title=get_lan(interaction.user.id, "music_list_can_not_find"),
-                    description=arg,
-                    color=COLOR_CODE,
-                )
-                embed.set_footer(text=BOT_NAME_TAG_VER)
-                return await interaction.followup.send(embed=embed)
-
-            player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-            music_list = [music for music in list_str.split("\n") if music]
-
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_list_finding"),
-                color=COLOR_CODE,
-            )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
-            playmsg = await interaction.followup.send(embed=embed)
-
-            playmsg, player, thumbnail, playmusic, passmusic = await play_list(
-                player, interaction, music_list, playmsg
-            )
-
-            embed = discord.Embed(
-                title=f":arrow_forward: | {arg}", description="", color=COLOR_CODE
-            )
-            embed.add_field(
-                name=get_lan(interaction.user.id, "music_played_music"),
-                value=playmusic,
-                inline=False,
-            )
-            embed.add_field(
-                name=get_lan(interaction.user.id, "music_can_not_find_music"),
-                value=passmusic,
-                inline=False,
-            )
-            if thumbnail is not None:
-                embed.set_thumbnail(url=f"http://img.youtube.com/vi/{thumbnail}/0.jpg")
-            embed.set_footer(text=BOT_NAME_TAG_VER)
-            await playmsg.edit(embed=embed)
-            if not player.is_playing:
-                await player.play()
-
-        else:
-            page = 15
-            if len(files) <= page:
-                embed = discord.Embed(
-                    title=get_lan(interaction.user.id, "music_playlist_list"),
-                    description="\n".join(files),
-                    color=COLOR_CODE,
-                )
-                embed.set_footer(text=BOT_NAME_TAG_VER)
-                return await interaction.followup.send(embed=embed)
-
-            class PlaylistPaginator(discord.ui.View):
-                def __init__(self, pages):
-                    super().__init__()
-                    self.pages = pages
-                    self.current_page = 0
-
-                @discord.ui.button(label="Previous", style=discord.ButtonStyle.gray)
-                async def previous_page(
-                    self, interaction: discord.Interaction, button: discord.ui.Button
-                ):
-                    self.current_page = (self.current_page - 1) % len(self.pages)
-                    await self.update_message(interaction)
-
-                @discord.ui.button(label="Next", style=discord.ButtonStyle.gray)
-                async def next_page(
-                    self, interaction: discord.Interaction, button: discord.ui.Button
-                ):
-                    self.current_page = (self.current_page + 1) % len(self.pages)
-                    await self.update_message(interaction)
-
-                async def update_message(self, interaction: discord.Interaction):
-                    embed = discord.Embed(
-                        title=get_lan(interaction.user.id, "music_playlist_list"),
-                        description="\n".join(self.pages[self.current_page]),
-                        color=COLOR_CODE,
-                    )
-                    embed.set_footer(
-                        text=f"{get_lan(interaction.user.id, 'music_page')} {self.current_page + 1}/{len(self.pages)}\n{BOT_NAME_TAG_VER}"
-                    )
-                    await interaction.response.edit_message(embed=embed, view=self)
-
-            pages = [files[i : i + page] for i in range(0, len(files), page)]
-            view = PlaylistPaginator(pages)
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_playlist_list"),
-                description="\n".join(pages[0]),
-                color=COLOR_CODE,
-            )
-            embed.set_footer(
-                text=f"{get_lan(interaction.user.id, 'music_page')} 1/{len(pages)}\n{BOT_NAME_TAG_VER}"
-            )
-            await interaction.followup.send(embed=embed, view=view)
 
 
 async def setup(bot):

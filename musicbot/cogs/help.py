@@ -17,7 +17,6 @@ class Help(commands.Cog):
             app_commands.Choice(name="INFO", value="INFO"),
             app_commands.Choice(name="GENERAL", value="GENERAL"),
             app_commands.Choice(name="MUSIC", value="MUSIC"),
-            app_commands.Choice(name="CHART", value="CHART"),
         ]
     )
     async def help(self, interaction: discord.Interaction, help_option: str = None):
@@ -143,40 +142,6 @@ class Help(commands.Cog):
                 embed.set_footer(text=BOT_NAME_TAG_VER)
                 await interaction.response.send_message(embed=embed)
 
-        elif (
-            help_option == "CHART" or help_option == "차트재생" or help_option == "차트"
-        ):
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "help_chart"),
-                description="",
-                color=COLOR_CODE,
-            )
-            if "chart" in EXTENSIONS:
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_chart_chart_command"),
-                    value=get_lan(interaction.user.id, "help_chart_chart_info"),
-                    inline=False,
-                )
-            if "music" in EXTENSIONS:
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_chart_chartplay_command"),
-                    value=get_lan(interaction.user.id, "help_chart_chartplay_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_chart_listpage_command"),
-                    value=get_lan(interaction.user.id, "help_chart_listpage_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_chart_listplay_command"),
-                    value=get_lan(interaction.user.id, "help_chart_listplay_info"),
-                    inline=False,
-                )
-
-                embed.set_footer(text=BOT_NAME_TAG_VER)
-                await interaction.response.send_message(embed=embed)
-
         else:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "help"),
@@ -195,13 +160,6 @@ class Help(commands.Cog):
                 embed.add_field(
                     name=get_lan(interaction.user.id, "help_music_command"),
                     value=get_lan(interaction.user.id, "help_music_command_info"),
-                    inline=False,
-                )
-
-            if "music" in EXTENSIONS:
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_chart_command"),
-                    value=get_lan(interaction.user.id, "help_chart_command_info"),
                     inline=False,
                 )
 
