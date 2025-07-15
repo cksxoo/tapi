@@ -168,5 +168,9 @@
     "music_search_select_placeholder": "Select a song...",
 
     "music_added_to_queue": "added to queue",
-    "music_added_to_queue_title": "🎵 | Added to queue"
+    "music_added_to_queue_title": "🎵 | Added to queue",
+
+    "music_queue_cleared": "🧹 | Queue cleared",
+    "music_queue_cleared_desc": "{count} songs have been removed from the queue.",
+    "music_no_music_in_queue": "There is no music in the queue."
 }

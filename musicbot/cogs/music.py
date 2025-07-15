@@ -1174,6 +1174,32 @@ class Music(commands.Cog):
         embed.set_footer(text=BOT_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
+    @app_commands.command(name="clear", description="Clear the music queue")
+    @app_commands.check(create_player)
+    async def clear(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+        if not player.queue:
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "music_no_music_in_queue"),
+                description="",
+                color=COLOR_CODE,
+            )
+            embed.set_footer(text=BOT_NAME_TAG_VER)
+            return await interaction.followup.send(embed=embed)
+
+        queue_length = len(player.queue)
+        player.queue.clear()
+
+        embed = discord.Embed(
+            title=get_lan(interaction.user.id, "music_queue_cleared"),
+            description=get_lan(interaction.user.id, "music_queue_cleared_desc").format(count=queue_length),
+            color=COLOR_CODE,
+        )
+        embed.set_footer(text=BOT_NAME_TAG_VER)
+        await interaction.followup.send(embed=embed)
+
     @app_commands.command(name="volume", description="Changes or display the volume")
     @app_commands.describe(volume="볼륨값을 입력하세요")
     @app_commands.check(create_player)

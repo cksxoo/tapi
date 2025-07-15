@@ -168,5 +168,9 @@
     "music_search_select_placeholder": "곡을 선택하세요...",
     
     "music_added_to_queue": "재생목록에 추가됨",
-    "music_added_to_queue_title": " | 재생목록에 추가됨"
+    "music_added_to_queue_title": " | 재생목록에 추가됨",
+
+    "music_queue_cleared": "🧹 | 대기열 비우기 완료",
+    "music_queue_cleared_desc": "대기열에서 {count}개의 곡이 제거되었습니다.",
+    "music_no_music_in_queue": "대기열에 음악이 없습니다."
 }
