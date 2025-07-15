@@ -225,9 +225,20 @@ class Music(commands.Cog):
         voice_client = interaction.guild.voice_client
 
         if not interaction.user.voice or not interaction.user.voice.channel:
-            raise app_commands.CheckFailure(
-                get_lan(interaction.user.id, "music_come_in_voice_channel")
+            # 사용자가 음성 채널에 들어가지 않았을 때 더 친절한 안내 메시지를 제공합니다
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "music_not_in_voice_channel_title"),
+                description=get_lan(interaction.user.id, "music_not_in_voice_channel_description"),
+                color=COLOR_CODE
             )
+            embed.set_footer(text=get_lan(interaction.user.id, "music_not_in_voice_channel_footer") + "\n" + BOT_NAME_TAG_VER)
+            
+            # 음성 채널 아이콘 이미지를 추가하여 시각적으로 더 명확하게 안내합니다
+            embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1043307948483653642/1043308015911542794/headphones.png")
+            
+            # 비동기 응답을 보내고 체크 실패를 발생시켜 명령어 실행을 중단합니다
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return False
 
         voice_channel = interaction.user.voice.channel
 
