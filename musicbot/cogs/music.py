@@ -288,14 +288,53 @@ class Music(commands.Cog):
             return await self.lavalink.player_manager.destroy(guild_id)
 
         channel = guild.get_channel(channel_id)
+        player = self.bot.lavalink.player_manager.get(guild_id)
+        track = event.track
+        requester_id = track.requester
 
         if channel:
-            embed = discord.Embed(
-                title="Now playing: {} by {}".format(
-                    event.track.title, event.track.author
-                ),
-                color=COLOR_CODE,
+            embed = discord.Embed(color=COLOR_CODE)
+            
+            # 제목과 아티스트 정보 설정
+            embed.title = (
+                get_lan(requester_id, "music_now_playing")
+                + "  💿 | "
+                + track.author
             )
+            embed.description = f"[{track.title}]({track.uri})"
+            
+            # 재생 시간 정보 추가
+            embed.add_field(
+                name=get_lan(requester_id, "music_length"),
+                value=lavalink.format_time(track.duration),
+            )
+            
+            # 셔플 상태 정보 추가
+            embed.add_field(
+                name=get_lan(requester_id, "music_shuffle"),
+                value=(
+                    get_lan(requester_id, "music_shuffle_already_on")
+                    if player.shuffle
+                    else get_lan(requester_id, "music_shuffle_already_off")
+                ),
+                inline=True,
+            )
+            
+            # 반복 상태 정보 추가
+            embed.add_field(
+                name=get_lan(requester_id, "music_repeat"),
+                value=[
+                    get_lan(requester_id, "music_repeat_already_off"),
+                    get_lan(requester_id, "music_repeat_already_one"),
+                    get_lan(requester_id, "music_repeat_already_on"),
+                ][player.loop],
+                inline=True,
+            )
+            
+            # 썸네일 이미지 추가 (YouTube 영상인 경우)
+            if track.identifier:
+                embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
+                
             embed.set_footer(text=BOT_NAME_TAG_VER)
             return await channel.send(embed=embed)
 
@@ -550,17 +589,16 @@ class Music(commands.Cog):
                 else:  # Lavalink found tracks
                     break
 
-            embed = discord.Embed(color=COLOR_CODE)
-
-            thumbnail = None
+            # on_track_start에서 상세 정보를 표시하민로 간단한 메시지만 표시
             if results.load_type == LoadType.PLAYLIST:
                 tracks = results.tracks
                 trackcount = 0
+                first_track = None
 
                 for track in tracks:
                     try:
                         if trackcount != 1:
-                            thumbnail = track.identifier
+                            first_track = track
                             trackcount = 1
 
                         # Record statistics for each track in playlist
@@ -575,22 +613,15 @@ class Music(commands.Cog):
                         player.add(requester=interaction.user.id, track=track)
                     except Exception as e:
                         LOGGER.error(f"Error adding track from playlist: {e}")
-
-                embed.title = get_lan(interaction.user.id, "music_play_playlist")
-                embed.description = (
-                    f"{results.playlist_info.name} - {len(tracks)} tracks"
-                )
+                
+                # 플레이리스트가 추가되었다는 메시지 표시
+                embed = discord.Embed(color=COLOR_CODE)
+                embed.title = get_lan(interaction.user.id, "music_play_playlist") + "  📑"
+                embed.description = f"**{results.playlist_info.name}** - {len(tracks)} tracks {get_lan(interaction.user.id, 'music_added_to_queue')}"
 
             else:
                 track = results.tracks[0]
-                embed.title = (
-                    get_lan(interaction.user.id, "music_play_music")
-                    + "  💿 | "
-                    + track.author
-                )
-                embed.description = f"[{track.title}]({track.uri})"
-                thumbnail = track.identifier
-
+                
                 # Record statistics for single track
                 Statistics().record_play(
                     track=track,
@@ -601,32 +632,12 @@ class Music(commands.Cog):
                 )
 
                 player.add(requester=interaction.user.id, track=track)
-
-            embed.add_field(
-                name=get_lan(interaction.user.id, "music_length"),
-                value=lavalink.format_time(track.duration),
-            )
-            embed.add_field(
-                name=get_lan(interaction.user.id, "music_shuffle"),
-                value=(
-                    get_lan(interaction.user.id, "music_shuffle_already_on")
-                    if player.shuffle
-                    else get_lan(interaction.user.id, "music_shuffle_already_off")
-                ),
-                inline=True,
-            )
-            embed.add_field(
-                name=get_lan(interaction.user.id, "music_repeat"),
-                value=[
-                    get_lan(interaction.user.id, "music_repeat_already_off"),
-                    get_lan(interaction.user.id, "music_repeat_already_one"),
-                    get_lan(interaction.user.id, "music_repeat_already_on"),
-                ][player.loop],
-                inline=True,
-            )
-
-            if thumbnail is not None:
-                embed.set_thumbnail(url=f"http://img.youtube.com/vi/{thumbnail}/0.jpg")
+                
+                # 단일 곡 추가 메시지 표시
+                embed = discord.Embed(color=COLOR_CODE)
+                embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
+                embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
+            
             embed.set_footer(text=BOT_NAME_TAG_VER)
             await interaction.followup.send(embed=embed)
 
@@ -692,72 +703,41 @@ class Music(commands.Cog):
             else:
                 break
 
-        embed = discord.Embed(color=COLOR_CODE)  # discord.Color.blurple()
-
+        # on_track_start에서 상세 정보를 표시하민로 간단한 메시지만 표시
         # Valid load_types are:
         #   TRACK    - direct URL to a track
         #   PLAYLIST - direct URL to playlist
         #   SEARCH   - query prefixed with either "ytsearch:" or "scsearch:". This could possibly be expanded with plugins.
         #   EMPTY    - no results for the query (result.tracks will be empty)
         #   ERROR    - the track encountered an exception during loading
-        thumbnail = None
         if results.load_type == LoadType.PLAYLIST:
             tracks = results.tracks
-
             trackcount = 0
 
             for track in tracks:
                 if trackcount != 1:
-                    thumbnail = track.uri
                     trackcount = 1
 
                 # Add all of the tracks from the playlist to the queue.
                 player.add(requester=interaction.user.id, track=track)
-
-            embed.title = get_lan(interaction.user.id, "music_play_playlist")
-            embed.description = f"{results.playlist_info.name} - {len(tracks)} tracks"
+            
+            # 플레이리스트가 추가되었다는 메시지 표시
+            embed = discord.Embed(color=COLOR_CODE)
+            embed.title = get_lan(interaction.user.id, "music_play_playlist") + "  📑"
+            embed.description = f"**{results.playlist_info.name}** - {len(tracks)} tracks {get_lan(interaction.user.id, 'music_added_to_queue')}"
 
         else:
             track = results.tracks[0]
-            embed.title = (
-                get_lan(interaction.user.id, "music_play_music")
-                + "  💿 | "
-                + track.author
-            )
-            embed.description = f"[{track.title}]({track.uri})"
-            thumbnail = track.uri
 
             # You can attach additional information to audiotracks through kwargs, however this involves
             # constructing the AudioTrack class yourself.
             player.add(requester=interaction.user.id, track=track)
-
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_length"),
-            value=lavalink.format_time(track.duration),
-        )
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_shuffle"),
-            value=(
-                get_lan(interaction.user.id, "music_shuffle_already_on")
-                if player.shuffle
-                else get_lan(interaction.user.id, "music_shuffle_already_off")
-            ),
-            inline=True,
-        )
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_repeat"),
-            value=[
-                get_lan(interaction.user.id, "music_repeat_already_off"),
-                get_lan(interaction.user.id, "music_repeat_already_one"),
-                get_lan(interaction.user.id, "music_repeat_already_on"),
-            ][player.loop],
-            inline=True,
-        )
-
-        if thumbnail is not None:
-            track = SoundcloudAPI().resolve(thumbnail)
-            if track.artwork_url is not None:
-                embed.set_thumbnail(url=track.artwork_url)
+            
+            # 단일 곡 추가 메시지 표시
+            embed = discord.Embed(color=COLOR_CODE)
+            embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
+            embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
+        
         embed.set_footer(text=BOT_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 

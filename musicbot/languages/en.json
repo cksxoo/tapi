@@ -164,6 +164,9 @@
     "music_search_results": "Search Results",
     "music_search_select": "Select a song to play from the list below",
     "music_search_no_keyword": "Please enter a search keyword",
-    "music_search_no_results": "No results found",
-    "music_search_select_placeholder": "Choose a song..."
+    "music_search_no_results": "No search results found",
+    "music_search_select_placeholder": "Select a song...",
+
+    "music_added_to_queue": "added to queue",
+    "music_added_to_queue_title": "🎵 | Added to queue"
 }
