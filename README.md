@@ -1,13 +1,3 @@
 # music_bot
 
-1. `sudo apt install openjdk-17-jdk`
-1. `python -m musicbot`
-
-
-## docker compose
-
-- docker compose up -d
-- docker compose up -d --build
-
-- docker compose down -v
-- docker compose down --rmi all
+<img width="1536" height="1024" alt="image" src="https://github.com/leechanwoo-kor/music_bot/blob/main/docs/banner.png?raw=true" />
