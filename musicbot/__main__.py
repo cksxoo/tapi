@@ -44,7 +44,7 @@ class MusicBot(commands.Bot):
     async def on_ready(self):
         LOGGER.info(BOT_NAME_TAG_VER)
         await self.change_presence(
-            activity=discord.Game("/help : 도움말"),
+            activity=discord.Activity(type=discord.ActivityType.playing, name="📼 Cassette Tape"),
             status=discord.Status.online,
         )
         self.loop.create_task(self.status_task())
@@ -53,12 +53,12 @@ class MusicBot(commands.Bot):
         while True:
             try:
                 await self.change_presence(
-                    activity=discord.Game("/help : 도움말"),
+                    activity=discord.Activity(type=discord.ActivityType.playing, name="📼 Cassette Tape"),
                     status=discord.Status.online,
                 )
                 await asyncio.sleep(10)
                 await self.change_presence(
-                    activity=discord.Game(f"{len(self.guilds)}개의 서버에서 놀고있어요!"),
+                    activity=discord.Game(name=f"📼 Playing {len(self.guilds)} servers"),
                     status=discord.Status.online,
                 )
                 await asyncio.sleep(10)
