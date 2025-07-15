@@ -44,7 +44,7 @@ class MusicBot(commands.Bot):
     async def on_ready(self):
         LOGGER.info(BOT_NAME_TAG_VER)
         await self.change_presence(
-            activity=discord.Activity(type=discord.ActivityType.playing, name="📼 Cassette Tape"),
+            activity=discord.Activity(type=discord.ActivityType.listening, name="📼 Cassette Tape"),
             status=discord.Status.online,
         )
         self.loop.create_task(self.status_task())
@@ -53,12 +53,12 @@ class MusicBot(commands.Bot):
         while True:
             try:
                 await self.change_presence(
-                    activity=discord.Activity(type=discord.ActivityType.playing, name="📼 Cassette Tape"),
+                    activity=discord.Activity(type=discord.ActivityType.listening, name="📼 Cassette Tape"),
                     status=discord.Status.online,
                 )
                 await asyncio.sleep(10)
                 await self.change_presence(
-                    activity=discord.Game(name=f"📼 Playing {len(self.guilds)} servers"),
+                    activity=discord.Activity(type=discord.ActivityType.listening, name=f"📼 {len(self.guilds)} servers"),
                     status=discord.Status.online,
                 )
                 await asyncio.sleep(10)
