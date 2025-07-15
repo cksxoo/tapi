@@ -286,13 +286,15 @@ class MetricsCollector:
             
         try:
             # 마지막 업데이트 시간 이후의 레코드만 처리
-            last_update_str = self.last_update_time.strftime("%Y-%m-%d %H:%M:%S")
+            # KST 시간을 UTC로 변환 (SQLite는 UTC 기준으로 저장)
+            last_update_utc = self.last_update_time.astimezone(pytz.UTC)
+            last_update_str = last_update_utc.strftime("%Y-%m-%d %H:%M:%S")
             
             conn = sqlite3.connect("/app/musicbot/db/discord.db")
             cursor = conn.cursor()
             
             # 새 레코드 수 확인
-            cursor.execute(f"SELECT COUNT(*) FROM statistics WHERE created_at > datetime('{last_update_str}')")
+            cursor.execute(f"SELECT COUNT(*) FROM statistics WHERE datetime(created_at) > datetime('{last_update_str}')")
             new_records_count = cursor.fetchone()[0]
             
             if new_records_count == 0:
@@ -313,7 +315,7 @@ class MetricsCollector:
                     COUNT(DISTINCT user_id) as new_users,
                     COUNT(DISTINCT guild_id) as new_servers
                 FROM statistics 
-                WHERE created_at > datetime('{last_update_str}')
+                WHERE datetime(created_at) > datetime('{last_update_str}')
             """)
             
             new_total, new_successful, new_videos, new_users, new_servers = cursor.fetchone()
@@ -322,7 +324,7 @@ class MetricsCollector:
             cursor.execute(f"""
                 SELECT strftime('%H', time) as hour, COUNT(*) as count 
                 FROM statistics 
-                WHERE created_at > datetime('{last_update_str}')
+                WHERE datetime(created_at) > datetime('{last_update_str}')
                 GROUP BY hour
             """)
             
@@ -335,24 +337,24 @@ class MetricsCollector:
             cursor.execute(f"""
                 SELECT COUNT(DISTINCT s1.video_id) 
                 FROM statistics s1 
-                WHERE s1.created_at > datetime('{last_update_str}') 
-                AND NOT EXISTS (SELECT 1 FROM statistics s2 WHERE s2.video_id = s1.video_id AND s2.created_at <= datetime('{last_update_str}'))
+                WHERE datetime(s1.created_at) > datetime('{last_update_str}') 
+                AND NOT EXISTS (SELECT 1 FROM statistics s2 WHERE s2.video_id = s1.video_id AND datetime(s2.created_at) <= datetime('{last_update_str}'))
             """)
             actual_new_videos = cursor.fetchone()[0]
             
             cursor.execute(f"""
                 SELECT COUNT(DISTINCT s1.user_id) 
                 FROM statistics s1 
-                WHERE s1.created_at > datetime('{last_update_str}') 
-                AND NOT EXISTS (SELECT 1 FROM statistics s2 WHERE s2.user_id = s1.user_id AND s2.created_at <= datetime('{last_update_str}'))
+                WHERE datetime(s1.created_at) > datetime('{last_update_str}') 
+                AND NOT EXISTS (SELECT 1 FROM statistics s2 WHERE s2.user_id = s1.user_id AND datetime(s2.created_at) <= datetime('{last_update_str}'))
             """)
             actual_new_users = cursor.fetchone()[0]
             
             cursor.execute(f"""
                 SELECT COUNT(DISTINCT s1.guild_id) 
                 FROM statistics s1 
-                WHERE s1.created_at > datetime('{last_update_str}') 
-                AND NOT EXISTS (SELECT 1 FROM statistics s2 WHERE s2.guild_id = s1.guild_id AND s2.created_at <= datetime('{last_update_str}'))
+                WHERE datetime(s1.created_at) > datetime('{last_update_str}') 
+                AND NOT EXISTS (SELECT 1 FROM statistics s2 WHERE s2.guild_id = s1.guild_id AND datetime(s2.created_at) <= datetime('{last_update_str}'))
             """)
             actual_new_servers = cursor.fetchone()[0]
             
@@ -385,6 +387,9 @@ class MetricsCollector:
             # 마지막 업데이트 시간 갱신
             self.last_update_time = datetime.now(KST)
             LAST_SCRAPE_TIMESTAMP.set(self.last_update_time.timestamp())
+            
+            # 디버그 로그 추가
+            logger.debug(f"마지막 업데이트 시간: {self.last_update_time} (KST), UTC 변환: {self.last_update_time.astimezone(pytz.UTC)}")
             
             logger.info(f"증분 메트릭 업데이트 완료 - 새 레코드: {new_records_count}, 총 재생: {self.cached_metrics['total_plays']}, 성공률: {success_rate:.1f}%")
             
