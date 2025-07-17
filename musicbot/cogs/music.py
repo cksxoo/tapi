@@ -799,6 +799,13 @@ class Music(commands.Cog):
 
         player.add(requester=interaction.user.id, track=track)
 
+        embed = discord.Embed(color=COLOR_CODE)
+        embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
+        embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
+        embed.set_footer(text=BOT_NAME_TAG_VER)
+        await interaction.response.send_message(embed=embed)
+
+
         # The track is added to the queue, and the on_track_start event will handle the 'Now Playing' embed.
         # We can send a simple confirmation here as the response to the button click.
         await interaction.followup.send(
