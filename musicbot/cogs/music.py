@@ -799,37 +799,12 @@ class Music(commands.Cog):
 
         player.add(requester=interaction.user.id, track=track)
 
-        embed = discord.Embed(color=COLOR_CODE)
-        embed.title = (
-            get_lan(interaction.user.id, "music_play_music") + "  💿 | " + track.author
+        # The track is added to the queue, and the on_track_start event will handle the 'Now Playing' embed.
+        # We can send a simple confirmation here.
+        await interaction.response.send_message(
+            f'**{track.title}**' + get_lan(interaction.user.id, "music_queued"),
+            ephemeral=True
         )
-        embed.description = f"[{track.title}]({track.uri})"
-
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_length"),
-            value=lavalink.format_time(track.duration),
-        )
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_shuffle"),
-            value=(
-                get_lan(interaction.user.id, "music_shuffle_already_on")
-                if player.shuffle
-                else get_lan(interaction.user.id, "music_shuffle_already_off")
-            ),
-            inline=True,
-        )
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_repeat"),
-            value=[
-                get_lan(interaction.user.id, "music_repeat_already_off"),
-                get_lan(interaction.user.id, "music_repeat_already_one"),
-                get_lan(interaction.user.id, "music_repeat_already_on"),
-            ][player.loop],
-            inline=True,
-        )
-
-        embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
-        embed.set_footer(text=BOT_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
         if not player.is_playing:
