@@ -103,6 +103,7 @@
     "music_shuffle_off": ":twisted_rightwards_arrows: | 음악 셔플이 꺼졌습니다!",
     "music_shuffle_already_on": "켜짐",
     "music_shuffle_already_off": "꺼짐",
+    "music_queued": "이(가) 재생목록에 추가되었습니다.",
     "music_repeat": "음악 반복",
     "music_repeat_one": ":repeat_one: | 한곡 반복재생이 켜졌습니다!",
     "music_repeat_all": ":repeat: | 전곡 반복재생이 켜졌습니다!",

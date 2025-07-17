@@ -800,12 +800,11 @@ class Music(commands.Cog):
         player.add(requester=interaction.user.id, track=track)
 
         # The track is added to the queue, and the on_track_start event will handle the 'Now Playing' embed.
-        # We can send a simple confirmation here.
+        # We can send a simple confirmation here as the response to the button click.
         await interaction.response.send_message(
             f'**{track.title}**' + get_lan(interaction.user.id, "music_queued"),
             ephemeral=True
         )
-        await interaction.followup.send(embed=embed)
 
         if not player.is_playing:
             await player.play()
