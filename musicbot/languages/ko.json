@@ -163,14 +163,19 @@
         
     "music_search_results": "검색 결과",
     "music_search_select": "아래 목록에서 재생할 곡을 선택하세요",
-    "music_search_no_keyword": "검색어를 입력해주세요",
+    "music_search_no_keyword": "검색 키워드를 입력해주세요",
     "music_search_no_results": "검색 결과가 없습니다",
     "music_search_select_placeholder": "곡을 선택하세요...",
-    
+
     "music_added_to_queue": "재생목록에 추가됨",
     "music_added_to_queue_title": " | 재생목록에 추가됨",
 
     "music_queue_cleared": "🧹 | 대기열 비우기 완료",
     "music_queue_cleared_desc": "대기열에서 {count}개의 곡이 제거되었습니다.",
-    "music_no_music_in_queue": "대기열에 음악이 없습니다."
+    "music_no_music_in_queue": "대기열에 음악이 없습니다.",
+
+    "music_auto_disconnect_log": "봇이 길드 '{guild_name}'의 음성 채널에서 자동으로 나갔습니다 (채널에 사용자가 없음)",
+    "music_auto_disconnect_error": "자동 연결 해제 중 오류 발생: {error}",
+
+    "owners_server_list": "**서버 리스트**"
 }

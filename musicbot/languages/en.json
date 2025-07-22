@@ -172,5 +172,8 @@
 
     "music_queue_cleared": "🧹 | Queue cleared",
     "music_queue_cleared_desc": "{count} songs have been removed from the queue.",
-    "music_no_music_in_queue": "There is no music in the queue."
+    "music_no_music_in_queue": "There is no music in the queue.",
+
+    "music_auto_disconnect_log": "Bot automatically left voice channel in guild '{guild_name}' (no users in channel)",
+    "music_auto_disconnect_error": "Error occurred during auto-disconnect: {error}"
 }

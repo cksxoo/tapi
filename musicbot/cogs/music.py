@@ -468,6 +468,53 @@ class Music(commands.Cog):
                         f"Failed to send track exception message to channel {channel_id}: {e}"
                     )
 
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        """
+        음성 채널에서 사용자가 모두 나갔을 때 봇을 자동으로 연결 해제하는 기능
+        """
+        # 봇 자신의 음성 상태 변경은 무시
+        if member.bot:
+            return
+        
+        # 사용자가 음성 채널에서 나간 경우만 처리
+        if before.channel and not after.channel:
+            guild = before.channel.guild
+            
+            # 봇이 해당 길드의 음성 채널에 연결되어 있는지 확인
+            if not guild.voice_client:
+                return
+            
+            # 봇이 연결된 음성 채널 확인
+            bot_voice_channel = guild.voice_client.channel
+            
+            # 사용자가 나간 채널이 봇이 있는 채널과 같은지 확인
+            if before.channel != bot_voice_channel:
+                return
+            
+            # 음성 채널에 남아있는 사용자 수 확인 (봇 제외)
+            non_bot_members = [m for m in bot_voice_channel.members if not m.bot]
+            
+            # 봇만 남아있다면 연결 해제
+            if len(non_bot_members) == 0:
+                try:
+                    # Lavalink 플레이어 정리
+                    player = self.bot.lavalink.player_manager.get(guild.id)
+                    if player:
+                        await player.stop()
+                        player.queue.clear()
+                    
+                    # 음성 채널에서 연결 해제
+                    await guild.voice_client.disconnect(force=True)
+                    
+                    # 다국어 지원 로그 메시지 (기본값으로 한국어 사용)
+                    log_message = get_lan(self.bot.user.id, "music_auto_disconnect_log").format(guild_name=guild.name)
+                    LOGGER.info(log_message)
+                    
+                except Exception as e:
+                    error_message = get_lan(self.bot.user.id, "music_auto_disconnect_error").format(error=str(e))
+                    LOGGER.error(error_message)
+
     @app_commands.command(name="connect", description="Connect to voice channel!")
     @app_commands.check(create_player)
     async def connect(self, interaction: discord.Interaction):
