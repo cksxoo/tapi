@@ -10,6 +10,7 @@ services:
       - ./musicbot:/app/musicbot
       - ./logs:/app/logs
       - ./plugins:/app/plugins
+      - ./lavalink/application.yml:/app/application.yml
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Asia/Seoul

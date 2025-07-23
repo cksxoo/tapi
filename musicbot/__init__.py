@@ -2,8 +2,6 @@ import os
 import sys
 import logging
 
-from musicbot.utils.make_config import make_config
-from musicbot.utils.make_application_yml import make_application_yml
 from musicbot.utils.database import Database
 
 
@@ -25,9 +23,6 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 10:
     quit(1)
 
 
-# Create the config file if it doesn't exist
-if not os.path.exists("musicbot/config.py"):
-    make_config()
 from musicbot.config import Development as Config
 
 TOKEN = Config.TOKEN
@@ -62,8 +57,5 @@ for file in os.listdir("musicbot/cogs"):
         EXTENSIONS.append(file.replace(".py", ""))
 
 BOT_NAME_TAG_VER = "%s%s | %s" % (BOT_NAME, BOT_TAG, BOT_VER)
-
-if not os.path.exists("application.yml"):
-    make_application_yml(HOST, PORT, PSW, LOGGER, LAVALINK_PLUGINS)
 
 Database().create_table()
