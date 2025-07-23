@@ -192,14 +192,10 @@ class Music(commands.Cog):
             if shuffle is not None:
                 player.set_shuffle(shuffle)
         except Exception as e:
-            node = interaction.client.lavalink.node_manager.get_node()
             LOGGER.error(f"Failed to create player: {e}")
-            if node:
-                LOGGER.error(
-                    f"Lavalink connection details: HOST={node.host}, PORT={node.port}, REGION={node.region}"
-                )
-            else:
-                LOGGER.error("Lavalink node not found!")
+            LOGGER.error(
+                f"Lavalink connection details: HOST={HOST}, PORT={PORT}, REGION={REGION}"
+            )
             raise
         # Create returns a player if one exists, otherwise creates.
         # This line is important because it ensures that a player always exists for a guild.

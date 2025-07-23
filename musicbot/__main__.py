@@ -26,7 +26,7 @@ class MusicBot(commands.Bot):
 
     async def setup_hook(self):
         self.lavalink = lavalink.Client(self.user.id)
-        self.lavalink.add_node(HOST, PORT, PSW, "eu", "default-node")
+        self.lavalink.add_node(HOST, PORT, PSW, 'eu', 'default-node', ws_path='/v4/websocket')
 
         # 확장 기능 로드
         for extension in EXTENSIONS:
