@@ -8,11 +8,11 @@ server:
 lavalink:
   server:
     # --- 중요! --- #
-    # Lavalink 서버에 접속하기 위한 비밀번호입니다. 
+    # Lavalink 서버에 접속하기 위한 비밀번호입니다.
     # Discord 봇의 설정과 반드시 일치해야 합니다.
     # 보안을 위해 복잡한 비밀번호로 변경하는 것을 강력히 권장합니다.
-    password: "youshallnotpass" 
-    
+    password: "youshallnotpass"
+
     # 기본적으로 활성화할 음악 소스를 지정합니다.
     sources:
       # 기본 YouTube 소스는 더 이상 사용되지 않으므로 비활성화합니다. (youtube-plugin 사용)
@@ -32,15 +32,15 @@ plugins:
     # LavaSrc 플러그인을 통해 Spotify, Apple Music, Deezer 등의 음원을 검색하고 재생할 수 있습니다.
     # 사용하려면 'plugins' 폴더에 lavasrc.jar 파일이 있어야 합니다.
     sources:
-      spotify: false          # Spotify 사용 여부
-      applemusic: false       # Apple Music 사용 여부
-      deezer: false           # Deezer 사용 여부
-      yandexmusic: false      # Yandex Music 사용 여부
-      youtube: true           # LavaSrc를 통한 YouTube 검색 사용 여부
+      spotify: false # Spotify 사용 여부
+      applemusic: false # Apple Music 사용 여부
+      deezer: false # Deezer 사용 여부
+      yandexmusic: false # Yandex Music 사용 여부
+      youtube: true # LavaSrc를 통한 YouTube 검색 사용 여부
     spotify:
-      clientId: ""            # Spotify 개발자 앱의 Client ID
-      clientSecret: ""       # Spotify 개발자 앱의 Client Secret
-      countryCode: "KR"       # 필터링에 사용할 국가 코드 (예: KR, US)
+      clientId: "" # Spotify 개발자 앱의 Client ID
+      clientSecret: "" # Spotify 개발자 앱의 Client Secret
+      countryCode: "KR" # 필터링에 사용할 국가 코드 (예: KR, US)
     applemusic:
       countryCode: "KR"
 
@@ -49,8 +49,8 @@ plugins:
   youtube:
     enabled: true
     allowSearch: true
-    # 검색 엔진 우선순위: WEB > MUSIC > ANDROID_VR > WEBEMBEDDED
-    clients: ["WEB", "MUSIC", "ANDROID_VR", "WEBEMBEDDED"]
+    # 검색 엔진 우선순위: MUSIC > ANDROID_VR > WEBEMBEDDED > WEB
+    clients: ["MUSIC", "ANDROID_VR", "WEBEMBEDDED", "WEB"]
 
 # ================================================================= #
 # 로깅 및 기타 설정
