@@ -140,13 +140,7 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        if not hasattr(
-            bot, "lavalink"
-        ):  # This ensures the client isn't overwritten during cog reloads.
-            bot.lavalink = lavalink.Client(BOT_ID)
-            bot.lavalink.add_node(
-                host=HOST, port=PORT, password=PSW, region=REGION, name="default-node"
-            )
+
 
         self.lavalink = bot.lavalink
         self.lavalink.add_event_hooks(self)
@@ -198,10 +192,14 @@ class Music(commands.Cog):
             if shuffle is not None:
                 player.set_shuffle(shuffle)
         except Exception as e:
+            node = interaction.client.lavalink.node_manager.get_node()
             LOGGER.error(f"Failed to create player: {e}")
-            LOGGER.error(
-                f"Lavalink connection details: HOST={HOST}, PORT={PORT}, REGION={REGION}"
-            )
+            if node:
+                LOGGER.error(
+                    f"Lavalink connection details: HOST={node.host}, PORT={node.port}, REGION={node.region}"
+                )
+            else:
+                LOGGER.error("Lavalink node not found!")
             raise
         # Create returns a player if one exists, otherwise creates.
         # This line is important because it ensures that a player always exists for a guild.
