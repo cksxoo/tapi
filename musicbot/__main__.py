@@ -1,5 +1,6 @@
 import discord
 import asyncio
+import os
 from discord.ext import commands
 
 import lavalink
@@ -16,12 +17,25 @@ from musicbot import (
 
 
 class MusicBot(commands.Bot):
-    def __init__(self):
+    def __init__(self, shard_id=None, shard_count=None):
         intents = discord.Intents.default()
         intents.message_content = True
         intents.messages = True
         intents.guilds = True
-        super().__init__(command_prefix="$", intents=intents)
+        
+        # 샤딩 설정
+        if shard_id is not None and shard_count is not None:
+            super().__init__(
+                command_prefix="$", 
+                intents=intents,
+                shard_id=shard_id,
+                shard_count=shard_count
+            )
+            self.shard_info = f"Shard {shard_id}/{shard_count}"
+        else:
+            super().__init__(command_prefix="$", intents=intents)
+            self.shard_info = "No Sharding"
+            
         self.remove_command("help")
 
     async def setup_hook(self):
@@ -37,10 +51,13 @@ class MusicBot(commands.Bot):
         LOGGER.info("Slash commands synced")
 
     async def on_ready(self):
-        LOGGER.info(BOT_NAME_TAG_VER)
+        LOGGER.info(f"{BOT_NAME_TAG_VER} - {self.shard_info}")
+        LOGGER.info(f"Connected to {len(self.guilds)} guilds on {self.shard_info}")
+        
         await self.change_presence(
             activity=discord.Activity(
-                type=discord.ActivityType.listening, name="📼 Cassette Tape"
+                type=discord.ActivityType.listening, 
+                name=f"📼 {self.shard_info}"
             ),
             status=discord.Status.online,
         )
@@ -73,5 +90,17 @@ class MusicBot(commands.Bot):
         await self.process_commands(message)
 
 
-bot = MusicBot()
+# 환경 변수에서 샤드 정보 가져오기
+shard_id = os.getenv('SHARD_ID')
+shard_count = os.getenv('SHARD_COUNT')
+
+if shard_id is not None and shard_count is not None:
+    shard_id = int(shard_id)
+    shard_count = int(shard_count)
+    LOGGER.info(f"Starting bot with shard {shard_id}/{shard_count}")
+    bot = MusicBot(shard_id=shard_id, shard_count=shard_count)
+else:
+    LOGGER.info("Starting bot without sharding")
+    bot = MusicBot()
+
 bot.run(TOKEN)

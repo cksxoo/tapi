@@ -7,6 +7,8 @@ services:
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml
       - ./plugins:/opt/Lavalink/plugins
+    environment:
+      - TZ=Asia/Seoul
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "--header=Authorization: youshallnotpass", "http://localhost:2333/v4/info"]
@@ -17,32 +19,67 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: '2.0'
+          memory: 1024M
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
 
-  bot:
+  bot-shard-0:
     image: music-bot:latest
     build: 
       context: ./musicbot
       dockerfile: Dockerfile.bot
+    container_name: music-bot-shard-0
     volumes:
       - ./musicbot:/app/musicbot
-      - ./logs:/app/logs
+      - ./logs:/app/logs/shard-0
       - ./plugins:/app/plugins
     environment:
       - PYTHONUNBUFFERED=1
       - TZ=Asia/Seoul
       - LAVALINK_HOST=lavalink
       - LAVALINK_PASSWORD=youshallnotpass
+      - SHARD_ID=0
+      - SHARD_COUNT=2
     restart: unless-stopped
     depends_on:
       lavalink:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
+
+  bot-shard-1:
+    image: music-bot:latest
+    build: 
+      context: ./musicbot
+      dockerfile: Dockerfile.bot
+    container_name: music-bot-shard-1
+    volumes:
+      - ./musicbot:/app/musicbot
+      - ./logs:/app/logs/shard-1
+      - ./plugins:/app/plugins
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Asia/Seoul
+      - LAVALINK_HOST=lavalink
+      - LAVALINK_PASSWORD=youshallnotpass
+      - SHARD_ID=1
+      - SHARD_COUNT=2
+    restart: unless-stopped
+    depends_on:
+      lavalink:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.8'
+          memory: 512M
 
   prometheus:
     image: prom/prometheus:latest
@@ -123,7 +160,8 @@ services:
           cpus: '0.50'  # CPU 사용량 50%로 제한
           memory: 256M  # 메모리 사용량 256MB로 제한
     depends_on:
-      - bot  # 봇 서비스가 시작된 후에 시작
+      - bot-shard-0
+      - bot-shard-1
     logging:
       driver: "json-file"
       options:

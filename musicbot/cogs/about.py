@@ -44,6 +44,11 @@ class About(commands.Cog):
             inline=True,
         )
         embed.add_field(
+            name="샤드 정보",
+            value=self.bot.shard_info,
+            inline=True,
+        )
+        embed.add_field(
             name=get_lan(interaction.user.id, "about_number_of_music_playback_servers"),
             value=f"lavalink: {players}({playing_players} playing)\nvoice channel count: {player_server_count} playing",
             inline=True,
