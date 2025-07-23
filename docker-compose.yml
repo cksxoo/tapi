@@ -19,8 +19,6 @@ services:
         limits:
           cpus: '1.0'
           memory: 512M
-        reservations:
-          memory: 256M
     logging:
       driver: "json-file"
       options:
@@ -94,15 +92,11 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     restart: unless-stopped
-    # 라즈베리 파이 환경에 최적화된 리소스 제한
     deploy:
       resources:
         limits:
           cpus: '0.50'  # CPU 사용량 50%로 제한
           memory: 256M  # 메모리 사용량 256MB로 제한
-        reservations:
-          memory: 128M  # 최소 128MB 메모리 예약
-    # 로깅 설정 최적화
     logging:
       driver: "json-file"
       options:
@@ -123,17 +117,13 @@ services:
     environment:
       - TZ=Asia/Seoul
     restart: unless-stopped
-    # 라즈베리 파이 환경에 최적화된 리소스 제한
     deploy:
       resources:
         limits:
           cpus: '0.50'  # CPU 사용량 50%로 제한
           memory: 256M  # 메모리 사용량 256MB로 제한
-        reservations:
-          memory: 128M  # 최소 128MB 메모리 예약
     depends_on:
       - bot  # 봇 서비스가 시작된 후에 시작
-    # 로깅 설정 최적화
     logging:
       driver: "json-file"
       options:
