@@ -1,9 +1,7 @@
-import time
 import discord
 import asyncio
-import multiprocessing
 from discord.ext import commands
-from musicbot.utils.lavalinkstart import start_lavalink, download_lavalink
+
 import lavalink
 
 from musicbot import (
@@ -11,8 +9,11 @@ from musicbot import (
     TOKEN,
     EXTENSIONS,
     BOT_NAME_TAG_VER,
-    LAVALINK_AUTO_UPDATE,
+    HOST,
+    PORT,
+    PSW,
 )
+
 
 class MusicBot(commands.Bot):
     def __init__(self):
@@ -23,16 +24,10 @@ class MusicBot(commands.Bot):
         super().__init__(command_prefix="$", intents=intents)
         self.remove_command("help")
 
-        if LAVALINK_AUTO_UPDATE:
-            download_lavalink()
+    async def setup_hook(self):
+        self.lavalink = lavalink.Client(self.user.id)
+        self.lavalink.add_node(HOST, PORT, PSW, "eu", "default-node")
 
-        LOGGER.info("Lavalink starting...")
-        self.lavalink_process = multiprocessing.Process(target=start_lavalink)
-        self.lavalink_process.start()
-        time.sleep(10)
-        LOGGER.info("Lavalink process started")
-
-    async def setup_hook(self):        
         # 확장 기능 로드
         for extension in EXTENSIONS:
             await self.load_extension(f"musicbot.cogs.{extension}")
@@ -44,7 +39,9 @@ class MusicBot(commands.Bot):
     async def on_ready(self):
         LOGGER.info(BOT_NAME_TAG_VER)
         await self.change_presence(
-            activity=discord.Activity(type=discord.ActivityType.listening, name="📼 Cassette Tape"),
+            activity=discord.Activity(
+                type=discord.ActivityType.listening, name="📼 Cassette Tape"
+            ),
             status=discord.Status.online,
         )
         self.loop.create_task(self.status_task())
@@ -53,12 +50,17 @@ class MusicBot(commands.Bot):
         while True:
             try:
                 await self.change_presence(
-                    activity=discord.Activity(type=discord.ActivityType.listening, name="📼 Cassette Tape"),
+                    activity=discord.Activity(
+                        type=discord.ActivityType.listening, name="📼 Cassette Tape"
+                    ),
                     status=discord.Status.online,
                 )
                 await asyncio.sleep(10)
                 await self.change_presence(
-                    activity=discord.Activity(type=discord.ActivityType.listening, name=f"📼 {len(self.guilds)} servers"),
+                    activity=discord.Activity(
+                        type=discord.ActivityType.listening,
+                        name=f"📼 {len(self.guilds)} servers",
+                    ),
                     status=discord.Status.online,
                 )
                 await asyncio.sleep(10)
@@ -69,6 +71,7 @@ class MusicBot(commands.Bot):
         if message.author.bot:
             return
         await self.process_commands(message)
+
 
 bot = MusicBot()
 bot.run(TOKEN)
