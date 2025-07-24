@@ -140,10 +140,11 @@ class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-
-
-        self.lavalink = bot.lavalink
-        self.lavalink.add_event_hooks(self)
+    @commands.Cog.listener()
+    async def on_ready(self):
+        if self.bot.lavalink and not hasattr(self.bot, "_event_hook_set"):
+            self.bot.lavalink.add_event_hooks(self)
+            self.bot._event_hook_set = True
 
     def cog_unload(self):
         """Cog unload handler. This removes any event hooks that were registered."""
