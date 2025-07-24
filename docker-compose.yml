@@ -55,7 +55,10 @@ services:
       <<: *bot-env
       SHARD_ID: 0
     volumes:
+      - ./musicbot:/app/musicbot
+      - ./plugins:/app/plugins
       - ./logs/shard-0:/app/logs
+      - ./data/shard-0:/app/data
 
     depends_on:
       lavalink:
@@ -68,7 +71,10 @@ services:
       <<: *bot-env
       SHARD_ID: 1
     volumes:
+      - ./musicbot:/app/musicbot
+      - ./plugins:/app/plugins
       - ./logs/shard-1:/app/logs
+      - ./data/shard-1:/app/data
     depends_on:
       lavalink:
         condition: service_healthy
