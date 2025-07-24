@@ -35,8 +35,11 @@ class Database:
                     date TEXT,
                     time TEXT,
                     guild_id TEXT,
+                    guild_name TEXT,
                     channel_id TEXT,
+                    channel_name TEXT,
                     user_id TEXT,
+                    user_name TEXT,
                     video_id TEXT,
                     title TEXT,
                     artist TEXT,
@@ -53,6 +56,45 @@ class Database:
                 ON statistics(date, guild_id)
                 """
                 )
+
+                # 스키마 마이그레이션 (컬럼 추가 및 순서 재정렬)
+                cursor.execute("PRAGMA table_info(statistics)")
+                current_columns = [info[1] for info in cursor.fetchall()]
+
+                desired_order = [
+                    'id', 'date', 'time', 'guild_id', 'guild_name', 'channel_id', 'channel_name',
+                    'user_id', 'user_name', 'video_id', 'title', 'artist', 'duration', 'success', 'created_at'
+                ]
+
+                # 컬럼 순서가 다르거나 필요한 컬럼이 없으면 마이그레이션 진행
+                if current_columns != desired_order:
+                    # 임시 테이블 생성
+                    cursor.execute("""
+                    CREATE TABLE statistics_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        date TEXT, time TEXT, guild_id TEXT, guild_name TEXT,
+                        channel_id TEXT, channel_name TEXT, user_id TEXT, user_name TEXT,
+                        video_id TEXT, title TEXT, artist TEXT, duration INTEGER,
+                        success BOOLEAN, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """)
+
+                    # 복사할 컬럼 결정 (기존 테이블과 새 테이블에 모두 있는 컬럼)
+                    cols_to_copy = [col for col in desired_order if col in current_columns]
+
+                    # 데이터 복사
+                    cursor.execute(f"INSERT INTO statistics_new ({', '.join(cols_to_copy)}) SELECT {', '.join(cols_to_copy)} FROM statistics")
+
+                    # 기존 테이블 삭제 및 이름 변경
+                    cursor.execute("DROP TABLE statistics")
+                    cursor.execute("ALTER TABLE statistics_new RENAME TO statistics")
+
+                    # 인덱스 재생성
+                    cursor.execute("DROP INDEX IF EXISTS idx_date_guild")
+                    cursor.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_date_guild 
+                    ON statistics(date, guild_id)
+                    """)
                 cursor.execute(
                     """
                     CREATE TABLE IF NOT EXISTS language (
@@ -88,31 +130,47 @@ class Database:
                 conn.commit()
             print("Database created successfully.")
 
-    def set_statistics(self, date: str, video_id: str, count: int) -> None:
+    def set_statistics(
+        self,
+        date: str,
+        time: str,
+        guild_id: str,
+        guild_name: str,
+        channel_id: str,
+        channel_name: str,
+        user_id: str,
+        user_name: str,
+        video_id: str,
+        title: str,
+        artist: str,
+        duration: int,
+        success: bool,
+    ) -> None:
         """통계 저장"""
         with closing(sqlite3.connect(Config.DB_PATH)) as conn:
             with closing(conn.cursor()) as cursor:
-                # add statistics
                 cursor.execute(
-                    f"INSERT INTO {self.statistics} VALUES(?, ?, ?)",
-                    (date, video_id, count),
+                    f"""INSERT INTO {self.statistics} (
+                        date, time, guild_id, guild_name, channel_id, channel_name,
+                        user_id, user_name, video_id, title, artist, duration, success
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        date,
+                        time,
+                        guild_id,
+                        guild_name,
+                        channel_id,
+                        channel_name,
+                        user_id,
+                        user_name,
+                        video_id,
+                        title,
+                        artist,
+                        duration,
+                        success,
+                    ),
                 )
                 conn.commit()
-
-    def get_statistics(self, date: str, video_id: str) -> int | None:
-        """통계 가져오기"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    f"SELECT * FROM {self.statistics} WHERE date=? AND video_id=?",
-                    (date, video_id),
-                )
-                count = cursor.fetchone()
-
-                if count is not None:
-                    count = count[2]
-
-                return count
 
     def set_loop(self, guild_id: int, loop: int) -> None:
         """길드 아이디로 루프 저장"""

@@ -1,15 +1,10 @@
 py-cord
 lavalink
-BeautifulSoup4
 psutil
 requests
-lxml
-chardet
-billboard.py
 koreanbots
 topggpy
 pymysql
-soundcloud-lib
 yt-dlp
 PyNaCl
 youtube_dl

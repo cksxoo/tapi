@@ -1,9 +1,6 @@
 import re
-import os
-import math
-import difflib
 import traceback
-from sclib import SoundcloudAPI
+from datetime import datetime
 import yt_dlp
 
 import discord
@@ -18,7 +15,6 @@ from lavalink.server import LoadType
 
 from musicbot.utils.language import get_lan
 from musicbot.utils.volumeicon import volumeicon
-from musicbot.utils.statistics import Statistics
 from musicbot import (
     LOGGER,
     BOT_ID,
@@ -30,6 +26,7 @@ from musicbot import (
     PORT,
 )
 from musicbot.utils.database import Database
+from musicbot.utils.statistics import Statistics
 
 url_rx = re.compile(r"https?://(?:www\.)?.+")
 
@@ -286,6 +283,32 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(guild_id)
         track = event.track
         requester_id = track.requester
+
+        # 통계 저장
+        try:
+            now = datetime.now()
+            date = now.strftime("%Y-%m-%d")
+            time = now.strftime("%H:%M:%S")
+            requester = await self.bot.fetch_user(requester_id)
+            user_name = requester.name if requester else "Unknown User"
+
+            Database().set_statistics(
+                date=date,
+                time=time,
+                guild_id=str(guild.id),
+                guild_name=guild.name,
+                channel_id=str(channel.id),
+                channel_name=channel.name,
+                user_id=str(requester_id),
+                user_name=user_name,
+                video_id=track.identifier,
+                title=track.title,
+                artist=track.author,
+                duration=track.duration,
+                success=True,
+            )
+        except Exception as e:
+            LOGGER.error(f"Error saving statistics: {e}")
 
         if channel:
             embed = discord.Embed(color=COLOR_CODE)
@@ -643,15 +666,6 @@ class Music(commands.Cog):
                             first_track = track
                             trackcount = 1
 
-                        # Record statistics for each track in playlist
-                        Statistics().record_play(
-                            track=track,
-                            guild_id=interaction.guild_id,
-                            channel_id=interaction.channel_id,
-                            user_id=interaction.user.id,
-                            success=True,
-                        )
-
                         player.add(requester=interaction.user.id, track=track)
                     except Exception as e:
                         LOGGER.error(f"Error adding track from playlist: {e}")
@@ -664,15 +678,6 @@ class Music(commands.Cog):
             else:
                 track = results.tracks[0]
                 
-                # Record statistics for single track
-                Statistics().record_play(
-                    track=track,
-                    guild_id=interaction.guild_id,
-                    channel_id=interaction.channel_id,
-                    user_id=interaction.user.id,
-                    success=True,
-                )
-
                 player.add(requester=interaction.user.id, track=track)
                 
                 # 단일 곡 추가 메시지 표시
@@ -696,6 +701,7 @@ class Music(commands.Cog):
                     channel_id=interaction.channel_id,
                     user_id=interaction.user.id,
                     success=False,
+                    interaction=interaction,
                 )
             except Exception as stats_error:
                 LOGGER.error(f"Failed to record failure statistics: {stats_error}")
