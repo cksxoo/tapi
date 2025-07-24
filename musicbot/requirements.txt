@@ -8,5 +8,6 @@ pymysql
 yt-dlp
 PyNaCl
 youtube_dl
+pytz
 
 pandas

@@ -145,31 +145,58 @@ class Database:
         artist: str,
         duration: int,
         success: bool,
+        created_at: str = None,
     ) -> None:
         """통계 저장"""
         with closing(sqlite3.connect(Config.DB_PATH)) as conn:
             with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    f"""INSERT INTO {self.statistics} (
-                        date, time, guild_id, guild_name, channel_id, channel_name,
-                        user_id, user_name, video_id, title, artist, duration, success
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        date,
-                        time,
-                        guild_id,
-                        guild_name,
-                        channel_id,
-                        channel_name,
-                        user_id,
-                        user_name,
-                        video_id,
-                        title,
-                        artist,
-                        duration,
-                        success,
-                    ),
-                )
+                if created_at:
+                    # 명시적으로 created_at 값 제공
+                    cursor.execute(
+                        f"""INSERT INTO {self.statistics} (
+                            date, time, guild_id, guild_name, channel_id, channel_name,
+                            user_id, user_name, video_id, title, artist, duration, success, created_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            date,
+                            time,
+                            guild_id,
+                            guild_name,
+                            channel_id,
+                            channel_name,
+                            user_id,
+                            user_name,
+                            video_id,
+                            title,
+                            artist,
+                            duration,
+                            success,
+                            created_at,
+                        ),
+                    )
+                else:
+                    # 기본값 사용 (기존 동작)
+                    cursor.execute(
+                        f"""INSERT INTO {self.statistics} (
+                            date, time, guild_id, guild_name, channel_id, channel_name,
+                            user_id, user_name, video_id, title, artist, duration, success
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            date,
+                            time,
+                            guild_id,
+                            guild_name,
+                            channel_id,
+                            channel_name,
+                            user_id,
+                            user_name,
+                            video_id,
+                            title,
+                            artist,
+                            duration,
+                            success,
+                        ),
+                    )
                 conn.commit()
 
     def set_loop(self, guild_id: int, loop: int) -> None:

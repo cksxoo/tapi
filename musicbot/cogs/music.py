@@ -1,6 +1,7 @@
 import re
 import traceback
 from datetime import datetime
+import pytz
 import yt_dlp
 
 import discord
@@ -286,11 +287,19 @@ class Music(commands.Cog):
 
         # 통계 저장
         try:
-            now = datetime.now()
+            # 한국 시간대 설정
+            kst = pytz.timezone('Asia/Seoul')
+            now = datetime.now(kst)
             date = now.strftime("%Y-%m-%d")
             time = now.strftime("%H:%M:%S")
             requester = await self.bot.fetch_user(requester_id)
             user_name = requester.name if requester else "Unknown User"
+
+            # duration을 밀리초에서 초로 변환
+            duration_seconds = track.duration // 1000
+            
+            # created_at을 한국 시간대로 설정
+            created_at = now.strftime("%Y-%m-%d %H:%M:%S")
 
             Database().set_statistics(
                 date=date,
@@ -304,8 +313,9 @@ class Music(commands.Cog):
                 video_id=track.identifier,
                 title=track.title,
                 artist=track.author,
-                duration=track.duration,
+                duration=duration_seconds,
                 success=True,
+                created_at=created_at,
             )
         except Exception as e:
             LOGGER.error(f"Error saving statistics: {e}")

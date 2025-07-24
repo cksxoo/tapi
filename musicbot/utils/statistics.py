@@ -1,4 +1,5 @@
 from datetime import datetime
+import pytz
 from musicbot.utils.database import Database
 from musicbot import LOGGER
 
@@ -22,8 +23,9 @@ class Statistics:
             interaction: Discord interaction object (optional, used to get names)
         """
         try:
-            # Get current date and time
-            now = datetime.now()
+            # Get current date and time in Korean timezone
+            kst = pytz.timezone('Asia/Seoul')
+            now = datetime.now(kst)
             date_str = now.strftime("%Y-%m-%d")
             time_str = now.strftime("%H:%M:%S")
             
@@ -32,7 +34,9 @@ class Statistics:
                 video_id = getattr(track, 'identifier', '') or ''
                 title = getattr(track, 'title', 'Unknown') or 'Unknown'
                 artist = getattr(track, 'author', 'Unknown') or 'Unknown'
-                duration = getattr(track, 'duration', 0) or 0
+                # Convert duration from milliseconds to seconds
+                duration_ms = getattr(track, 'duration', 0) or 0
+                duration = duration_ms // 1000
             else:
                 video_id = ''
                 title = 'Failed Play Attempt'
@@ -51,6 +55,9 @@ class Statistics:
                 channel_name = str(channel_id)
                 user_name = str(user_id)
             
+            # created_at을 한국 시간대로 설정
+            created_at = now.strftime("%Y-%m-%d %H:%M:%S")
+            
             # Record in database
             self.database.set_statistics(
                 date=date_str,
@@ -65,7 +72,8 @@ class Statistics:
                 title=title,
                 artist=artist,
                 duration=duration,
-                success=success
+                success=success,
+                created_at=created_at,
             )
             
         except Exception as e:
