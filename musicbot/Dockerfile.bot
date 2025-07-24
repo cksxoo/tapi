@@ -11,7 +11,7 @@ RUN apt-get update -qq && \
     && rm -rf /var/lib/apt/lists/*
 
 # 요구사항 파일 복사 및 의존성 설치
-COPY requirements.txt .
+COPY musicbot/requirements.txt .
 RUN python -m venv /opt/venv && \
     PATH="/opt/venv/bin:$PATH" && \
     pip install --no-cache-dir --upgrade pip && \
@@ -35,7 +35,7 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # 애플리케이션 코드 복사
-COPY . .
+COPY musicbot/ /app/musicbot/
 
 # 실행 명령
 CMD ["python", "-m", "musicbot"]

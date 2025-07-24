@@ -1,3 +1,24 @@
+x-bot-env: &bot-env
+  PYTHONUNBUFFERED: 1
+  TZ: Asia/Seoul
+  LAVALINK_HOST: lavalink
+  LAVALINK_PASSWORD: youshallnotpass
+  SHARD_COUNT: 2
+
+x-bot-base: &bot-base
+  build:
+    context: .
+    dockerfile: musicbot/Dockerfile.bot
+  restart: unless-stopped
+  volumes:
+    - ./musicbot:/app/musicbot
+    - ./plugins:/app/plugins
+  deploy:
+    resources:
+      limits:
+        cpus: '0.8'
+        memory: 512M
+
 services:
   lavalink:
     image: ghcr.io/lavalink-devs/lavalink:4.1.1
@@ -28,146 +49,26 @@ services:
         max-file: "3"
 
   bot-shard-0:
-    image: music-bot:latest
-    build: 
-      context: ./musicbot
-      dockerfile: Dockerfile.bot
+    <<: *bot-base
     container_name: music-bot-shard-0
-    volumes:
-      - ./musicbot:/app/musicbot
-      - ./logs:/app/logs/shard-0
-      - ./plugins:/app/plugins
     environment:
-      - PYTHONUNBUFFERED=1
-      - TZ=Asia/Seoul
-      - LAVALINK_HOST=lavalink
-      - LAVALINK_PASSWORD=youshallnotpass
-      - SHARD_ID=0
-      - SHARD_COUNT=2
-    restart: unless-stopped
+      <<: *bot-env
+      SHARD_ID: 0
+    volumes:
+      - ./logs/shard-0:/app/logs
+
     depends_on:
       lavalink:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
-          memory: 512M
 
   bot-shard-1:
-    image: music-bot:latest
-    build: 
-      context: ./musicbot
-      dockerfile: Dockerfile.bot
+    <<: *bot-base
     container_name: music-bot-shard-1
-    volumes:
-      - ./musicbot:/app/musicbot
-      - ./logs:/app/logs/shard-1
-      - ./plugins:/app/plugins
     environment:
-      - PYTHONUNBUFFERED=1
-      - TZ=Asia/Seoul
-      - LAVALINK_HOST=lavalink
-      - LAVALINK_PASSWORD=youshallnotpass
-      - SHARD_ID=1
-      - SHARD_COUNT=2
-    restart: unless-stopped
+      <<: *bot-env
+      SHARD_ID: 1
+    volumes:
+      - ./logs/shard-1:/app/logs
     depends_on:
       lavalink:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: '0.8'
-          memory: 512M
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_AUTH_TOKEN_ROTATION_INTERVAL_MINUTES=1440
-      - GF_SESSION_LIFETIME=24h
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-
-  node-exporter:
-    image: quay.io/prometheus/node-exporter:latest
-    container_name: node-exporter
-    ports:
-      - "9100:9100"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'  # CPU 사용량 50%로 제한
-          memory: 256M  # 메모리 사용량 256MB로 제한
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"  # 로그 파일 최대 크기
-        max-file: "3"    # 로그 파일 최대 개수
-
-  music-bot-exporter:
-    image: music-bot-exporter:latest
-    build:
-      context: ./exporter
-      dockerfile: Dockerfile.exporter
-    container_name: music-bot-exporter
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./musicbot/db:/app/musicbot/db  # 인덱스 생성을 위해 읽기/쓰기 모드로 변경
-      - ./logs:/app/logs
-    environment:
-      - TZ=Asia/Seoul
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'  # CPU 사용량 50%로 제한
-          memory: 256M  # 메모리 사용량 256MB로 제한
-    depends_on:
-      - bot-shard-0
-      - bot-shard-1
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"  # 로그 파일 최대 크기
-        max-file: "3"    # 로그 파일 최대 개수
-
-volumes:
-  prometheus_data:
-  grafana_data:
