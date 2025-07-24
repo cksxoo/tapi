@@ -64,25 +64,31 @@ class MusicBot(commands.Bot):
         self.loop.create_task(self.status_task())
 
     async def status_task(self):
+        await self.wait_until_ready()
+        
         while True:
             try:
+                # 1. 정적 메시지 표시
                 await self.change_presence(
                     activity=discord.Activity(
                         type=discord.ActivityType.listening, name="📼 Cassette Tape"
                     ),
                     status=discord.Status.online,
                 )
-                await asyncio.sleep(10)
-                await self.change_presence(
-                    activity=discord.Activity(
-                        type=discord.ActivityType.listening,
-                        name=f"📼 {len(self.guilds)} servers",
-                    ),
-                    status=discord.Status.online,
-                )
-                await asyncio.sleep(10)
-            except Exception:
-                pass
+                # await asyncio.sleep(15)
+
+                # # 2. 샤드 정보 표시
+                # await self.change_presence(
+                #     activity=discord.Activity(
+                #         type=discord.ActivityType.listening,
+                #         name=self.shard_info,
+                #     ),
+                #     status=discord.Status.online,
+                # )
+                # await asyncio.sleep(15)
+            except Exception as e:
+                print(f"[ERROR] status_task에서 에러 발생: {e}")
+                await asyncio.sleep(30)  # 에러 발생 시 잠시 대기
 
     async def on_message(self, message):
         if message.author.bot:

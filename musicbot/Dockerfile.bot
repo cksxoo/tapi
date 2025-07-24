@@ -7,7 +7,6 @@ WORKDIR /app
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends -qq \
     build-essential \
-    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -15,33 +14,28 @@ RUN apt-get update -qq && \
 COPY requirements.txt .
 RUN python -m venv /opt/venv && \
     PATH="/opt/venv/bin:$PATH" && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --upgrade yt-dlp
-
-# Lavalink.jar 다운로드
-RUN curl -s -L "https://github.com/lavalink-devs/Lavalink/releases/download/4.1.1/Lavalink.jar" -o Lavalink.jar
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # ---- Final Stage ----
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# 런타임 시스템 의존성 설치 (최적화)
+# 런타임 시스템 의존성 설치
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends -qq \
-    ffmpeg \
-    openjdk-17-jre-headless \
     sqlite3 \
+    curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 빌더 스테이지에서 필요한 파일 복사
+# 빌더 스테이지에서 Python 가상환경 복사
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /app/Lavalink.jar .
 ENV PATH="/opt/venv/bin:$PATH"
 
 # 애플리케이션 코드 복사
 COPY . .
 
 # 실행 명령
-CMD ["/opt/venv/bin/python", "-m", "musicbot"]
+CMD ["python", "-m", "musicbot"]
