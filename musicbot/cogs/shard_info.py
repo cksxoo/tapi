@@ -35,9 +35,12 @@ class ShardInfo(commands.Cog):
             if player and player.is_connected:
                 player_count += 1
 
+        latency = self.bot.latency
+        latency_ms = round(latency * 1000) if latency != float('inf') else -1
+
         data = {
             "guild_count": len(self.bot.guilds),
-            "latency": round(self.bot.latency * 1000),
+            "latency": latency_ms,
             "memory_usage": round(self.process.memory_info().rss / (1024 * 1024), 2),
             "player_count": player_count,
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
@@ -56,7 +59,9 @@ class ShardInfo(commands.Cog):
         if hasattr(self.bot, 'shard_id') and self.bot.shard_id is not None:
             embed.add_field(name="총 샤드 수", value=f"{self.bot.shard_count}", inline=True)
             embed.add_field(name="이 샤드의 길드 수", value=f"{len(self.bot.guilds)}개", inline=True)
-            embed.add_field(name="지연시간", value=f"{round(self.bot.latency * 1000)}ms", inline=True)
+            latency = self.bot.latency
+            latency_ms = f"{round(latency * 1000)}ms" if latency != float('inf') else "∞"
+            embed.add_field(name="지연시간", value=latency_ms, inline=True)
             
             player_count = 0
             for guild in self.bot.guilds:
