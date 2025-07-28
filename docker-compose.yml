@@ -4,6 +4,7 @@ x-bot-env: &bot-env
   LAVALINK_HOST: lavalink
   LAVALINK_PASSWORD: youshallnotpass
   SHARD_COUNT: 2
+  REDIS_HOST: redis
 
 x-bot-base: &bot-base
   build:
@@ -63,6 +64,8 @@ services:
     depends_on:
       lavalink:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   bot-shard-1:
     <<: *bot-base
@@ -78,3 +81,25 @@ services:
     depends_on:
       lavalink:
         condition: service_healthy
+      redis:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - ./data/redis:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M

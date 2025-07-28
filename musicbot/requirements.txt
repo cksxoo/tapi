@@ -9,5 +9,5 @@ yt-dlp
 PyNaCl
 youtube_dl
 pytz
-
+redis
 pandas
