@@ -41,7 +41,7 @@ class ShardInfo(commands.Cog):
         data = {
             "guild_count": len(self.bot.guilds),
             "latency": latency_ms,
-            "memory_usage": round(self.process.memory_info().rss / (1024 * 1024), 2),
+            "memory_usage": self.process.memory_info().rss,
             "player_count": player_count,
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
