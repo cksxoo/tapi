@@ -48,6 +48,9 @@
     "help_music_seek_command": ":clock: | `/seek` [*+(초) 혹은 -(초)*]",
     "help_music_seek_info": ">>> 음악을 명령어 뒤의 숫자만큼 초단위로 진행시간을 조절해요!",
     "help_music_remove_command": ":asterisk: | `/remove` [*재생목록에서의 음악 순서 번호*]",
+
+    "welcome_title": "OMG! 안녕하세요! ヾ(｡>﹏<｡)ﾉﾞ✧.",
+    "welcome_description": "저를 서버에 초대해주셔서 감사해요! ✧(≧◡≦) ♡\n\n멘션해서 명령어를 사용할 수도 있어요! /help를 입력해서 슬래시 명령어를 확인해보세요 ♡",
     "help_music_remove_info": ">>> 재생목록에서 음악을 제거해요!",
 
     "help_dev": "**개발자 명령어**",
@@ -111,6 +114,7 @@
     "music_repeat_already_on": "전곡 반복",
     "music_repeat_already_one": "한곡 반복",
     "music_repeat_already_off": "꺼짐",
+    "music_volume": "볼륨",
     "music_remove_no_wating_music": "대기 중인 음악이 없어요!",
     "music_remove_input_over": "1 에서 {last_queue} **까지**만 음악이 존재합니다!",
     "music_remove_form_playlist": ":asterisk: | 재생목록에서 음악이 제거되었습니다! :\n**{remove_music}**",
@@ -169,7 +173,7 @@
     "music_search_select_placeholder": "곡을 선택하세요...",
 
     "music_added_to_queue": "재생목록에 추가됨",
-    "music_added_to_queue_title": " | 재생목록에 추가됨",
+    "music_added_to_queue_title": "🎵 | 재생목록에 추가됨",
 
     "music_queue_cleared": "🧹 | 대기열 비우기 완료",
     "music_queue_cleared_desc": "대기열에서 {count}개의 곡이 제거되었습니다.",

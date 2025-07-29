@@ -17,6 +17,7 @@ from tapi import (
     PORT,
     PSW,
 )
+from tapi.utils.language import get_lan
 
 
 class TapiBot(commands.Bot):
@@ -87,6 +88,50 @@ class TapiBot(commands.Bot):
             except Exception as e:
                 LOGGER.error(f"Error in status_task: {e}")
                 await asyncio.sleep(30)
+
+    async def on_guild_join(self, guild):
+        """봇이 새로운 서버에 초대되었을 때 환영 메시지 전송"""
+        try:
+            # 서버에서 봇이 메시지를 보낼 수 있는 첫 번째 채널 찾기
+            channel = None
+            
+            # 일반 채널 중에서 찾기
+            for ch in guild.text_channels:
+                if ch.permissions_for(guild.me).send_messages:
+                    channel = ch
+                    break
+            
+            # 시스템 채널이 있다면 우선 사용
+            if guild.system_channel and guild.system_channel.permissions_for(guild.me).send_messages:
+                channel = guild.system_channel
+            
+            if channel:
+                # 봇의 기본 언어 설정으로 환영 메시지 생성 (guild owner의 언어 설정 사용)
+                try:
+                    owner_id = guild.owner_id if guild.owner_id else self.user.id
+                    title = get_lan(owner_id, "welcome_title")
+                    description = get_lan(owner_id, "welcome_description")
+                except:
+                    # 언어 설정 실패 시 기본 영어 메시지 사용
+                    title = "OMG! Hii guys ✧(≧◡≦) ♡"
+                    description = "Thank you for inviting me to hang with yall (*≧▽≦)\n\nyou can ping me to use commands too! Type /help to view my slash commands ♡"
+                
+                # 환영 메시지 embed 생성
+                embed = discord.Embed(
+                    title=title,
+                    description=description,
+                    color=0x7F8C8D
+                )
+                embed.set_thumbnail(url="https://github.com/leechanwoo-kor/music_bot/blob/main/docs/logo.png?raw=true")
+                embed.set_footer(text=APP_NAME_TAG_VER)
+                
+                await channel.send(embed=embed)
+                LOGGER.info(f"Welcome message sent to guild: {guild.name} (ID: {guild.id})")
+            else:
+                LOGGER.warning(f"Could not find a suitable channel to send welcome message in guild: {guild.name} (ID: {guild.id})")
+        
+        except Exception as e:
+            LOGGER.error(f"Error sending welcome message to guild {guild.name}: {e}")
 
     async def on_message(self, message):
         if message.author.bot:

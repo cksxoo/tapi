@@ -48,6 +48,9 @@
     "help_music_seek_command": ":clock: | `/seek` [*+(sec) or -(sec)*]",
     "help_music_seek_info": ">>> Adjust the music play time in seconds by the number after the command!",
     "help_music_remove_command": ":asterisk: | `/remove` [*Music sequence number in playlist*]",
+
+    "welcome_title": "OMG! Hii guys ヾ(｡>﹏<｡)ﾉﾞ✧.",
+    "welcome_description": "Thank you for inviting me to hang with yall ✧(≧◡≦) ♡\n\nyou can ping me to use commands too! Type /help to view my slash commands ♡",
     "help_music_remove_info": ">>> Remove music from the playlist!",
 
     "help_dev": "**Developer command**",
@@ -102,7 +105,7 @@
     "music_shuffle_on": ":twisted_rightwards_arrows: | Music shuffle is on!",
     "music_shuffle_off": ":twisted_rightwards_arrows: | Music shuffle is off!",
     "music_shuffle_already_on": "On",
-    "music_shuffle_already_off": "Shuffle is now off.",
+    "music_shuffle_already_off": "Off",
     "music_queued": " has been added to the queue.",
     "music_repeat": "Repeat",
     "music_repeat_one": ":repeat_one: | Repeat mode is now One!",
@@ -111,6 +114,7 @@
     "music_repeat_already_on": "All",
     "music_repeat_already_one": "One",
     "music_repeat_already_off": "Off",
+    "music_volume": "Volume",
     "music_remove_no_wating_music": "There is no music waiting!",
     "music_remove_input_over": "There is **only** music from 1 to {last_queue}!",
     "music_remove_form_playlist": ":asterisk: | Music removed from playlist! :\n**{remove_music}**",

@@ -8,7 +8,7 @@ from .language import get_lan
 from .redis_manager import RedisManager, redis_manager
 
 # Volume icon utility function
-async def volumeicon(vol: int) -> str:
+def volumeicon(vol: int) -> str:
     """
     Get volume icon based on volume level.
     
