@@ -20,6 +20,7 @@ from tapi import (
     LOGGER,
     CLIENT_ID,
     THEME_COLOR,
+    IDLE_COLOR,
     APP_NAME_TAG_VER,
     HOST,
     PSW,
@@ -163,7 +164,9 @@ class Music(commands.Cog):
             # which contain a reason string, such as "Join a voicechannel" etc. You can modify the above
             # if you want to do things differently.
         else:
-            LOGGER.error(f"Unexpected error in cog_command_error: {traceback.format_exc()}")
+            LOGGER.error(
+                f"Unexpected error in cog_command_error: {traceback.format_exc()}"
+            )
 
     async def create_player(interaction: discord.Interaction):
         """
@@ -291,7 +294,7 @@ class Music(commands.Cog):
         # 통계 저장
         try:
             # 한국 시간대 설정
-            kst = pytz.timezone('Asia/Seoul')
+            kst = pytz.timezone("Asia/Seoul")
             now = datetime.now(kst)
             date = now.strftime("%Y-%m-%d")
             time = now.strftime("%H:%M:%S")
@@ -300,7 +303,7 @@ class Music(commands.Cog):
 
             # duration을 밀리초에서 초로 변환
             duration_seconds = track.duration // 1000
-            
+
             # created_at을 한국 시간대로 설정
             created_at = now.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -334,18 +337,18 @@ class Music(commands.Cog):
                 finally:
                     # 메시지 삭제 실패해도 딕셔너리에서 제거
                     del self.last_music_messages[guild_id]
-            
+
             # 음악 컨트롤 버튼 생성
             control_view = MusicControlView(self, guild_id)
-            
+
             # 일관된 embed 생성 (가짜 interaction 객체 생성)
             class FakeInteraction:
                 def __init__(self, user_id):
-                    self.user = type('obj', (object,), {'id': user_id})()
-            
+                    self.user = type("obj", (object,), {"id": user_id})()
+
             fake_interaction = FakeInteraction(requester_id)
             embed = control_view.update_embed_and_buttons(fake_interaction, player)
-            
+
             if embed:
                 # 새 음악 메시지를 보내고 저장
                 message = await channel.send(embed=embed, view=control_view)
@@ -500,25 +503,25 @@ class Music(commands.Cog):
         # 봇 자신의 음성 상태 변경은 무시
         if member.bot:
             return
-        
+
         # 사용자가 음성 채널에서 나간 경우만 처리
         if before.channel and not after.channel:
             guild = before.channel.guild
-            
+
             # 봇이 해당 길드의 음성 채널에 연결되어 있는지 확인
             if not guild.voice_client:
                 return
-            
+
             # 봇이 연결된 음성 채널 확인
             bot_voice_channel = guild.voice_client.channel
-            
+
             # 사용자가 나간 채널이 봇이 있는 채널과 같은지 확인
             if before.channel != bot_voice_channel:
                 return
-            
+
             # 음성 채널에 남아있는 사용자 수 확인 (봇 제외)
             non_bot_members = [m for m in bot_voice_channel.members if not m.bot]
-            
+
             # 봇만 남아있다면 연결 해제
             if len(non_bot_members) == 0:
                 try:
@@ -528,25 +531,31 @@ class Music(commands.Cog):
                             old_message = self.last_music_messages[guild.id]
                             await old_message.delete()
                         except Exception as e:
-                            LOGGER.debug(f"Could not delete music message on auto disconnect: {e}")
+                            LOGGER.debug(
+                                f"Could not delete music message on auto disconnect: {e}"
+                            )
                         finally:
                             del self.last_music_messages[guild.id]
-                    
+
                     # Lavalink 플레이어 정리
                     player = self.bot.lavalink.player_manager.get(guild.id)
                     if player:
                         await player.stop()
                         player.queue.clear()
-                    
+
                     # 음성 채널에서 연결 해제
                     await guild.voice_client.disconnect(force=True)
-                    
+
                     # 다국어 지원 로그 메시지 (기본값으로 한국어 사용)
-                    log_message = get_lan(self.bot.user.id, "music_auto_disconnect_log").format(guild_name=guild.name)
+                    log_message = get_lan(
+                        self.bot.user.id, "music_auto_disconnect_log"
+                    ).format(guild_name=guild.name)
                     LOGGER.info(log_message)
-                    
+
                 except Exception as e:
-                    error_message = get_lan(self.bot.user.id, "music_auto_disconnect_error").format(error=str(e))
+                    error_message = get_lan(
+                        self.bot.user.id, "music_auto_disconnect_error"
+                    ).format(error=str(e))
                     LOGGER.error(error_message)
 
     @app_commands.command(name="connect", description="Connect to voice channel!")
@@ -685,27 +694,29 @@ class Music(commands.Cog):
                         player.add(requester=interaction.user.id, track=track)
                     except Exception as e:
                         LOGGER.error(f"Error adding track from playlist: {e}")
-                
+
                 # 플레이리스트가 추가되었다는 메시지 표시
                 embed = discord.Embed(color=THEME_COLOR)
-                embed.title = get_lan(interaction.user.id, "music_play_playlist") + "  📑"
+                embed.title = (
+                    get_lan(interaction.user.id, "music_play_playlist") + "  📑"
+                )
                 embed.description = f"**{results.playlist_info.name}** - {len(tracks)} tracks {get_lan(interaction.user.id, 'music_added_to_queue')}"
 
             else:
                 track = results.tracks[0]
-                
+
                 player.add(requester=interaction.user.id, track=track)
-                
+
                 # 단일 곡 추가 메시지 표시
                 embed = discord.Embed(color=THEME_COLOR)
-                embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
-                embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
-                
+                embed.description = f"**[{track.title}]({track.uri})** - {track.author} by {interaction.user.display_name}"
+
                 # YouTube 썸네일 추가
                 if track.identifier:
-                    embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
-            
-            embed.set_footer(text=APP_NAME_TAG_VER)
+                    embed.set_thumbnail(
+                        url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
+                    )
+
             await interaction.followup.send(embed=embed)
 
             if not player.is_playing:
@@ -788,7 +799,7 @@ class Music(commands.Cog):
 
                 # Add all of the tracks from the playlist to the queue.
                 player.add(requester=interaction.user.id, track=track)
-            
+
             # 플레이리스트가 추가되었다는 메시지 표시
             embed = discord.Embed(color=THEME_COLOR)
             embed.title = get_lan(interaction.user.id, "music_play_playlist") + "  📑"
@@ -800,22 +811,24 @@ class Music(commands.Cog):
             # You can attach additional information to audiotracks through kwargs, however this involves
             # constructing the AudioTrack class yourself.
             player.add(requester=interaction.user.id, track=track)
-            
+
             # 단일 곡 추가 메시지 표시
             embed = discord.Embed(color=THEME_COLOR)
-            embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
-            embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
-            
+            embed.description = f"**[{track.title}]({track.uri})** - {track.author} by {interaction.user.display_name}"
+
             # SoundCloud나 YouTube 썸네일 추가
             if track.identifier:
                 if "soundcloud.com" in track.uri:
                     # SoundCloud의 경우 artwork URL이 있다면 사용
-                    embed.set_thumbnail(url=track.uri)  # 기본적으로는 SoundCloud 아이콘이나 아트워크가 표시됨
+                    embed.set_thumbnail(
+                        url=track.uri
+                    )  # 기본적으로는 SoundCloud 아이콘이나 아트워크가 표시됨
                 else:
                     # YouTube의 경우
-                    embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
-        
-        embed.set_footer(text=APP_NAME_TAG_VER)
+                    embed.set_thumbnail(
+                        url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
+                    )
+
         await interaction.followup.send(embed=embed)
 
         # We don't want to call .play() if the player is playing as that will effectively skip
@@ -877,16 +890,15 @@ class Music(commands.Cog):
         player.add(requester=interaction.user.id, track=track)
 
         embed = discord.Embed(color=THEME_COLOR)
-        embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
-        embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
-        
+        embed.description = f"**[{track.title}]({track.uri})** - {track.author} by {interaction.user.display_name}"
+
         # YouTube 썸네일 추가
         if track.identifier:
-            embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
-        
-        embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed, ephemeral=False)
+            embed.set_thumbnail(
+                url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
+            )
 
+        await interaction.followup.send(embed=embed, ephemeral=False)
 
         if not player.is_playing:
             await player.play()
@@ -1019,7 +1031,7 @@ class Music(commands.Cog):
             ][player.loop],
             inline=True,
         )
-        
+
         # 볼륨 정보 추가
         volicon = volumeicon(player.volume)
         embed.add_field(
@@ -1269,7 +1281,9 @@ class Music(commands.Cog):
 
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_queue_cleared"),
-            description=get_lan(interaction.user.id, "music_queue_cleared_desc").format(count=queue_length),
+            description=get_lan(interaction.user.id, "music_queue_cleared_desc").format(
+                count=queue_length
+            ),
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
@@ -1416,68 +1430,68 @@ class MusicControlView(discord.ui.View):
         super().__init__(timeout=300)  # 5분 후 버튼 비활성화
         self.cog = cog
         self.guild_id = guild_id
-        
+
         # 플레이어 상태에 따라 버튼 초기 상태 설정
         try:
             player = cog.bot.lavalink.player_manager.get(guild_id)
             if player:
                 # 일시정지 버튼 상태
-                self.pause_resume.emoji = "▶️" if player.paused else "⏸️"
-                
+                self.pause_resume.emoji = "<:play:1399719809469382779>" if player.paused else "<:pause:1399721118473912390>"
+
                 # 반복 버튼 상태
-                if player.loop == 0:
-                    self.repeat.emoji = "🔁"
-                elif player.loop == 1:
-                    self.repeat.emoji = "🔂"  # 한곡 반복
-                else:  # player.loop == 2
-                    self.repeat.emoji = "🔂"  # 전곡 반복
-                
+                self.repeat.emoji = "<:repeats:1399721836958449674>"
+
                 # 셔플 버튼 상태
-                self.shuffle.style = discord.ButtonStyle.success if player.shuffle else discord.ButtonStyle.secondary
+                self.shuffle.style = (
+                    discord.ButtonStyle.success
+                    if player.shuffle
+                    else discord.ButtonStyle.secondary
+                )
         except:
             pass  # 오류 시 기본 상태 유지
-    
+
     def create_progress_bar(self, current, total, length=15):
         """유니코드 문자로 진행률 바 생성"""
         if total == 0:
             return "`" + "░" * length + "` 00:00/00:00"
-        
+
         filled = int((current / total) * length)
         bar = "█" * filled + "░" * (length - filled)
         current_time = lavalink.utils.format_time(current)
         total_time = lavalink.utils.format_time(total)
         return f"`{bar}` {current_time}/{total_time}"
-    
+
     def update_embed_and_buttons(self, interaction, player):
         """embed와 모든 버튼 상태를 현재 플레이어 상태로 업데이트"""
         track = player.current
         if not track:
             return None
-            
+
         # 진행률 바 생성
         progress_bar = self.create_progress_bar(player.position, track.duration)
-        
+
         # 현재 재생 정보 embed 생성
-        embed = discord.Embed(color=THEME_COLOR)
+        embed = discord.Embed(color=IDLE_COLOR)
         # 제목에 재생 상태 이모지 추가 (긴 아티스트명 처리)
         max_artist_length = 25  # 아티스트명 25자 제한
         artist_name = track.author
         if len(artist_name) > max_artist_length:
             artist_name = artist_name[:max_artist_length] + "..."
-        
+
         if player.paused:
-            embed.title = f"⏸️ | {artist_name}"
+            embed.title = f"<:audio:1399724398520434791> | {artist_name}"
         else:
-            embed.title = f"▶️ | {artist_name}"
-        
+            embed.title = f"<:audio:1399724398520434791> | {artist_name}"
+            # embed.title = f"<a:audio_spin:1399727564842336318> | {artist_name}"
+
         # 긴 곡 제목 처리
         max_title_length = 50  # 곡 제목 50자 제한
         title = track.title
         if len(title) > max_title_length:
             title = title[:max_title_length] + "..."
-        
+
         embed.description = f"[{title}]({track.uri})\n{progress_bar}"
-        
+
         # 상태 정보 추가
         embed.add_field(
             name=get_lan(interaction.user.id, "music_shuffle"),
@@ -1488,7 +1502,7 @@ class MusicControlView(discord.ui.View):
             ),
             inline=True,
         )
-        
+
         embed.add_field(
             name=get_lan(interaction.user.id, "music_repeat"),
             value=[
@@ -1498,89 +1512,102 @@ class MusicControlView(discord.ui.View):
             ][player.loop],
             inline=True,
         )
-        
+
         # 볼륨 정보 추가
         embed.add_field(
             name=get_lan(interaction.user.id, "music_volume"),
             value=f"{player.volume}%",
             inline=True,
         )
-        
+
         # YouTube 썸네일 추가 (적당한 크기)
         if track.identifier:
-            embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
-        
+            embed.set_thumbnail(
+                url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
+            )
+
         # 모든 버튼 상태 업데이트
-        self.pause_resume.emoji = "▶️" if player.paused else "⏸️"
-        
+        self.pause_resume.emoji = "<:play:1399719809469382779>" if player.paused else "<:pause:1399721118473912390>"
+
         # 반복 버튼 상태 업데이트
-        if player.loop == 0:
-            self.repeat.emoji = "🔁"
-        elif player.loop == 1:
-            self.repeat.emoji = "🔂"  # 한곡 반복
-        else:  # player.loop == 2
-            self.repeat.emoji = "🔂"  # 전곡 반복
-        
+        self.repeat.emoji = "<:repeats:1399721836958449674>"
+
         # 셔플 버튼 상태 업데이트
-        self.shuffle.style = discord.ButtonStyle.success if player.shuffle else discord.ButtonStyle.secondary
-        
+        self.shuffle.style = (
+            discord.ButtonStyle.success
+            if player.shuffle
+            else discord.ButtonStyle.secondary
+        )
+
         embed.set_footer(text=APP_NAME_TAG_VER)
         return embed
-    
-    @discord.ui.button(emoji="⏸️", style=discord.ButtonStyle.primary)
-    async def pause_resume(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+    @discord.ui.button(emoji="<:pause:1399721118473912390>", style=discord.ButtonStyle.primary)
+    async def pause_resume(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         """일시정지/재생 버튼"""
         await interaction.response.defer()
-        
+
         player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
         if not player or not player.is_playing:
-            return await interaction.followup.send("음악이 재생되고 있지 않습니다!", ephemeral=True)
-        
+            return await interaction.followup.send(
+                "음악이 재생되고 있지 않습니다!", ephemeral=True
+            )
+
         if player.paused:
             await player.set_pause(False)
         else:
             await player.set_pause(True)
-        
+
         # embed와 모든 버튼 상태 업데이트
         embed = self.update_embed_and_buttons(interaction, player)
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
-    
-    @discord.ui.button(emoji="⏭️", style=discord.ButtonStyle.secondary)
+
+    @discord.ui.button(emoji="<:skip:1399719807699521597>", style=discord.ButtonStyle.secondary)
     async def skip(self, interaction: discord.Interaction, button: discord.ui.Button):
         """건너뛰기 버튼"""
         await interaction.response.defer()
-        
+
         player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
         if not player or not player.is_playing:
-            return await interaction.followup.send("음악이 재생되고 있지 않습니다!", ephemeral=True)
-        
+            return await interaction.followup.send(
+                "음악이 재생되고 있지 않습니다!", ephemeral=True
+            )
+
         await player.skip()
         # 건너뛰기는 새 곡이 시작되면서 자동으로 새 컨트롤 패널이 나타남
-    
-    @discord.ui.button(emoji="🔄", style=discord.ButtonStyle.secondary)
-    async def refresh(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+    @discord.ui.button(emoji="<:refresh:1399711357934374943>", style=discord.ButtonStyle.secondary)
+    async def refresh(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         """현재 재생 정보 새로고침 버튼"""
         await interaction.response.defer()
-        
+
         player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
         if not player or not player.current:
-            return await interaction.followup.send("현재 재생중인 곡이 없습니다!", ephemeral=True)
-        
+            return await interaction.followup.send(
+                "현재 재생중인 곡이 없습니다!", ephemeral=True
+            )
+
         # embed와 모든 버튼 상태 업데이트
         embed = self.update_embed_and_buttons(interaction, player)
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
-    
-    @discord.ui.button(emoji="🔁", style=discord.ButtonStyle.secondary)
+
+    @discord.ui.button(emoji="<:repeats:1399721836958449674>", style=discord.ButtonStyle.secondary)
     async def repeat(self, interaction: discord.Interaction, button: discord.ui.Button):
         """반복 모드 버튼 (off → 전곡 → 한곡 → off 순환)"""
         await interaction.response.defer()
-        
+
         player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
         if not player or not player.is_playing:
-            return await interaction.followup.send("음악이 재생되고 있지 않습니다!", ephemeral=True)
-        
+            return await interaction.followup.send(
+                "음악이 재생되고 있지 않습니다!", ephemeral=True
+            )
+
         # 반복 모드 순환: 0(off) → 2(전곡) → 1(한곡) → 0(off)
         if player.loop == 0:
             player.set_loop(2)
@@ -1588,30 +1615,34 @@ class MusicControlView(discord.ui.View):
             player.set_loop(1)
         else:
             player.set_loop(0)
-        
+
         # 데이터베이스에 설정 저장
         Database().set_loop(self.guild_id, player.loop)
-        
+
         # embed와 모든 버튼 상태 업데이트
         embed = self.update_embed_and_buttons(interaction, player)
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
-    
-    @discord.ui.button(emoji="🔀", style=discord.ButtonStyle.secondary)
-    async def shuffle(self, interaction: discord.Interaction, button: discord.ui.Button):
+
+    @discord.ui.button(emoji="<:shuffle:1399720936068091964>", style=discord.ButtonStyle.secondary)
+    async def shuffle(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
         """셔플 모드 토글 버튼"""
         await interaction.response.defer()
-        
+
         player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
         if not player or not player.is_playing:
-            return await interaction.followup.send("음악이 재생되고 있지 않습니다!", ephemeral=True)
-        
+            return await interaction.followup.send(
+                "음악이 재생되고 있지 않습니다!", ephemeral=True
+            )
+
         # 셔플 모드 토글
         player.set_shuffle(not player.shuffle)
-        
+
         # 데이터베이스에 설정 저장
         Database().set_shuffle(self.guild_id, player.shuffle)
-        
+
         # embed와 모든 버튼 상태 업데이트
         embed = self.update_embed_and_buttons(interaction, player)
         if embed:

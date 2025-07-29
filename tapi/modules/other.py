@@ -15,7 +15,7 @@ class Other(commands.Cog):
 
     @app_commands.command(name="invite", description="Send you a link for invite me")
     async def invite(self, interaction: discord.Interaction):
-        link = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=414501391424&scope=bot%20applications.commands"
+        link = f"https://discord.com/oauth2/authorize?client_id={self.bot.user.id}&permissions=414501391424&scope=bot"
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "other_invite_title"),
             description=get_lan(interaction.user.id, "other_invite_description").format(

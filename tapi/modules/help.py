@@ -163,12 +163,6 @@ class Help(commands.Cog):
                     inline=False,
                 )
 
-            if interaction.user.id in OWNERS:
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_dev_command"),
-                    value=get_lan(interaction.user.id, "help_dev_command_info"),
-                    inline=False,
-                )
 
             embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.response.send_message(embed=embed)
