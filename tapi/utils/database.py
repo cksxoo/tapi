@@ -315,3 +315,39 @@ class Database:
 
                 # 결과가 없으면 기본값 100 반환
                 return result[0] if result else 20
+
+    def set_user_language(self, user_id: int, language: str) -> None:
+        """사용자 언어 설정 저장"""
+        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
+            with closing(conn.cursor()) as cursor:
+                user_id_str = str(user_id)
+                
+                # 기존 언어 설정 확인
+                cursor.execute(
+                    "SELECT * FROM language WHERE id=?", (user_id_str,)
+                )
+                existing = cursor.fetchone()
+                
+                if existing is None:
+                    # 새로운 언어 설정 추가
+                    cursor.execute(
+                        "INSERT INTO language VALUES(?, ?)", (user_id_str, language)
+                    )
+                else:
+                    # 기존 언어 설정 수정
+                    cursor.execute(
+                        "UPDATE language SET language=? WHERE id=?", (language, user_id_str)
+                    )
+                conn.commit()
+
+    def get_user_language(self, user_id: int) -> str:
+        """사용자 언어 설정 가져오기"""
+        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor.execute(
+                    "SELECT language FROM language WHERE id=?", (str(user_id),)
+                )
+                result = cursor.fetchone()
+                
+                # 기본 언어는 한국어
+                return result[0] if result else "kr"

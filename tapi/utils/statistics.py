@@ -1,6 +1,7 @@
 from datetime import datetime
 import pytz
 from tapi.utils.database import Database
+from tapi.config import Development as Config
 from tapi import LOGGER
 
 
@@ -9,6 +10,8 @@ class Statistics:
     
     def __init__(self):
         self.database = Database()
+        # 설정 파일에서 시간대를 가져오거나 기본값 사용
+        self.timezone = getattr(Config, 'TIMEZONE', 'Asia/Seoul')
     
     def record_play(self, track, guild_id, channel_id, user_id, success=True, interaction=None):
         """
@@ -23,9 +26,9 @@ class Statistics:
             interaction: Discord interaction object (optional, used to get names)
         """
         try:
-            # Get current date and time in Korean timezone
-            kst = pytz.timezone('Asia/Seoul')
-            now = datetime.now(kst)
+            # Get current date and time in configured timezone
+            tz = pytz.timezone(self.timezone)
+            now = datetime.now(tz)
             date_str = now.strftime("%Y-%m-%d")
             time_str = now.strftime("%H:%M:%S")
             
@@ -55,7 +58,7 @@ class Statistics:
                 channel_name = str(channel_id)
                 user_name = str(user_id)
             
-            # created_at을 한국 시간대로 설정
+            # created_at을 설정된 시간대로 설정
             created_at = now.strftime("%Y-%m-%d %H:%M:%S")
             
             # Record in database

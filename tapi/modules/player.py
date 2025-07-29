@@ -15,7 +15,7 @@ from lavalink.errors import ClientError
 from lavalink.server import LoadType
 
 from tapi.utils.language import get_lan
-from tapi.utils.volumeicon import volumeicon
+from tapi.utils import volumeicon
 from tapi import (
     LOGGER,
     CLIENT_ID,

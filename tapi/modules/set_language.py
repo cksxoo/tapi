@@ -1,12 +1,10 @@
 import os
-import sqlite3
-from contextlib import closing
-from tapi.config import Development as Config
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from tapi.utils.language import get_lan
+from tapi.utils.database import Database
 from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
 
 lan_pack = [
@@ -19,7 +17,7 @@ lan_pack = [
 class Language(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.userdata_table = "language"
+        self.database = Database()
 
     @app_commands.command(name="language", description="Apply the language pack.")
     @app_commands.choices(
@@ -44,40 +42,25 @@ class Language(commands.Cog):
             embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.response.send_message(embed=embed)
 
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    f"""
-                    SELECT * FROM {self.userdata_table} WHERE id=?
-                    """,
-                    (str(interaction.user.id),),
-                )
-                a = cursor.fetchone()
-                if a is None:
-                    cursor.execute(
-                        f"""
-                        INSERT INTO {self.userdata_table} VALUES(?, ?)
-                        """,
-                        (str(interaction.user.id), lang),
-                    )
-                    embed = discord.Embed(
-                        title=get_lan(interaction.user.id, "set_language_complete"),
-                        description=f"{lang}",
-                        color=THEME_COLOR,
-                    )
-                else:
-                    cursor.execute(
-                        f"""
-                        UPDATE {self.userdata_table} SET language=? WHERE id=?
-                        """,
-                        (lang, str(interaction.user.id)),
-                    )
-                    embed = discord.Embed(
-                        title=get_lan(interaction.user.id, "set_language_complete"),
-                        description=f"{a[1]} --> {lang}",
-                        color=THEME_COLOR,
-                    )
-                conn.commit()
+        # 현재 사용자 언어 설정 가져오기
+        current_lang = self.database.get_user_language(interaction.user.id)
+        
+        # 새로운 언어 설정 저장
+        self.database.set_user_language(interaction.user.id, lang)
+        
+        # 임베드 메시지 생성
+        if current_lang == "kr":  # 기본값인 경우
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "set_language_complete"),
+                description=f"{lang}",
+                color=THEME_COLOR,
+            )
+        else:
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "set_language_complete"),
+                description=f"{current_lang} --> {lang}",
+                color=THEME_COLOR,
+            )
 
         embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
