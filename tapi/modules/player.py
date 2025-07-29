@@ -137,6 +137,8 @@ class AudioConnection(discord.VoiceClient):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        # 길드별 마지막 음악 메시지를 저장하는 딕셔너리
+        self.last_music_messages = {}
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -322,6 +324,17 @@ class Music(commands.Cog):
             LOGGER.error(f"Error saving statistics: {e}")
 
         if channel:
+            # 이전 음악 메시지가 있다면 삭제
+            if guild_id in self.last_music_messages:
+                try:
+                    old_message = self.last_music_messages[guild_id]
+                    await old_message.delete()
+                except Exception as e:
+                    LOGGER.debug(f"Could not delete old music message: {e}")
+                finally:
+                    # 메시지 삭제 실패해도 딕셔너리에서 제거
+                    del self.last_music_messages[guild_id]
+            
             # 음악 컨트롤 버튼 생성
             control_view = MusicControlView(self, guild_id)
             
@@ -334,12 +347,25 @@ class Music(commands.Cog):
             embed = control_view.update_embed_and_buttons(fake_interaction, player)
             
             if embed:
-                return await channel.send(embed=embed, view=control_view)
+                # 새 음악 메시지를 보내고 저장
+                message = await channel.send(embed=embed, view=control_view)
+                self.last_music_messages[guild_id] = message
+                return message
 
     @lavalink.listener(QueueEndEvent)
     async def on_queue_end(self, event: QueueEndEvent):
         guild_id = event.player.guild_id
         guild = self.bot.get_guild(guild_id)
+
+        # 마지막 음악 메시지 삭제
+        if guild_id in self.last_music_messages:
+            try:
+                old_message = self.last_music_messages[guild_id]
+                await old_message.delete()
+            except Exception as e:
+                LOGGER.debug(f"Could not delete music message on queue end: {e}")
+            finally:
+                del self.last_music_messages[guild_id]
 
         # Check if the voice client exists and if the player is connected
         if guild and guild.voice_client and event.player.is_connected:
@@ -496,6 +522,16 @@ class Music(commands.Cog):
             # 봇만 남아있다면 연결 해제
             if len(non_bot_members) == 0:
                 try:
+                    # 마지막 음악 메시지 삭제
+                    if guild.id in self.last_music_messages:
+                        try:
+                            old_message = self.last_music_messages[guild.id]
+                            await old_message.delete()
+                        except Exception as e:
+                            LOGGER.debug(f"Could not delete music message on auto disconnect: {e}")
+                        finally:
+                            del self.last_music_messages[guild.id]
+                    
                     # Lavalink 플레이어 정리
                     player = self.bot.lavalink.player_manager.get(guild.id)
                     if player:
@@ -664,6 +700,10 @@ class Music(commands.Cog):
                 embed = discord.Embed(color=THEME_COLOR)
                 embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
                 embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
+                
+                # YouTube 썸네일 추가
+                if track.identifier:
+                    embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
             
             embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.followup.send(embed=embed)
@@ -765,6 +805,15 @@ class Music(commands.Cog):
             embed = discord.Embed(color=THEME_COLOR)
             embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
             embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
+            
+            # SoundCloud나 YouTube 썸네일 추가
+            if track.identifier:
+                if "soundcloud.com" in track.uri:
+                    # SoundCloud의 경우 artwork URL이 있다면 사용
+                    embed.set_thumbnail(url=track.uri)  # 기본적으로는 SoundCloud 아이콘이나 아트워크가 표시됨
+                else:
+                    # YouTube의 경우
+                    embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
         
         embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
@@ -830,6 +879,11 @@ class Music(commands.Cog):
         embed = discord.Embed(color=THEME_COLOR)
         embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
         embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
+        
+        # YouTube 썸네일 추가
+        if track.identifier:
+            embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
+        
         embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed, ephemeral=False)
 
@@ -869,6 +923,17 @@ class Music(commands.Cog):
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
+
+        # 마지막 음악 메시지 삭제
+        guild_id = interaction.guild.id
+        if guild_id in self.last_music_messages:
+            try:
+                old_message = self.last_music_messages[guild_id]
+                await old_message.delete()
+            except Exception as e:
+                LOGGER.debug(f"Could not delete music message on disconnect: {e}")
+            finally:
+                del self.last_music_messages[guild_id]
 
         player.queue.clear()
         await player.stop()
