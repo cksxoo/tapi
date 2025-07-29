@@ -2,6 +2,7 @@ import redis
 import json
 import os
 from tapi.sample_config import Config
+from tapi import LOGGER
 
 class RedisManager:
     def __init__(self):

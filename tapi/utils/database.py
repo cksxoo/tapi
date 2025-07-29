@@ -12,6 +12,7 @@ import os
 import sqlite3
 from contextlib import closing
 from tapi.config import Development as Config
+from tapi import LOGGER
 
 
 class Database:
