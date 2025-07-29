@@ -2,7 +2,7 @@ import os
 import json
 import sqlite3
 from contextlib import closing
-from musicbot.config import Development as Config
+from tapi.config import Development as Config
 
 
 def get_lan(user_id, text: str):

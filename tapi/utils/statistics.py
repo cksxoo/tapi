@@ -1,7 +1,7 @@
 from datetime import datetime
 import pytz
-from musicbot.utils.database import Database
-from musicbot import LOGGER
+from tapi.utils.database import Database
+from tapi import LOGGER
 
 
 class Statistics:

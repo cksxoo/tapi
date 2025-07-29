@@ -7,14 +7,14 @@ import psutil
 import math
 import requests
 
-from musicbot.utils.language import get_lan
-from musicbot import LOGGER, COLOR_CODE, BOT_NAME_TAG_VER, EXTENSIONS, DEBUG_SERVER
+from tapi.utils.language import get_lan
+from tapi import LOGGER, THEME_COLOR, APP_NAME_TAG_VER, EXTENSIONS, DEBUG_SERVER
 
 
 class Owners(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.color = COLOR_CODE
+        self.color = THEME_COLOR
         self.error_color = 0xFF4A4A
 
     @app_commands.command()
@@ -24,7 +24,7 @@ class Owners(commands.Cog):
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "help_dev"),
             description=get_lan(interaction.user.id, "help_dev_description"),
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
         embed.add_field(
             name=get_lan(interaction.user.id, "help_dev_serverlist_command"),
@@ -61,7 +61,7 @@ class Owners(commands.Cog):
             value=get_lan(interaction.user.id, "help_dev_broadcast_info"),
             inline=False,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
@@ -91,7 +91,7 @@ class Owners(commands.Cog):
                 ),
                 color=self.error_color,
             )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
@@ -117,7 +117,7 @@ class Owners(commands.Cog):
             )
             if module in EXTENSIONS:
                 EXTENSIONS[EXTENSIONS.index(module)] = f"*~~{module}~~*"
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
@@ -143,7 +143,7 @@ class Owners(commands.Cog):
                 description=f"에러: {error}",
                 color=self.error_color,
             )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
@@ -156,10 +156,10 @@ class Owners(commands.Cog):
         )
         e1 = "\n".join(EXTENSIONS)
         embed = discord.Embed(
-            title=get_lan(interaction.user.id, "owners_modules_list"), color=COLOR_CODE
+            title=get_lan(interaction.user.id, "owners_modules_list"), color=THEME_COLOR
         )
         embed.add_field(name=modulenum, value=e1, inline=False)
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
@@ -167,7 +167,7 @@ class Owners(commands.Cog):
     async def serverinfo(self, interaction: discord.Interaction):
         """봇 서버의 사양을 알려줘요!"""
         embed = discord.Embed(
-            title=get_lan(interaction.user.id, "owners_server_info"), color=COLOR_CODE
+            title=get_lan(interaction.user.id, "owners_server_info"), color=THEME_COLOR
         )
         embed.add_field(name="Platform", value=platform.platform(), inline=False)
         embed.add_field(name="Kernel", value=platform.version(), inline=False)
@@ -189,7 +189,7 @@ class Owners(commands.Cog):
         embed.add_field(
             name="Ping", value=f"{round(self.bot.latency * 1000)}ms", inline=False
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command()
@@ -213,7 +213,7 @@ class Owners(commands.Cog):
                         server_count=len(self.bot.guilds),
                         members_count=len(self.bot.users),
                     ),
-                    color=COLOR_CODE,
+                    color=THEME_COLOR,
                 )
                 srvr = "\n".join(
                     get_lan(interaction.user.id, "owners_server_list_info").format(
@@ -222,7 +222,7 @@ class Owners(commands.Cog):
                     for i in self.bot.guilds
                 )
                 embed.add_field(name="​", value=srvr, inline=False)
-                embed.set_footer(text=BOT_NAME_TAG_VER)
+                embed.set_footer(text=APP_NAME_TAG_VER)
                 return await interaction.edit_original_response(embed=embed)
 
             guilds = sorted(self.bot.guilds, key=lambda x: (-x.member_count, x.name))
@@ -248,9 +248,9 @@ class Owners(commands.Cog):
                         members_count=len(self.bot.users),
                         servers=srvr,
                     ),
-                    color=COLOR_CODE,
+                    color=THEME_COLOR,
                 ).set_footer(
-                    text=f"{get_lan(interaction.user.id, 'owners_page')} {i+1}/{allpage}\n{BOT_NAME_TAG_VER}"
+                    text=f"{get_lan(interaction.user.id, 'owners_page')} {i+1}/{allpage}\n{APP_NAME_TAG_VER}"
                 )
                 embeds.append(embed)
 
@@ -277,9 +277,9 @@ class Owners(commands.Cog):
     async def public_ip(self, interaction: discord.Interaction):
         """서버의 공인 IP를 알려줘요!"""
         public_ip = requests.get("https://api.ipify.org").text
-        embed = discord.Embed(title="Public IP", color=COLOR_CODE)
+        embed = discord.Embed(title="Public IP", color=THEME_COLOR)
         embed.add_field(name="IP", value=public_ip, inline=False)
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
 

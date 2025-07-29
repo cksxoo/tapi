@@ -14,25 +14,25 @@ from lavalink.events import TrackStartEvent, QueueEndEvent, TrackExceptionEvent
 from lavalink.errors import ClientError
 from lavalink.server import LoadType
 
-from musicbot.utils.language import get_lan
-from musicbot.utils.volumeicon import volumeicon
-from musicbot import (
+from tapi.utils.language import get_lan
+from tapi.utils.volumeicon import volumeicon
+from tapi import (
     LOGGER,
-    BOT_ID,
-    COLOR_CODE,
-    BOT_NAME_TAG_VER,
+    CLIENT_ID,
+    THEME_COLOR,
+    APP_NAME_TAG_VER,
     HOST,
     PSW,
     REGION,
     PORT,
 )
-from musicbot.utils.database import Database
-from musicbot.utils.statistics import Statistics
+from tapi.utils.database import Database
+from tapi.utils.statistics import Statistics
 
 url_rx = re.compile(r"https?://(?:www\.)?.+")
 
 
-class LavalinkVoiceClient(discord.VoiceClient):
+class AudioConnection(discord.VoiceClient):
     """
     This is the preferred way to handle external voice sending
     This client will be created via a cls in the connect method of the channel
@@ -152,9 +152,9 @@ class Music(commands.Cog):
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.CommandInvokeError):
             embed = discord.Embed(
-                title=error.original, description="", color=COLOR_CODE
+                title=error.original, description="", color=THEME_COLOR
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             await ctx.respond(embed=embed)
             # The above handles errors thrown in this cog and shows them to the user.
             # This shouldn't be a problem as the only errors thrown in this cog are from `ensure_voice`
@@ -220,12 +220,12 @@ class Music(commands.Cog):
                 description=get_lan(
                     interaction.user.id, "music_not_in_voice_channel_description"
                 ),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
             embed.set_footer(
                 text=get_lan(interaction.user.id, "music_not_in_voice_channel_footer")
                 + "\n"
-                + BOT_NAME_TAG_VER
+                + APP_NAME_TAG_VER
             )
 
             # 음성 채널 아이콘 이미지를 추가하여 시각적으로 더 명확하게 안내합니다
@@ -322,7 +322,7 @@ class Music(commands.Cog):
             LOGGER.error(f"Error saving statistics: {e}")
 
         if channel:
-            embed = discord.Embed(color=COLOR_CODE)
+            embed = discord.Embed(color=THEME_COLOR)
             
             # 제목과 아티스트 정보 설정
             embed.title = (
@@ -364,7 +364,7 @@ class Music(commands.Cog):
             if track.identifier:
                 embed.set_thumbnail(url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg")
                 
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await channel.send(embed=embed)
 
     @lavalink.listener(QueueEndEvent)
@@ -487,9 +487,9 @@ class Music(commands.Cog):
                         track_title=original_track_title,
                         error_message=event.message,  # Changed from event.exception.message
                     ),
-                    color=COLOR_CODE,
+                    color=THEME_COLOR,
                 )
-                embed.set_footer(text=BOT_NAME_TAG_VER)
+                embed.set_footer(text=APP_NAME_TAG_VER)
                 try:
                     await channel.send(embed=embed)
                 except discord.HTTPException as e:
@@ -551,15 +551,15 @@ class Music(commands.Cog):
         if not player.is_connected:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_connect_voice_channel"),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.response.send_message(embed=embed)
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_already_connected_voice_channel"),
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
@@ -658,9 +658,9 @@ class Music(commands.Cog):
                                 interaction.user.id, "music_can_not_find_anything"
                             ),
                             description=f"Query: {original_query_stripped}",  # Added original query for context
-                            color=COLOR_CODE,
+                            color=THEME_COLOR,
                         )
-                        embed.set_footer(text=BOT_NAME_TAG_VER)
+                        embed.set_footer(text=APP_NAME_TAG_VER)
                         return await interaction.followup.send(embed=embed)
                 else:  # Lavalink found tracks
                     break
@@ -682,7 +682,7 @@ class Music(commands.Cog):
                         LOGGER.error(f"Error adding track from playlist: {e}")
                 
                 # 플레이리스트가 추가되었다는 메시지 표시
-                embed = discord.Embed(color=COLOR_CODE)
+                embed = discord.Embed(color=THEME_COLOR)
                 embed.title = get_lan(interaction.user.id, "music_play_playlist") + "  📑"
                 embed.description = f"**{results.playlist_info.name}** - {len(tracks)} tracks {get_lan(interaction.user.id, 'music_added_to_queue')}"
 
@@ -692,11 +692,11 @@ class Music(commands.Cog):
                 player.add(requester=interaction.user.id, track=track)
                 
                 # 단일 곡 추가 메시지 표시
-                embed = discord.Embed(color=COLOR_CODE)
+                embed = discord.Embed(color=THEME_COLOR)
                 embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
                 embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
             
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.followup.send(embed=embed)
 
             if not player.is_playing:
@@ -755,9 +755,9 @@ class Music(commands.Cog):
                             interaction.user.id, "music_can_not_find_anything"
                         ),
                         description="",
-                        color=COLOR_CODE,
+                        color=THEME_COLOR,
                     )
-                    embed.set_footer(text=BOT_NAME_TAG_VER)
+                    embed.set_footer(text=APP_NAME_TAG_VER)
                     return await interaction.followup.send(embed=embed)
             else:
                 break
@@ -781,7 +781,7 @@ class Music(commands.Cog):
                 player.add(requester=interaction.user.id, track=track)
             
             # 플레이리스트가 추가되었다는 메시지 표시
-            embed = discord.Embed(color=COLOR_CODE)
+            embed = discord.Embed(color=THEME_COLOR)
             embed.title = get_lan(interaction.user.id, "music_play_playlist") + "  📑"
             embed.description = f"**{results.playlist_info.name}** - {len(tracks)} tracks {get_lan(interaction.user.id, 'music_added_to_queue')}"
 
@@ -793,11 +793,11 @@ class Music(commands.Cog):
             player.add(requester=interaction.user.id, track=track)
             
             # 단일 곡 추가 메시지 표시
-            embed = discord.Embed(color=COLOR_CODE)
+            embed = discord.Embed(color=THEME_COLOR)
             embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
             embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
         
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
         # We don't want to call .play() if the player is playing as that will effectively skip
@@ -818,9 +818,9 @@ class Music(commands.Cog):
         if not query:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_search_no_keyword"),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         # Use ytsearch: prefix to search YouTube
@@ -830,9 +830,9 @@ class Music(commands.Cog):
         if not results or not results.tracks:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_search_no_results"),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         tracks = results.tracks[:5]  # Limit to 5 results
@@ -840,7 +840,7 @@ class Music(commands.Cog):
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_search_results"),
             description=get_lan(interaction.user.id, "music_search_select"),
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
         for i, track in enumerate(tracks, start=1):
             embed.add_field(
@@ -848,7 +848,7 @@ class Music(commands.Cog):
                 value=f"{track.author} - {lavalink.format_time(track.duration)}",
                 inline=False,
             )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
 
         view = SearchView(tracks, self, interaction)
         await interaction.followup.send(embed=embed, view=view)
@@ -858,10 +858,10 @@ class Music(commands.Cog):
 
         player.add(requester=interaction.user.id, track=track)
 
-        embed = discord.Embed(color=COLOR_CODE)
+        embed = discord.Embed(color=THEME_COLOR)
         embed.title = get_lan(interaction.user.id, "music_added_to_queue_title")
         embed.description = f"**[{track.title}]({track.uri})** - {track.author}"
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed, ephemeral=False)
 
 
@@ -883,9 +883,9 @@ class Music(commands.Cog):
                 title=get_lan(
                     interaction.user.id, "music_dc_not_connect_voice_channel"
                 ),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         if not interaction.user.voice or (
@@ -896,9 +896,9 @@ class Music(commands.Cog):
                 title=get_lan(
                     interaction.user.id, "music_dc_not_connect_my_voice_channel"
                 ).format(name=interaction.user.name),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         player.queue.clear()
@@ -907,9 +907,9 @@ class Music(commands.Cog):
 
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_dc_disconnected"),
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="skip", description="Skip to the next song!")
@@ -923,9 +923,9 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_not_playing"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         await player.skip()
@@ -933,9 +933,9 @@ class Music(commands.Cog):
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_skip_next"),
             description="",
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(
@@ -950,9 +950,9 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_no_playing_music"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         position = lavalink.utils.format_time(player.position)
@@ -962,7 +962,7 @@ class Music(commands.Cog):
             duration = lavalink.utils.format_time(player.current.duration)
         song = f"**[{player.current.title}]({player.current.uri})**\n({position}/{duration})"
         embed = discord.Embed(
-            color=COLOR_CODE,
+            color=THEME_COLOR,
             title=get_lan(interaction.user.id, "music_now_playing"),
             description=song,
         )
@@ -989,7 +989,7 @@ class Music(commands.Cog):
         embed.set_thumbnail(
             url=f"{player.current.uri.replace('https://www.youtube.com/watch?v=', 'http://img.youtube.com/vi/')}/0.jpg"
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="queue", description="Send music queue!")
@@ -1005,9 +1005,9 @@ class Music(commands.Cog):
                         interaction.user.id, "music_no_music_in_the_playlist"
                     ),
                     description="",
-                    color=COLOR_CODE,
+                    color=THEME_COLOR,
                 )
-                embed.set_footer(text=BOT_NAME_TAG_VER)
+                embed.set_footer(text=APP_NAME_TAG_VER)
                 return await interaction.followup.send(embed=embed)
 
             items_per_page = 10
@@ -1050,10 +1050,10 @@ class Music(commands.Cog):
                         description=get_lan(
                             button_interaction.user.id, "music_q"
                         ).format(lenQ=len(player.queue), queue_list=queue_list),
-                        color=COLOR_CODE,
+                        color=THEME_COLOR,
                     )
                     embed.set_footer(
-                        text=f"{get_lan(button_interaction.user.id, 'music_page')} {self.current_page + 1}/{len(pages)}\n{BOT_NAME_TAG_VER}"
+                        text=f"{get_lan(button_interaction.user.id, 'music_page')} {self.current_page + 1}/{len(pages)}\n{APP_NAME_TAG_VER}"
                     )
                     await button_interaction.response.edit_message(
                         embed=embed, view=self
@@ -1067,10 +1067,10 @@ class Music(commands.Cog):
                 description=get_lan(interaction.user.id, "music_q").format(
                     lenQ=len(player.queue), queue_list=queue_list
                 ),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
             embed.set_footer(
-                text=f"{get_lan(interaction.user.id, 'music_page')} 1/{len(pages)}\n{BOT_NAME_TAG_VER}"
+                text=f"{get_lan(interaction.user.id, 'music_page')} 1/{len(pages)}\n{APP_NAME_TAG_VER}"
             )
             await interaction.followup.send(embed=embed, view=view)
 
@@ -1080,7 +1080,7 @@ class Music(commands.Cog):
                 description=f"An error occurred while fetching the queue: {str(e)}",
                 color=discord.Color.red(),
             )
-            error_embed.set_footer(text=BOT_NAME_TAG_VER)
+            error_embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.followup.send(embed=error_embed)
 
     @app_commands.command(
@@ -1095,9 +1095,9 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_not_playing"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         if player.loop == 0:
@@ -1114,22 +1114,22 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_repeat_off"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
         elif player.loop == 1:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_repeat_one"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
         elif player.loop == 2:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_repeat_all"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
         if embed is not None:
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="remove", description="Remove music from the playlist!")
@@ -1145,9 +1145,9 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_remove_no_wating_music"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
         if index > len(player.queue) or index < 1:
             embed = discord.Embed(
@@ -1155,9 +1155,9 @@ class Music(commands.Cog):
                     last_queue=len(player.queue)
                 ),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
         removed = player.queue.pop(index - 1)  # Account for 0-index.
         embed = discord.Embed(
@@ -1165,9 +1165,9 @@ class Music(commands.Cog):
                 remove_music=removed.title
             ),
             description="",
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(
@@ -1183,9 +1183,9 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_not_playing"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         player.set_shuffle(not player.shuffle)
@@ -1196,15 +1196,15 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_shuffle_on"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
         else:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_shuffle_off"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="clear", description="Clear the music queue")
@@ -1217,9 +1217,9 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_no_music_in_queue"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         queue_length = len(player.queue)
@@ -1228,9 +1228,9 @@ class Music(commands.Cog):
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_queue_cleared"),
             description=get_lan(interaction.user.id, "music_queue_cleared_desc").format(count=queue_length),
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="volume", description="Changes or display the volume")
@@ -1247,18 +1247,18 @@ class Music(commands.Cog):
                     volicon=volicon, volume=player.volume
                 ),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         if volume > 1000 or volume < 1:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_input_over_vol"),
                 description=get_lan(interaction.user.id, "music_default_vol"),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
         await player.set_volume(volume)
@@ -1271,9 +1271,9 @@ class Music(commands.Cog):
                 volicon=volicon, volume=player.volume
             ),
             description="",
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="pause", description="Pause or resume music!")
@@ -1286,27 +1286,27 @@ class Music(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_not_playing"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
         if player.paused:
             await player.set_pause(False)
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_resume"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.followup.send(embed=embed)
         else:
             await player.set_pause(True)
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_pause"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.followup.send(embed=embed)
 
     @app_commands.command(
@@ -1325,9 +1325,9 @@ class Music(commands.Cog):
                 move_time=lavalink.utils.format_time(track_time)
             ),
             description="",
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.followup.send(embed=embed)
 
 

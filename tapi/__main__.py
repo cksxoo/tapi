@@ -1,4 +1,4 @@
-# musicbot/__main__.py
+# tapi/__main__.py
 
 import discord
 import asyncio
@@ -8,18 +8,18 @@ from discord.ext import commands
 
 import lavalink
 
-from musicbot import (
+from tapi import (
     LOGGER,
     TOKEN,
     EXTENSIONS,
-    BOT_NAME_TAG_VER,
+    APP_NAME_TAG_VER,
     HOST,
     PORT,
     PSW,
 )
 
 
-class MusicBot(commands.Bot):
+class TapiBot(commands.Bot):
     def __init__(self, shard_id=None, shard_count=None):
         intents = discord.Intents.default()
         intents.message_content = True
@@ -45,7 +45,7 @@ class MusicBot(commands.Bot):
     async def setup_hook(self):
         # Cog 로드
         for extension in EXTENSIONS:
-            await self.load_extension(f"musicbot.cogs.{extension}")
+            await self.load_extension(f"tapi.modules.{extension}")
 
         # shard 0일 때만 슬래시 동기화
         if getattr(self, "shard_id", None) == 0 or self.shard_info == "No Sharding":
@@ -60,7 +60,7 @@ class MusicBot(commands.Bot):
             self.lavalink.add_node(HOST, PORT, PSW, "eu", "default-node")
             LOGGER.info("Lavalink client initialized")
 
-        LOGGER.info(f"{BOT_NAME_TAG_VER} - {self.shard_info}")
+        LOGGER.info(f"{APP_NAME_TAG_VER} - {self.shard_info}")
         LOGGER.info(f"Connected to {len(self.guilds)} guilds on {self.shard_info}")
 
         await self.change_presence(
@@ -106,9 +106,9 @@ if shard_id is not None and shard_count is not None:
     IDENTIFY_DELAY = 5
     time.sleep(shard_id * IDENTIFY_DELAY)
 
-    bot = MusicBot(shard_id=shard_id, shard_count=shard_count)
+    bot = TapiBot(shard_id=shard_id, shard_count=shard_count)
 else:
     LOGGER.info("Starting bot without sharding")
-    bot = MusicBot()
+    bot = TapiBot()
 
 bot.run(TOKEN)

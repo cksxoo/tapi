@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from musicbot.utils.language import get_lan
-from musicbot import LOGGER, BOT_NAME_TAG_VER, COLOR_CODE, ABOUT_BOT
+from tapi.utils.language import get_lan
+from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR, ABOUT_BOT
 
 
 class About(commands.Cog):
@@ -31,7 +31,7 @@ class About(commands.Cog):
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "about_bot_info"),
             description=ABOUT_BOT,
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
         # embed.add_field(
         #     name="Github",
@@ -53,7 +53,7 @@ class About(commands.Cog):
             value=f"lavalink: {players}({playing_players} playing)\nvoice channel count: {player_server_count} playing",
             inline=True,
         )
-        embed.set_footer(text=BOT_NAME_TAG_VER)
+        embed.set_footer(text=APP_NAME_TAG_VER)
         await interaction.response.send_message(embed=embed)
 
 

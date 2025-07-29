@@ -9,10 +9,10 @@ x-bot-env: &bot-env
 x-bot-base: &bot-base
   build:
     context: .
-    dockerfile: musicbot/Dockerfile.bot
+    dockerfile: tapi/Dockerfile.bot
   restart: unless-stopped
   volumes:
-    - ./musicbot:/app/musicbot
+    - ./tapi:/app/tapi
     - ./plugins:/app/plugins
   deploy:
     resources:
@@ -56,7 +56,7 @@ services:
       <<: *bot-env
       SHARD_ID: 0
     volumes:
-      - ./musicbot:/app/musicbot
+      - ./tapi:/app/tapi
       - ./plugins:/app/plugins
       - ./logs/shard-0:/app/logs
       - ./data/shard-0:/app/data
@@ -74,7 +74,7 @@ services:
       <<: *bot-env
       SHARD_ID: 1
     volumes:
-      - ./musicbot:/app/musicbot
+      - ./tapi:/app/tapi
       - ./plugins:/app/plugins
       - ./logs/shard-1:/app/logs
       - ./data/shard-1:/app/data

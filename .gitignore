@@ -18,9 +18,11 @@ logs/
 db/
 *.sqlite3
 *.sqlite3-journal
+data/
 
 # Config files
 config.py
+tapi/config.py
 
 # Environment variables
 .env
@@ -32,6 +34,10 @@ Lavalink.jar
 
 # User-added plugins
 plugins/
+
+# Docker volumes
+data/redis/
+data/shard-*/
 
 # --- General --- 
 # IDE / Editor specific files

@@ -4,9 +4,9 @@ import datetime
 from discord import app_commands
 from discord.ext import commands, tasks
 
-from musicbot.utils.language import get_lan
-from musicbot.utils.redis_manager import redis_manager
-from musicbot import LOGGER, COLOR_CODE
+from tapi.utils.language import get_lan
+from tapi.utils.redis_manager import redis_manager
+from tapi import LOGGER, THEME_COLOR
 
 class ShardInfo(commands.Cog):
     def __init__(self, bot):
@@ -53,7 +53,7 @@ class ShardInfo(commands.Cog):
         """현재 샤드의 정보를 표시하는 명령어"""
         embed = discord.Embed(
             title=f"🔧 샤드 #{self.bot.shard_id} 정보",
-            color=COLOR_CODE,
+            color=THEME_COLOR,
         )
 
         if hasattr(self.bot, 'shard_id') and self.bot.shard_id is not None:
@@ -91,7 +91,7 @@ class ShardInfo(commands.Cog):
 
         embed = discord.Embed(
             title="📊 모든 샤드 통합 정보",
-            color=COLOR_CODE,
+            color=THEME_COLOR,
             timestamp=datetime.datetime.now(datetime.timezone.utc)
         )
 

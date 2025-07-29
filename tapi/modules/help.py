@@ -2,8 +2,8 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from musicbot.utils.language import get_lan
-from musicbot import LOGGER, BOT_NAME_TAG_VER, COLOR_CODE, OWNERS, EXTENSIONS
+from tapi.utils.language import get_lan
+from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR, OWNERS, EXTENSIONS
 
 
 class Help(commands.Cog):
@@ -27,7 +27,7 @@ class Help(commands.Cog):
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "help_general"),
                 description="",
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
 
             if "about" in EXTENSIONS:
@@ -68,7 +68,7 @@ class Help(commands.Cog):
                     inline=True,
                 )
 
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.response.send_message(embed=embed)
 
         elif help_option == "MUSIC" or help_option == "음악":
@@ -76,7 +76,7 @@ class Help(commands.Cog):
                 embed = discord.Embed(
                     title=get_lan(interaction.user.id, "help_music"),
                     description=get_lan(interaction.user.id, "help_music_description"),
-                    color=COLOR_CODE,
+                    color=THEME_COLOR,
                 )
                 embed.add_field(
                     name=get_lan(interaction.user.id, "help_music_connect_command"),
@@ -139,7 +139,7 @@ class Help(commands.Cog):
                     inline=False,
                 )
 
-                embed.set_footer(text=BOT_NAME_TAG_VER)
+                embed.set_footer(text=APP_NAME_TAG_VER)
                 await interaction.response.send_message(embed=embed)
 
         else:
@@ -148,7 +148,7 @@ class Help(commands.Cog):
                 description=get_lan(interaction.user.id, "help_info").format(
                     bot_name=self.bot.user.name
                 ),
-                color=COLOR_CODE,
+                color=THEME_COLOR,
             )
             embed.add_field(
                 name=get_lan(interaction.user.id, "help_general_command"),
@@ -170,7 +170,7 @@ class Help(commands.Cog):
                     inline=False,
                 )
 
-            embed.set_footer(text=BOT_NAME_TAG_VER)
+            embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.response.send_message(embed=embed)
 
 

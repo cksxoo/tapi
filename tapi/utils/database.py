@@ -11,7 +11,7 @@ shuffle:
 import os
 import sqlite3
 from contextlib import closing
-from musicbot.config import Development as Config
+from tapi.config import Development as Config
 
 
 class Database:

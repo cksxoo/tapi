@@ -2,11 +2,11 @@ import os
 import sys
 import logging
 
-from musicbot.utils.database import Database
+from tapi.utils.database import Database
 
 
 # Bot version
-BOT_VER = "v0.6.5"
+BOT_VER = "v0.7.0"
 
 # enable logging
 logging.basicConfig(
@@ -23,16 +23,16 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 10:
     quit(1)
 
 
-from musicbot.config import Development as Config
+from tapi.config import Development as Config
 
 TOKEN = Config.TOKEN
 OWNERS = Config.OWNERS
 DEBUG_SERVER = Config.DEBUG_SERVER
-BOT_NAME = Config.BOT_NAME
-BOT_TAG = Config.BOT_TAG
-BOT_ID = Config.BOT_ID
-COLOR_CODE = Config.COLOR_CODE
-ABOUT_BOT = Config.ABOUT_BOT
+APPLICATION_NAME = Config.APPLICATION_NAME
+APP_TAG = Config.APP_TAG
+CLIENT_ID = Config.CLIENT_ID
+THEME_COLOR = Config.THEME_COLOR
+APP_DESCRIPTION = Config.APP_DESCRIPTION
 HOST = Config.HOST
 PSW = Config.PSW
 REGION = Config.REGION
@@ -52,10 +52,10 @@ DB_NAME = Config.DB_NAME
 DB_PATH = Config.DB_PATH
 
 EXTENSIONS = []
-for file in os.listdir("musicbot/cogs"):
+for file in os.listdir("tapi/modules"):
     if file.endswith(".py"):
         EXTENSIONS.append(file.replace(".py", ""))
 
-BOT_NAME_TAG_VER = "%s%s | %s" % (BOT_NAME, BOT_TAG, BOT_VER)
+APP_NAME_TAG_VER = "%s%s | %s" % (APPLICATION_NAME, APP_TAG, BOT_VER)
 
 Database().create_table()

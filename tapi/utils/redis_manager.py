@@ -1,7 +1,7 @@
 import redis
 import json
 import os
-from musicbot.sample_config import Config
+from tapi.sample_config import Config
 
 class RedisManager:
     def __init__(self):
