@@ -264,7 +264,7 @@ class Music(commands.Cog):
                     )
 
             player.store("channel", interaction.channel.id)
-            await interaction.user.voice.channel.connect(cls=LavalinkVoiceClient)
+            await interaction.user.voice.channel.connect(cls=AudioConnection)
         elif voice_client.channel.id != voice_channel.id:
             raise app_commands.CheckFailure(
                 get_lan(interaction.user.id, "music_come_in_my_voice_channel")
