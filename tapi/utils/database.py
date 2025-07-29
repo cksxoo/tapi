@@ -128,7 +128,7 @@ class Database:
                     """
                 )
                 conn.commit()
-            print("Database created successfully.")
+            LOGGER.info("Database created successfully.")
 
     def set_statistics(
         self,

@@ -161,7 +161,7 @@ class Music(commands.Cog):
             # which contain a reason string, such as "Join a voicechannel" etc. You can modify the above
             # if you want to do things differently.
         else:
-            print(traceback.format_exc())
+            LOGGER.error(f"Unexpected error in cog_command_error: {traceback.format_exc()}")
 
     async def create_player(interaction: discord.Interaction):
         """

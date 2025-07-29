@@ -69,7 +69,7 @@ class Owners(commands.Cog):
     async def load(self, interaction: discord.Interaction, module: str):
         """모듈을 로드합니다."""
         try:
-            await self.bot.load_extension(f"musicbot.cogs.{module}")
+            await self.bot.load_extension(f"tapi.modules.{module}")
             LOGGER.info(f"로드 성공!\n모듈: {module}")
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "owners_load_success"),
@@ -99,7 +99,7 @@ class Owners(commands.Cog):
     async def reload(self, interaction: discord.Interaction, module: str):
         """모듈을 리로드합니다."""
         try:
-            await self.bot.reload_extension(f"musicbot.cogs.{module}")
+            await self.bot.reload_extension(f"tapi.modules.{module}")
             LOGGER.info(f"리로드 성공!\n모듈: {module}")
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "owners_reload_success"),
@@ -125,7 +125,7 @@ class Owners(commands.Cog):
     async def unload(self, interaction: discord.Interaction, module: str):
         """모듈을 언로드합니다."""
         try:
-            await self.bot.unload_extension(f"musicbot.cogs.{module}")
+            await self.bot.unload_extension(f"tapi.modules.{module}")
             LOGGER.info(f"언로드 성공!\n모듈: {module}")
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "owners_unload_success"),

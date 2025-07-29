@@ -85,7 +85,7 @@ class TapiBot(commands.Bot):
                 )
                 await asyncio.sleep(15)
             except Exception as e:
-                print(f"[ERROR] status_task에서 에러 발생: {e}")
+                LOGGER.error(f"Error in status_task: {e}")
                 await asyncio.sleep(30)
 
     async def on_message(self, message):
