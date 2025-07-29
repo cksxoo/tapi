@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from tapi.utils.language import get_lan
-from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR, ABOUT_BOT
+from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR, APP_DESCRIPTION
 
 
 class About(commands.Cog):
@@ -30,7 +30,7 @@ class About(commands.Cog):
 
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "about_bot_info"),
-            description=ABOUT_BOT,
+            description=APP_DESCRIPTION,
             color=THEME_COLOR,
         )
         # embed.add_field(
