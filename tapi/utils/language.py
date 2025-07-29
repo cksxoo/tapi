@@ -22,10 +22,10 @@ def get_lan(user_id, text: str):
                 language = default_language
             else:
                 language = temp[1]
-                if not os.path.exists(f"musicbot/languages/{language}.json"):
+                if not os.path.exists(f"tapi/languages/{language}.json"):
                     language = default_language
 
     # read language file
-    with open(f"musicbot/languages/{language}.json", encoding="utf-8") as f:
+    with open(f"tapi/languages/{language}.json", encoding="utf-8") as f:
         language_data = json.load(f)
     return language_data[text]

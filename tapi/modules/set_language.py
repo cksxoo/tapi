@@ -11,7 +11,7 @@ from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
 
 lan_pack = [
     file.replace(".json", "")
-    for file in os.listdir("musicbot/languages")
+    for file in os.listdir("tapi/languages")
     if file.endswith(".json")
 ]
 
