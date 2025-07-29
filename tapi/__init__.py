@@ -2,8 +2,6 @@ import os
 import sys
 import logging
 
-from tapi.utils.database import Database
-
 
 # Bot version
 BOT_VER = "v0.7.0"
@@ -58,4 +56,6 @@ for file in os.listdir("tapi/modules"):
 
 APP_NAME_TAG_VER = "%s%s | %s" % (APPLICATION_NAME, APP_TAG, BOT_VER)
 
+# Initialize database after all imports are complete
+from tapi.utils.database import Database
 Database().create_table()
