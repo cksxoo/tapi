@@ -58,8 +58,6 @@ services:
     volumes:
       - ./tapi:/app/tapi
       - ./plugins:/app/plugins
-      - ./logs/shard-0:/app/logs
-      - ./data/shard-0:/app/data
 
     depends_on:
       lavalink:
@@ -76,8 +74,6 @@ services:
     volumes:
       - ./tapi:/app/tapi
       - ./plugins:/app/plugins
-      - ./logs/shard-1:/app/logs
-      - ./data/shard-1:/app/data
     depends_on:
       lavalink:
         condition: service_healthy
