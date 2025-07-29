@@ -72,7 +72,7 @@ class Help(commands.Cog):
             await interaction.response.send_message(embed=embed)
 
         elif help_option == "MUSIC" or help_option == "음악":
-            if "music" in EXTENSIONS:
+            if "player" in EXTENSIONS:
                 embed = discord.Embed(
                     title=get_lan(interaction.user.id, "help_music"),
                     description=get_lan(interaction.user.id, "help_music_description"),
@@ -156,7 +156,7 @@ class Help(commands.Cog):
                 inline=False,
             )
 
-            if "music" in EXTENSIONS:
+            if "player" in EXTENSIONS:
                 embed.add_field(
                     name=get_lan(interaction.user.id, "help_music_command"),
                     value=get_lan(interaction.user.id, "help_music_command_info"),
