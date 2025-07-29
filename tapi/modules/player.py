@@ -562,6 +562,7 @@ class Music(commands.Cog):
     @app_commands.check(create_player)
     async def connect(self, interaction: discord.Interaction):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+        
         if not player.is_connected:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_connect_voice_channel"),
@@ -569,12 +570,13 @@ class Music(commands.Cog):
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
             await interaction.response.send_message(embed=embed)
-        embed = discord.Embed(
-            title=get_lan(interaction.user.id, "music_already_connected_voice_channel"),
-            color=THEME_COLOR,
-        )
-        embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.response.send_message(embed=embed)
+        else:
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "music_already_connected_voice_channel"),
+                color=THEME_COLOR,
+            )
+            embed.set_footer(text=APP_NAME_TAG_VER)
+            await interaction.response.send_message(embed=embed)
 
     @app_commands.command(
         name="play", description="Searches and plays a song from a given query."
@@ -709,7 +711,7 @@ class Music(commands.Cog):
 
                 # 단일 곡 추가 메시지 표시
                 embed = discord.Embed(color=THEME_COLOR)
-                embed.description = f"**[{track.title}]({track.uri})** - {track.author} by {interaction.user.display_name}"
+                embed.description = f"**[{track.title}]({track.uri})** - {track.author}\nby {interaction.user.display_name}"
 
                 # YouTube 썸네일 추가
                 if track.identifier:
@@ -814,7 +816,7 @@ class Music(commands.Cog):
 
             # 단일 곡 추가 메시지 표시
             embed = discord.Embed(color=THEME_COLOR)
-            embed.description = f"**[{track.title}]({track.uri})** - {track.author} by {interaction.user.display_name}"
+            embed.description = f"**[{track.title}]({track.uri})** - {track.author}\nby {interaction.user.display_name}"
 
             # SoundCloud나 YouTube 썸네일 추가
             if track.identifier:
@@ -890,7 +892,7 @@ class Music(commands.Cog):
         player.add(requester=interaction.user.id, track=track)
 
         embed = discord.Embed(color=THEME_COLOR)
-        embed.description = f"**[{track.title}]({track.uri})** - {track.author} by {interaction.user.display_name}"
+        embed.description = f"**[{track.title}]({track.uri})** - {track.author}\nby {interaction.user.display_name}"
 
         # YouTube 썸네일 추가
         if track.identifier:
@@ -1436,7 +1438,12 @@ class MusicControlView(discord.ui.View):
             player = cog.bot.lavalink.player_manager.get(guild_id)
             if player:
                 # 일시정지 버튼 상태
-                self.pause_resume.emoji = "<:play:1399719809469382779>" if player.paused else "<:pause:1399721118473912390>"
+                if player.paused:
+                    self.pause_resume.emoji = "<:play:1399719809469382779>"
+                    self.pause_resume.label = "Play"
+                else:
+                    self.pause_resume.emoji = "<:pause:1399721118473912390>"
+                    self.pause_resume.label = "Pause"
 
                 # 반복 버튼 상태
                 self.repeat.emoji = "<:repeats:1399721836958449674>"
@@ -1450,7 +1457,7 @@ class MusicControlView(discord.ui.View):
         except:
             pass  # 오류 시 기본 상태 유지
 
-    def create_progress_bar(self, current, total, length=15):
+    def create_progress_bar(self, current, total, length=25):
         """유니코드 문자로 진행률 바 생성"""
         if total == 0:
             return "`" + "░" * length + "` 00:00/00:00"
@@ -1459,7 +1466,7 @@ class MusicControlView(discord.ui.View):
         bar = "█" * filled + "░" * (length - filled)
         current_time = lavalink.utils.format_time(current)
         total_time = lavalink.utils.format_time(total)
-        return f"`{bar}` {current_time}/{total_time}"
+        return f"`{bar}`   {current_time}/{total_time}"
 
     def update_embed_and_buttons(self, interaction, player):
         """embed와 모든 버튼 상태를 현재 플레이어 상태로 업데이트"""
@@ -1472,25 +1479,29 @@ class MusicControlView(discord.ui.View):
 
         # 현재 재생 정보 embed 생성
         embed = discord.Embed(color=IDLE_COLOR)
+        
         # 제목에 재생 상태 이모지 추가 (긴 아티스트명 처리)
-        max_artist_length = 25  # 아티스트명 25자 제한
+        max_artist_length = 30
         artist_name = track.author
         if len(artist_name) > max_artist_length:
             artist_name = artist_name[:max_artist_length] + "..."
 
         if player.paused:
-            embed.title = f"<:audio:1399724398520434791> | {artist_name}"
+            embed.title = f"<:audio:1399724398520434791> TAPI PLAYER"
+            # embed.title = f"<:audio:1399724398520434791> | {artist_name}"
         else:
-            embed.title = f"<:audio:1399724398520434791> | {artist_name}"
+            embed.title = f"<:audio:1399724398520434791> TAPI PLAYER"
             # embed.title = f"<a:audio_spin:1399727564842336318> | {artist_name}"
 
         # 긴 곡 제목 처리
-        max_title_length = 50  # 곡 제목 50자 제한
+        max_title_length = 30
         title = track.title
         if len(title) > max_title_length:
             title = title[:max_title_length] + "..."
 
-        embed.description = f"[{title}]({track.uri})\n{progress_bar}"
+        embed.description = f"> [{title}]({track.uri})"
+        embed.description += f"\n> {artist_name}"
+        embed.description += f"\n> {progress_bar}"
 
         # 상태 정보 추가
         embed.add_field(
@@ -1527,7 +1538,12 @@ class MusicControlView(discord.ui.View):
             )
 
         # 모든 버튼 상태 업데이트
-        self.pause_resume.emoji = "<:play:1399719809469382779>" if player.paused else "<:pause:1399721118473912390>"
+        if player.paused:
+            self.pause_resume.emoji = "<:play:1399719809469382779>"
+            self.pause_resume.label = "Play"
+        else:
+            self.pause_resume.emoji = "<:pause:1399721118473912390>"
+            self.pause_resume.label = "Pause"
 
         # 반복 버튼 상태 업데이트
         self.repeat.emoji = "<:repeats:1399721836958449674>"
@@ -1542,7 +1558,7 @@ class MusicControlView(discord.ui.View):
         embed.set_footer(text=APP_NAME_TAG_VER)
         return embed
 
-    @discord.ui.button(emoji="<:pause:1399721118473912390>", style=discord.ButtonStyle.primary)
+    @discord.ui.button(emoji="<:pause:1399721118473912390>", label="Pause", style=discord.ButtonStyle.primary)
     async def pause_resume(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -1565,7 +1581,7 @@ class MusicControlView(discord.ui.View):
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
 
-    @discord.ui.button(emoji="<:skip:1399719807699521597>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(emoji="<:skip:1399719807699521597>", label="Skip", style=discord.ButtonStyle.secondary)
     async def skip(self, interaction: discord.Interaction, button: discord.ui.Button):
         """건너뛰기 버튼"""
         await interaction.response.defer()
@@ -1597,7 +1613,7 @@ class MusicControlView(discord.ui.View):
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
 
-    @discord.ui.button(emoji="<:repeats:1399721836958449674>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(emoji="<:repeats:1399721836958449674>", label="Repeat", style=discord.ButtonStyle.secondary)
     async def repeat(self, interaction: discord.Interaction, button: discord.ui.Button):
         """반복 모드 버튼 (off → 전곡 → 한곡 → off 순환)"""
         await interaction.response.defer()
@@ -1624,7 +1640,7 @@ class MusicControlView(discord.ui.View):
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
 
-    @discord.ui.button(emoji="<:shuffle:1399720936068091964>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(emoji="<:shuffle:1399720936068091964>", label="Shuffle", style=discord.ButtonStyle.secondary)
     async def shuffle(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
