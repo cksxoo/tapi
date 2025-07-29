@@ -7,9 +7,8 @@ from musicbot.config import Development as Config
 
 def get_lan(user_id, text: str):
     """user_id 가 선택한 언어를 반환"""
-    default_language = "en"
-
-    # if the userdata file exists
+    default_language = "kr"
+    
     with closing(sqlite3.connect(Config.DB_PATH)) as conn:
         with closing(conn.cursor()) as cursor:
             cursor.execute(
