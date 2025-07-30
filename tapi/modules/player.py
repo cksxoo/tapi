@@ -1157,9 +1157,9 @@ class Music(commands.Cog):
             return await interaction.followup.send(embed=embed)
 
         if player.loop == 0:
-            player.set_loop(2)
-        elif player.loop == 2:
             player.set_loop(1)
+        elif player.loop == 1:
+            player.set_loop(2)
         else:
             player.set_loop(0)
 
