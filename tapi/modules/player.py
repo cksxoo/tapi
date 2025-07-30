@@ -1624,12 +1624,12 @@ class MusicControlView(discord.ui.View):
                 "음악이 재생되고 있지 않습니다!", ephemeral=True
             )
 
-        # 반복 모드 순환: 0(off) → 2(전곡) → 1(한곡) → 0(off)
+        # 반복 모드 순환: 0(off) → 1(한곡) → 2(전곡) → 0(off)
         if player.loop == 0:
+            player.set_loop(1)
+        elif player.loop == 1:
             player.set_loop(2)
         elif player.loop == 2:
-            player.set_loop(1)
-        else:
             player.set_loop(0)
 
         # 데이터베이스에 설정 저장
