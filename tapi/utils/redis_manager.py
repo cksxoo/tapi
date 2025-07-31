@@ -76,7 +76,12 @@ class RedisManager:
         client = self.get_client()
         if client:
             try:
-                shard_keys = client.keys(f"{self.shard_stats_key_prefix}*")
+                shard_keys = []
+                cursor = '0'
+                while cursor != 0:
+                    cursor, keys = client.scan(cursor=cursor, match=f"{self.shard_stats_key_prefix}*", count=100)
+                    shard_keys.extend(keys)
+
                 if not shard_keys:
                     return {}
                 
