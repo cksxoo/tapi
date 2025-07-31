@@ -16,7 +16,8 @@ class RedisManager:
         self.redis_port = 6379
         self.redis_db = 0
         self.redis_client = None
-        self.shard_stats_key = "shard_stats"
+        self.shard_stats_key_prefix = "shard_stats:"
+        self.shard_status_ttl = 60 * 10  # 10분
         self.available = REDIS_AVAILABLE
 
     def connect(self):
@@ -51,7 +52,7 @@ class RedisManager:
         return self.redis_client
 
     def update_shard_status(self, shard_id: int, data: dict):
-        """특정 샤드의 상태 정보를 업데이트합니다."""
+        """특정 샤드의 상태 정보를 업데이트하고 TTL을 설정합니다."""
         if not self.available:
             LOGGER.debug("Redis not available, skipping shard status update")
             return
@@ -59,7 +60,8 @@ class RedisManager:
         client = self.get_client()
         if client:
             try:
-                client.hset(self.shard_stats_key, str(shard_id), json.dumps(data))
+                key = f"{self.shard_stats_key_prefix}{shard_id}"
+                client.set(key, json.dumps(data), ex=self.shard_status_ttl)
             except redis.exceptions.RedisError as e:
                 LOGGER.error(f"Failed to update shard status in Redis: {e}")
             except Exception as e:
@@ -74,10 +76,22 @@ class RedisManager:
         client = self.get_client()
         if client:
             try:
-                raw_data = client.hgetall(self.shard_stats_key)
-                return {int(shard_id): json.loads(data) for shard_id, data in raw_data.items()}
+                shard_keys = client.keys(f"{self.shard_stats_key_prefix}*")
+                if not shard_keys:
+                    return {}
+                
+                raw_data = client.mget(shard_keys)
+                statuses = {}
+                for i, key in enumerate(shard_keys):
+                    shard_id_str = key.split(':')[-1]
+                    if raw_data[i]:
+                        statuses[int(shard_id_str)] = json.loads(raw_data[i])
+                return statuses
             except redis.exceptions.RedisError as e:
                 LOGGER.error(f"Failed to get all shard statuses from Redis: {e}")
+                return {}
+            except (ValueError, IndexError) as e:
+                LOGGER.error(f"Error parsing shard status from Redis: {e}")
                 return {}
             except Exception as e:
                 LOGGER.error(f"Unexpected error getting shard statuses: {e}")
