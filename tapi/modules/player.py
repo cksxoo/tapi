@@ -238,11 +238,12 @@ class Music(commands.Cog):
                 
             embed = discord.Embed(
                 # title="<:new_logo:1400747565527339079> " + get_lan(user_id, "vote_title"),
-                title="<:icon:1400747525396234281> " + get_lan(user_id, "vote_title"),
+                # title="<:icon:1400747525396234281> " + get_lan(user_id, "vote_title"),
+                title=get_lan(user_id, "vote_title"),
                 description=get_lan(user_id, "vote_description"),
                 color=THEME_COLOR
             )
-            embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true")
+            embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
             
             # 투표/리뷰 링크 버튼 생성
             view = discord.ui.View()
@@ -1670,7 +1671,7 @@ class MusicControlView(discord.ui.View):
             )
 
         # 하단 배너 이미지 추가
-        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true")
+        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
 
         # 모든 버튼 상태 업데이트
         if player.paused:
