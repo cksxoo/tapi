@@ -1602,6 +1602,9 @@ class MusicControlView(discord.ui.View):
                 url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
             )
 
+        # 하단 배너 이미지 추가
+        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true")
+
         # 모든 버튼 상태 업데이트
         if player.paused:
             self.pause_resume.emoji = "<:play:1399719809469382779>"
