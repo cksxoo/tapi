@@ -174,6 +174,14 @@ class AudioConnection(discord.VoiceClient):
 
         self._destroyed = True
 
+        # 음악 메시지 정리 (Music Cog에서 접근)
+        try:
+            music_cog = self.client.get_cog('Music')
+            if music_cog:
+                await music_cog._cleanup_music_message(self.guild_id, "destroy")
+        except Exception as e:
+            LOGGER.error(f"Error cleaning up music message in _destroy: {e}")
+
         try:
             await self.lavalink.player_manager.destroy(self.guild_id)
         except ClientError:
@@ -185,6 +193,100 @@ class Music(commands.Cog):
         self.bot = bot
         # 길드별 마지막 음악 메시지를 저장하는 딕셔너리
         self.last_music_messages = {}
+
+    async def _cleanup_music_message(self, guild_id: int, reason: str = "cleanup"):
+        """음악 메시지 정리 함수"""
+        if guild_id not in self.last_music_messages:
+            return
+            
+        try:
+            old_message = self.last_music_messages[guild_id]
+            await old_message.delete()
+            LOGGER.debug(f"Music message deleted on {reason} for guild {guild_id}")
+        except Exception as e:
+            LOGGER.debug(f"Could not delete music message on {reason}: {e}")
+        finally:
+            del self.last_music_messages[guild_id]
+
+    async def _cleanup_player(self, guild_id: int, stop_current: bool = True, clear_queue: bool = True):
+        """Lavalink 플레이어 정리 함수"""
+        try:
+            player = self.bot.lavalink.player_manager.get(guild_id)
+            if player:
+                if stop_current:
+                    await player.stop()
+                if clear_queue:
+                    player.queue.clear()
+                LOGGER.debug(f"Player cleaned up for guild {guild_id}")
+        except Exception as e:
+            LOGGER.error(f"Error cleaning up player for guild {guild_id}: {e}")
+
+    async def _send_vote_message(self, guild_id: int, channel_id: int, user_id: int = None):
+        """투표 안내 메시지 전송 (다국어 지원)"""
+        try:
+            guild = self.bot.get_guild(guild_id)
+            if not guild:
+                return
+                
+            channel = guild.get_channel(channel_id)
+            if not channel:
+                return
+                
+            # 사용자 ID가 없으면 봇 ID 사용 (기본 언어)
+            if user_id is None:
+                user_id = self.bot.user.id
+                
+            embed = discord.Embed(
+                # title="<:new_logo:1400747565527339079> " + get_lan(user_id, "vote_title"),
+                title="<:icon:1400747525396234281> " + get_lan(user_id, "vote_title"),
+                description=get_lan(user_id, "vote_description"),
+                color=THEME_COLOR
+            )
+            embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true")
+            
+            # 투표/리뷰 링크 버튼 생성
+            view = discord.ui.View()
+            view.add_item(discord.ui.Button(
+                label="🌟 Top.gg Vote",
+                url="https://top.gg/bot/1157593204682657933/vote",
+                style=discord.ButtonStyle.link
+            ))
+            view.add_item(discord.ui.Button(
+                label="💬 Top.gg Reviews", 
+                url="https://top.gg/bot/1157593204682657933#reviews",
+                style=discord.ButtonStyle.link
+            ))
+            view.add_item(discord.ui.Button(
+                label="🇰🇷 KoreanBots",
+                url="https://koreanbots.dev/bots/1157593204682657933/vote", 
+                style=discord.ButtonStyle.link
+            ))
+            
+            await channel.send(embed=embed, view=view)
+            LOGGER.debug(f"Vote message sent to guild {guild_id}")
+        except Exception as e:
+            LOGGER.error(f"Error sending vote message to guild {guild_id}: {e}")
+
+    async def _full_disconnect_cleanup(self, guild_id: int, reason: str = "disconnect", send_vote: bool = False, channel_id: int = None, user_id: int = None):
+        """완전한 연결 해제 정리 (메시지 + 플레이어 + 음성 연결 + 투표 안내)"""
+        # 1. 음악 메시지 정리
+        await self._cleanup_music_message(guild_id, reason)
+        
+        # 2. 플레이어 정리
+        await self._cleanup_player(guild_id)
+        
+        # 3. 음성 연결 해제
+        try:
+            guild = self.bot.get_guild(guild_id)
+            if guild and guild.voice_client:
+                await guild.voice_client.disconnect(force=True)
+                LOGGER.debug(f"Voice client disconnected for guild {guild_id}")
+        except Exception as e:
+            LOGGER.error(f"Error disconnecting voice client for guild {guild_id}: {e}")
+            
+        # 4. 투표 안내 메시지 (필요시)
+        if send_vote and channel_id:
+            await self._send_vote_message(guild_id, channel_id, user_id)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -372,16 +474,8 @@ class Music(commands.Cog):
             LOGGER.error(f"Error saving statistics: {e}")
 
         if channel:
-            # 이전 음악 메시지가 있다면 삭제
-            if guild_id in self.last_music_messages:
-                try:
-                    old_message = self.last_music_messages[guild_id]
-                    await old_message.delete()
-                except Exception as e:
-                    LOGGER.debug(f"Could not delete old music message: {e}")
-                finally:
-                    # 메시지 삭제 실패해도 딕셔너리에서 제거
-                    del self.last_music_messages[guild_id]
+            # 이전 음악 메시지 정리
+            await self._cleanup_music_message(guild_id, "new_track")
 
             # 음악 컨트롤 버튼 생성
             control_view = MusicControlView(self, guild_id)
@@ -404,24 +498,22 @@ class Music(commands.Cog):
     async def on_queue_end(self, event: QueueEndEvent):
         guild_id = event.player.guild_id
         guild = self.bot.get_guild(guild_id)
+        channel_id = event.player.fetch("channel")
 
-        # 마지막 음악 메시지 삭제
-        if guild_id in self.last_music_messages:
-            try:
-                old_message = self.last_music_messages[guild_id]
-                await old_message.delete()
-            except Exception as e:
-                LOGGER.debug(f"Could not delete music message on queue end: {e}")
-            finally:
-                del self.last_music_messages[guild_id]
+        # 모듈화된 완전 정리 함수 사용 (큐 종료 시에는 플레이어 정리 생략)
+        await self._cleanup_music_message(guild_id, "queue_end")
 
         # Check if the voice client exists and if the player is connected
         if guild and guild.voice_client and event.player.is_connected:
-            # Optional: Add a small delay if needed, or specific checks
-            # before disconnecting.
-            # For example, ensure the player is truly stopped or idle.
             try:
                 await guild.voice_client.disconnect(force=True)
+                
+                # 투표 안내 메시지 전송 (마지막 트랙의 요청자 언어 사용)
+                if channel_id:
+                    # 마지막 트랙 정보에서 요청자 ID 가져오기 (가능한 경우)
+                    last_requester = getattr(event.player, 'current', None)
+                    user_id = last_requester.requester if last_requester else None
+                    await self._send_vote_message(guild_id, channel_id, user_id)
             except Exception as e:
                 LOGGER.error(f"Error disconnecting voice client: {e}")
 
@@ -570,26 +662,12 @@ class Music(commands.Cog):
             # 봇만 남아있다면 연결 해제
             if len(non_bot_members) == 0:
                 try:
-                    # 마지막 음악 메시지 삭제
-                    if guild.id in self.last_music_messages:
-                        try:
-                            old_message = self.last_music_messages[guild.id]
-                            await old_message.delete()
-                        except Exception as e:
-                            LOGGER.debug(
-                                f"Could not delete music message on auto disconnect: {e}"
-                            )
-                        finally:
-                            del self.last_music_messages[guild.id]
-
-                    # Lavalink 플레이어 정리
+                    # 플레이어에서 채널 ID 가져오기
                     player = self.bot.lavalink.player_manager.get(guild.id)
-                    if player:
-                        await player.stop()
-                        player.queue.clear()
-
-                    # 음성 채널에서 연결 해제
-                    await guild.voice_client.disconnect(force=True)
+                    channel_id = player.fetch("channel") if player else None
+                    
+                    # 모듈화된 완전 정리 함수 사용 (투표 안내 포함)
+                    await self._full_disconnect_cleanup(guild.id, "auto_disconnect", send_vote=True, channel_id=channel_id)
 
                     # 다국어 지원 로그 메시지 (기본값으로 한국어 사용)
                     log_message = get_lan(
@@ -986,20 +1064,9 @@ class Music(commands.Cog):
             embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
-        # 마지막 음악 메시지 삭제
+        # 모듈화된 완전 정리 함수 사용 (투표 안내 포함)
         guild_id = interaction.guild.id
-        if guild_id in self.last_music_messages:
-            try:
-                old_message = self.last_music_messages[guild_id]
-                await old_message.delete()
-            except Exception as e:
-                LOGGER.debug(f"Could not delete music message on disconnect: {e}")
-            finally:
-                del self.last_music_messages[guild_id]
-
-        player.queue.clear()
-        await player.stop()
-        await interaction.guild.voice_client.disconnect(force=True)
+        await self._full_disconnect_cleanup(guild_id, "manual_disconnect", send_vote=True, channel_id=interaction.channel.id, user_id=interaction.user.id)
 
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_dc_disconnected"),
@@ -1336,7 +1403,7 @@ class Music(commands.Cog):
             return await send_temp_message(interaction, embed)
 
         queue_length = len(player.queue)
-        player.queue.clear()
+        await self._cleanup_player(interaction.guild.id, stop_current=False, clear_queue=True)
 
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_queue_cleared"),
