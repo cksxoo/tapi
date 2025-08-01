@@ -33,6 +33,51 @@ from tapi.utils.statistics import Statistics
 url_rx = re.compile(r"https?://(?:www\.)?.+")
 
 
+async def send_temp_message(interaction, embed, delete_after=3, refresh_control=True):
+    """임시 메시지를 보내고 일정 시간 후 삭제, 선택적으로 컨트롤 패널 새로고침"""
+    try:
+        message = await interaction.followup.send(embed=embed)
+        await message.delete(delay=delete_after)
+
+        # 컨트롤 패널 새로고침
+        if refresh_control and hasattr(interaction, "guild") and interaction.guild:
+            cog = interaction.client.get_cog("Music")
+            if cog and hasattr(cog, "last_music_messages"):
+                guild_id = interaction.guild.id
+                if guild_id in cog.last_music_messages:
+                    try:
+                        player = interaction.client.lavalink.player_manager.get(
+                            guild_id
+                        )
+                        if player and player.current:
+                            old_message = cog.last_music_messages[guild_id]
+                            control_view = MusicControlView(cog, guild_id)
+
+                            # 가짜 interaction 객체 생성
+                            class FakeInteraction:
+                                def __init__(self, user_id):
+                                    self.user = type(
+                                        "obj", (object,), {"id": user_id}
+                                    )()
+
+                            fake_interaction = FakeInteraction(interaction.user.id)
+                            updated_embed = control_view.update_embed_and_buttons(
+                                fake_interaction, player
+                            )
+
+                            if updated_embed:
+                                await old_message.edit(
+                                    embed=updated_embed, view=control_view
+                                )
+                    except Exception as e:
+                        LOGGER.debug(f"Could not refresh control panel: {e}")
+
+        return message
+    except Exception as e:
+        LOGGER.debug(f"Failed to send/delete temporary message: {e}")
+        return None
+
+
 class AudioConnection(discord.VoiceClient):
     """
     This is the preferred way to handle external voice sending
@@ -562,7 +607,7 @@ class Music(commands.Cog):
     @app_commands.check(create_player)
     async def connect(self, interaction: discord.Interaction):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        
+
         if not player.is_connected:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_connect_voice_channel"),
@@ -572,7 +617,9 @@ class Music(commands.Cog):
             await interaction.response.send_message(embed=embed)
         else:
             embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_already_connected_voice_channel"),
+                title=get_lan(
+                    interaction.user.id, "music_already_connected_voice_channel"
+                ),
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
@@ -854,7 +901,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         # Use ytsearch: prefix to search YouTube
         query = f"ytsearch:{query}"
@@ -866,7 +913,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         tracks = results.tracks[:5]  # Limit to 5 results
 
@@ -884,7 +931,8 @@ class Music(commands.Cog):
         embed.set_footer(text=APP_NAME_TAG_VER)
 
         view = SearchView(tracks, self, interaction)
-        await interaction.followup.send(embed=embed, view=view)
+        message = await interaction.followup.send(embed=embed, view=view)
+        view.message = message
 
     async def play_search_result(self, interaction: discord.Interaction, track):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
@@ -958,7 +1006,7 @@ class Music(commands.Cog):
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        await send_temp_message(interaction, embed)
 
     @app_commands.command(name="skip", description="Skip to the next song!")
     @app_commands.check(create_player)
@@ -974,7 +1022,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         await player.skip()
 
@@ -984,7 +1032,7 @@ class Music(commands.Cog):
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        await send_temp_message(interaction, embed)
 
     @app_commands.command(
         name="nowplaying", description="Sending the currently playing song!"
@@ -1064,7 +1112,7 @@ class Music(commands.Cog):
                     color=THEME_COLOR,
                 )
                 embed.set_footer(text=APP_NAME_TAG_VER)
-                return await interaction.followup.send(embed=embed)
+                return await send_temp_message(interaction, embed)
 
             items_per_page = 10
             pages = [
@@ -1074,8 +1122,16 @@ class Music(commands.Cog):
 
             class QueuePaginator(discord.ui.View):
                 def __init__(self):
-                    super().__init__(timeout=60)
+                    super().__init__(timeout=30)
                     self.current_page = 0
+                    self.message = None
+
+                async def on_timeout(self):
+                    if self.message:
+                        try:
+                            await self.message.delete()
+                        except:
+                            pass
 
                 @discord.ui.button(label="Previous", style=discord.ButtonStyle.gray)
                 async def previous_page(
@@ -1128,7 +1184,8 @@ class Music(commands.Cog):
             embed.set_footer(
                 text=f"{get_lan(interaction.user.id, 'music_page')} 1/{len(pages)}\n{APP_NAME_TAG_VER}"
             )
-            await interaction.followup.send(embed=embed, view=view)
+            message = await interaction.followup.send(embed=embed, view=view)
+            view.message = message
 
         except Exception as e:
             error_embed = discord.Embed(
@@ -1154,7 +1211,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         if player.loop == 0:
             player.set_loop(1)
@@ -1186,7 +1243,7 @@ class Music(commands.Cog):
             )
         if embed is not None:
             embed.set_footer(text=APP_NAME_TAG_VER)
-            await interaction.followup.send(embed=embed)
+            await send_temp_message(interaction, embed)
 
     @app_commands.command(name="remove", description="Remove music from the playlist!")
     @app_commands.describe(
@@ -1204,7 +1261,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
         if index > len(player.queue) or index < 1:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_remove_input_over").format(
@@ -1214,7 +1271,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
         removed = player.queue.pop(index - 1)  # Account for 0-index.
         embed = discord.Embed(
             title=get_lan(interaction.user.id, "music_remove_form_playlist").format(
@@ -1224,7 +1281,7 @@ class Music(commands.Cog):
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        await send_temp_message(interaction, embed)
 
     @app_commands.command(
         name="shuffle",
@@ -1242,7 +1299,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         player.set_shuffle(not player.shuffle)
 
@@ -1261,7 +1318,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        await send_temp_message(interaction, embed)
 
     @app_commands.command(name="clear", description="Clear the music queue")
     @app_commands.check(create_player)
@@ -1276,7 +1333,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         queue_length = len(player.queue)
         player.queue.clear()
@@ -1289,7 +1346,7 @@ class Music(commands.Cog):
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        await send_temp_message(interaction, embed)
 
     @app_commands.command(name="volume", description="Changes or display the volume")
     @app_commands.describe(volume="볼륨값을 입력하세요")
@@ -1308,7 +1365,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         if volume > 1000 or volume < 1:
             embed = discord.Embed(
@@ -1317,7 +1374,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         await player.set_volume(volume)
         # 볼륨 설정을 DB에 저장
@@ -1332,7 +1389,7 @@ class Music(commands.Cog):
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        await send_temp_message(interaction, embed)
 
     @app_commands.command(name="pause", description="Pause or resume music!")
     @app_commands.check(create_player)
@@ -1347,7 +1404,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
         if player.paused:
             await player.set_pause(False)
             embed = discord.Embed(
@@ -1356,7 +1413,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            await interaction.followup.send(embed=embed)
+            await send_temp_message(interaction, embed)
         else:
             await player.set_pause(True)
             embed = discord.Embed(
@@ -1365,7 +1422,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            await interaction.followup.send(embed=embed)
+            await send_temp_message(interaction, embed)
 
     @app_commands.command(
         name="seek",
@@ -1386,7 +1443,7 @@ class Music(commands.Cog):
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        await send_temp_message(interaction, embed)
 
 
 async def setup(bot):
@@ -1423,13 +1480,21 @@ class SearchSelect(discord.ui.Select):
 
 class SearchView(discord.ui.View):
     def __init__(self, tracks, cog, interaction):
-        super().__init__()
+        super().__init__(timeout=30)
         self.add_item(SearchSelect(tracks, cog, interaction))
+        self.message = None
+
+    async def on_timeout(self):
+        if self.message:
+            try:
+                await self.message.delete()
+            except:
+                pass
 
 
 class MusicControlView(discord.ui.View):
     def __init__(self, cog, guild_id):
-        super().__init__(timeout=300)  # 5분 후 버튼 비활성화
+        super().__init__(timeout=600)  # 10분 후 버튼 비활성화
         self.cog = cog
         self.guild_id = guild_id
 
@@ -1479,7 +1544,7 @@ class MusicControlView(discord.ui.View):
 
         # 현재 재생 정보 embed 생성
         embed = discord.Embed(color=IDLE_COLOR)
-        
+
         # 제목에 재생 상태 이모지 추가 (긴 아티스트명 처리)
         max_artist_length = 30
         artist_name = track.author
@@ -1558,7 +1623,11 @@ class MusicControlView(discord.ui.View):
         embed.set_footer(text=APP_NAME_TAG_VER)
         return embed
 
-    @discord.ui.button(emoji="<:pause:1399721118473912390>", label="Pause", style=discord.ButtonStyle.primary)
+    @discord.ui.button(
+        emoji="<:pause:1399721118473912390>",
+        label="Pause",
+        style=discord.ButtonStyle.primary,
+    )
     async def pause_resume(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -1581,7 +1650,11 @@ class MusicControlView(discord.ui.View):
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
 
-    @discord.ui.button(emoji="<:skip:1399719807699521597>", label="Skip", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        emoji="<:skip:1399719807699521597>",
+        label="Skip",
+        style=discord.ButtonStyle.secondary,
+    )
     async def skip(self, interaction: discord.Interaction, button: discord.ui.Button):
         """건너뛰기 버튼"""
         await interaction.response.defer()
@@ -1595,7 +1668,9 @@ class MusicControlView(discord.ui.View):
         await player.skip()
         # 건너뛰기는 새 곡이 시작되면서 자동으로 새 컨트롤 패널이 나타남
 
-    @discord.ui.button(emoji="<:refresh:1399711357934374943>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        emoji="<:refresh:1399711357934374943>", style=discord.ButtonStyle.secondary
+    )
     async def refresh(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
@@ -1613,7 +1688,11 @@ class MusicControlView(discord.ui.View):
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
 
-    @discord.ui.button(emoji="<:repeats:1399721836958449674>", label="Repeat", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        emoji="<:repeats:1399721836958449674>",
+        label="Repeat",
+        style=discord.ButtonStyle.secondary,
+    )
     async def repeat(self, interaction: discord.Interaction, button: discord.ui.Button):
         """반복 모드 버튼 (off → 전곡 → 한곡 → off 순환)"""
         await interaction.response.defer()
@@ -1640,7 +1719,11 @@ class MusicControlView(discord.ui.View):
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
 
-    @discord.ui.button(emoji="<:shuffle:1399720936068091964>", label="Shuffle", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(
+        emoji="<:shuffle:1399720936068091964>",
+        label="Shuffle",
+        style=discord.ButtonStyle.secondary,
+    )
     async def shuffle(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
