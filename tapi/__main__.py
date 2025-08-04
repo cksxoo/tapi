@@ -164,14 +164,23 @@ class TapiBot(commands.Bot):
             process = psutil.Process()
             memory_info = process.memory_info()
             
+            # 활성 플레이어 수 계산
+            player_count = 0
+            if self.lavalink:
+                for guild in self.guilds:
+                    player = self.lavalink.player_manager.get(guild.id)
+                    if player and player.is_connected:
+                        player_count += 1
+            
+            # 레이턴시 계산
+            latency = self.latency
+            latency_ms = round(latency * 1000) if latency != float('inf') else -1
+            
             shard_data = {
                 'guild_count': len(self.guilds),
-                'user_count': sum(guild.member_count for guild in self.guilds if guild.member_count),
-                'shard_info': self.shard_info,
-                'status': 'online',
-                'latency': round(self.latency * 1000, 2),  # WebSocket latency in ms
+                'latency': latency_ms,
                 'memory_usage': memory_info.rss,  # Resident Set Size in bytes
-                'cpu_usage': process.cpu_percent(),  # CPU usage percentage
+                'player_count': player_count,
                 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()
             }
             redis_manager.update_shard_status(shard_id, shard_data)
