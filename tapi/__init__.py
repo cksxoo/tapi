@@ -55,6 +55,7 @@ for file in os.listdir("tapi/modules"):
     if file.endswith(".py"):
         EXTENSIONS.append(file.replace(".py", ""))
 
+APP_BANNER_URL = "https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2"
 APP_NAME_TAG_VER = "%s%s | %s" % (APPLICATION_NAME, APP_TAG, BOT_VER)
 
 # Initialize database after all imports are complete

@@ -5,7 +5,7 @@ from discord.ext import commands
 
 from tapi.utils.language import get_lan
 from tapi.utils.database import Database
-from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
+from tapi import LOGGER, THEME_COLOR, APP_BANNER_URL
 from tapi.modules.player import send_temp_message
 
 lan_pack = [
@@ -30,7 +30,7 @@ class Other(commands.Cog):
             ),
             color=THEME_COLOR,
         )
-        embed.set_footer(text=APP_NAME_TAG_VER)
+        embed.set_image(url=APP_BANNER_URL)
         await interaction.response.defer()
         await send_temp_message(interaction, embed, delete_after=8)
 
@@ -46,25 +46,25 @@ class Other(commands.Cog):
                 description=files,
                 color=THEME_COLOR,
             )
-            embed.set_footer(text=APP_NAME_TAG_VER)
+            embed.set_image(url=APP_BANNER_URL)
             await interaction.response.defer()
-            return await send_temp_message(interaction, embed)
+            return await send_temp_message(interaction, embed, delete_after=8)
 
         if lang not in lan_pack:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "set_language_pack_not_exist"),
                 color=THEME_COLOR,
             )
-            embed.set_footer(text=APP_NAME_TAG_VER)
+            embed.set_image(url=APP_BANNER_URL)
             await interaction.response.defer()
             return await send_temp_message(interaction, embed)
 
         # 현재 사용자 언어 설정 가져오기
         current_lang = self.database.get_user_language(interaction.user.id)
-        
+
         # 새로운 언어 설정 저장
         self.database.set_user_language(interaction.user.id, lang)
-        
+
         # 임베드 메시지 생성
         if current_lang == "kr":  # 기본값인 경우
             embed = discord.Embed(
@@ -79,7 +79,7 @@ class Other(commands.Cog):
                 color=THEME_COLOR,
             )
 
-        embed.set_footer(text=APP_NAME_TAG_VER)
+        embed.set_image(url=APP_BANNER_URL)
         await interaction.response.defer()
         await send_temp_message(interaction, embed)
 

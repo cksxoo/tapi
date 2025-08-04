@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from tapi.utils.language import get_lan
-from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
+from tapi import LOGGER, THEME_COLOR, APP_BANNER_URL
 
 
 class HelpView(discord.ui.View):
@@ -22,7 +22,7 @@ class HelpView(discord.ui.View):
             description=get_lan(self.user_id, "help_music_description"),
             color=THEME_COLOR,
         )
-        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+        embed.set_image(url=APP_BANNER_URL)
         
         view = BackToMainView(self.user_id)
         view.message = interaction.message
@@ -38,7 +38,7 @@ class HelpView(discord.ui.View):
             description=get_lan(self.user_id, "help_general_description"),
             color=THEME_COLOR,
         )
-        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+        embed.set_image(url=APP_BANNER_URL)
         
         view = BackToMainView(self.user_id)
         view.message = interaction.message
@@ -54,7 +54,7 @@ class HelpView(discord.ui.View):
             description=get_lan(self.user_id, "help_language_description"),
             color=THEME_COLOR,
         )
-        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+        embed.set_image(url=APP_BANNER_URL)
         
         view = BackToMainView(self.user_id)
         view.message = interaction.message
@@ -84,7 +84,7 @@ class BackToMainView(discord.ui.View):
             description=get_lan(self.user_id, "help_main_description"),
             color=THEME_COLOR,
         )
-        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+        embed.set_image(url=APP_BANNER_URL)
         
         view = HelpView(self.user_id)
         view.message = interaction.message
@@ -110,7 +110,7 @@ class Help(commands.Cog):
             description=get_lan(interaction.user.id, "help_main_description"),
             color=THEME_COLOR,
         )
-        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+        embed.set_image(url=APP_BANNER_URL)
         
         view = HelpView(interaction.user.id)
         await interaction.response.send_message(embed=embed, view=view)

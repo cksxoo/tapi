@@ -14,6 +14,8 @@ from tapi import (
     LOGGER,
     TOKEN,
     EXTENSIONS,
+    THEME_COLOR,
+    APP_BANNER_URL,
     APP_NAME_TAG_VER,
     HOST,
     PORT,
@@ -134,10 +136,7 @@ class TapiBot(commands.Bot):
                 embed = discord.Embed(
                     title=title, description=description, color=0x7F8C8D
                 )
-                embed.set_thumbnail(
-                    url="https://github.com/leechanwoo-kor/music_bot/blob/main/docs/logo.png?raw=true"
-                )
-                embed.set_footer(text=APP_NAME_TAG_VER)
+                embed.set_image(url=APP_BANNER_URL)
 
                 await channel.send(embed=embed)
                 LOGGER.info(

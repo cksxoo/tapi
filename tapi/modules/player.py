@@ -18,10 +18,10 @@ from tapi.utils.language import get_lan
 from tapi.utils import volumeicon
 from tapi import (
     LOGGER,
-    CLIENT_ID,
     THEME_COLOR,
     IDLE_COLOR,
     APP_NAME_TAG_VER,
+    APP_BANNER_URL,
     HOST,
     PSW,
     REGION,
@@ -243,7 +243,7 @@ class Music(commands.Cog):
                 description=get_lan(user_id, "vote_description"),
                 color=THEME_COLOR
             )
-            embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+            embed.set_image(url=APP_BANNER_URL)
             
             # 투표/리뷰 링크 버튼 생성
             view = discord.ui.View()
@@ -1651,7 +1651,7 @@ class MusicControlView(discord.ui.View):
             )
 
         # 하단 배너 이미지 추가
-        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+        embed.set_image(url=APP_BANNER_URL)
 
         # 모든 버튼 상태 업데이트
         if player.paused:
