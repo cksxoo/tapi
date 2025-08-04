@@ -4,6 +4,7 @@ import discord
 import asyncio
 import os
 import time
+import datetime
 from discord.ext import commands
 
 import lavalink
@@ -148,9 +149,10 @@ class TapiBot(commands.Bot):
                 'user_count': sum(guild.member_count for guild in self.guilds if guild.member_count),
                 'shard_info': self.shard_info,
                 'status': 'online',
-                'timestamp': time.time()
+                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()
             }
             redis_manager.update_shard_status(shard_id, shard_data)
+            LOGGER.debug(f"Updated shard {shard_id} status: {shard_data}")
         except Exception as e:
             LOGGER.error(f"Error updating shard status: {e}")
 
