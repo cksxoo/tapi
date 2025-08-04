@@ -8,7 +8,7 @@ from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
 
 class HelpView(discord.ui.View):
     def __init__(self, user_id):
-        super().__init__(timeout=120)
+        super().__init__(timeout=30)
         self.user_id = user_id
         self.message = None
 
@@ -70,7 +70,7 @@ class HelpView(discord.ui.View):
 
 class BackToMainView(discord.ui.View):
     def __init__(self, user_id):
-        super().__init__(timeout=120)
+        super().__init__(timeout=30)
         self.user_id = user_id
         self.message = None
 

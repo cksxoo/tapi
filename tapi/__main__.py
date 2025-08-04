@@ -18,6 +18,7 @@ from tapi import (
     PSW,
 )
 from tapi.utils.language import get_lan
+from tapi.utils.redis_manager import redis_manager
 
 
 class TapiBot(commands.Bot):
@@ -71,7 +72,12 @@ class TapiBot(commands.Bot):
             status=discord.Status.online,
         )
 
+        # Redis 연결 및 샤드 정보 업데이트
+        redis_manager.connect()
+        await self.update_shard_status()
+
         self.loop.create_task(self.status_task())
+        self.loop.create_task(self.redis_update_task())
 
     async def status_task(self):
         await self.wait_until_ready()
@@ -132,6 +138,33 @@ class TapiBot(commands.Bot):
         
         except Exception as e:
             LOGGER.error(f"Error sending welcome message to guild {guild.name}: {e}")
+
+    async def update_shard_status(self):
+        """현재 샤드의 상태 정보를 Redis에 업데이트"""
+        try:
+            shard_id = getattr(self, 'shard_id', 0)
+            shard_data = {
+                'guild_count': len(self.guilds),
+                'user_count': sum(guild.member_count for guild in self.guilds if guild.member_count),
+                'shard_info': self.shard_info,
+                'status': 'online',
+                'timestamp': time.time()
+            }
+            redis_manager.update_shard_status(shard_id, shard_data)
+        except Exception as e:
+            LOGGER.error(f"Error updating shard status: {e}")
+
+    async def redis_update_task(self):
+        """Redis 상태 업데이트 주기적 작업"""
+        await self.wait_until_ready()
+        
+        while True:
+            try:
+                await self.update_shard_status()
+                await asyncio.sleep(15)  # 15초마다 업데이트
+            except Exception as e:
+                LOGGER.error(f"Error in redis_update_task: {e}")
+                await asyncio.sleep(60)
 
     async def on_message(self, message):
         if message.author.bot:
