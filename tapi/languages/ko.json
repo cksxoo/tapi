@@ -168,5 +168,8 @@
     "vote_title": "OMG! 고마워요! ✧(≧◡≦) ♡",
     "vote_description": "저와 함께 음악을 들어주셔서 정말 감사해요! ヾ(｡>﹏<｡)ﾉﾞ✧\n\n혹시 아래 버튼으로 투표나 리뷰 남겨주실 수 있나요? (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
 
+    "music_play_fail_title": "재생 실패",
+    "music_play_fail_description": "음악을 재생할 수 없습니다.",
+
     "owners_server_list": "**서버 리스트**"
 }

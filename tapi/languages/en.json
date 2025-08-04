@@ -166,5 +166,8 @@
     "music_auto_disconnect_error": "Error occurred during auto-disconnect: {error}",
 
     "vote_title": "OMG! Thank youuu! ✧(≧◡≦) ♡",
-    "vote_description": "Thank you so much for listening to music with me! ヾ(｡>﹏<｡)ﾉﾞ✧\n\nIf you like me, could you maybe vote or leave a review using the buttons below? (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡"
+    "vote_description": "Thank you so much for listening to music with me! ヾ(｡>﹏<｡)ﾉﾞ✧\n\nIf you like me, could you maybe vote or leave a review using the buttons below? (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
+
+    "music_play_fail_title": "Playback Failed",
+    "music_play_fail_description": "Unable to play the music."
 }
