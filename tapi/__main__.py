@@ -73,8 +73,9 @@ class TapiBot(commands.Bot):
             status=discord.Status.online,
         )
 
-        # Redis 연결 및 샤드 정보 업데이트
+        # Redis 연결 및 기존 데이터 정리 후 샤드 정보 업데이트
         redis_manager.connect()
+        await self.cleanup_old_shard_data()
         await self.update_shard_status()
 
         self.loop.create_task(self.status_task())
@@ -139,6 +140,19 @@ class TapiBot(commands.Bot):
         
         except Exception as e:
             LOGGER.error(f"Error sending welcome message to guild {guild.name}: {e}")
+
+    async def cleanup_old_shard_data(self):
+        """기존의 잘못된 형식의 샤드 데이터 정리"""
+        try:
+            client = redis_manager.get_client()
+            if client:
+                # 현재 샤드의 기존 데이터 삭제
+                shard_id = getattr(self, 'shard_id', 0)
+                key = f"shard_stats:{shard_id}"
+                client.delete(key)
+                LOGGER.info(f"Cleaned up old shard data for shard {shard_id}")
+        except Exception as e:
+            LOGGER.error(f"Error cleaning up old shard data: {e}")
 
     async def update_shard_status(self):
         """현재 샤드의 상태 정보를 Redis에 업데이트"""
