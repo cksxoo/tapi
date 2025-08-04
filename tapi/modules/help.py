@@ -80,7 +80,7 @@ class BackToMainView(discord.ui.View):
             return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
         
         embed = discord.Embed(
-            title=get_lan(self.user_id, "help_main_title").format(bot_name=interaction.guild.me.display_name if interaction.guild else "Bot"),
+            title=get_lan(self.user_id, "help_main_title"),
             description=get_lan(self.user_id, "help_main_description"),
             color=THEME_COLOR,
         )
@@ -106,7 +106,7 @@ class Help(commands.Cog):
     async def help(self, interaction: discord.Interaction):
         """Show interactive help menu"""
         embed = discord.Embed(
-            title=get_lan(interaction.user.id, "help_main_title").format(bot_name=self.bot.user.name),
+            title=get_lan(interaction.user.id, "help_main_title"),
             description=get_lan(interaction.user.id, "help_main_description"),
             color=THEME_COLOR,
         )

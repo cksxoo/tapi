@@ -38,10 +38,8 @@ class TapiBot(commands.Bot):
                 shard_id=shard_id,
                 shard_count=shard_count,
             )
-            self.shard_info = f"Shard {shard_id}/{shard_count}"
         else:
             super().__init__(command_prefix="$", intents=intents)
-            self.shard_info = "No Sharding"
 
         self.remove_command("help")
         self.lavalink = None  # ✅ lavalink 속성 미리 정의
@@ -52,7 +50,7 @@ class TapiBot(commands.Bot):
             await self.load_extension(f"tapi.modules.{extension}")
 
         # shard 0일 때만 슬래시 동기화
-        if getattr(self, "shard_id", None) == 0 or self.shard_info == "No Sharding":
+        if getattr(self, "shard_id", None) == 0 or not hasattr(self, "shard_id"):
             await self.tree.sync()
             LOGGER.info("Slash commands synced")
         else:
@@ -64,19 +62,23 @@ class TapiBot(commands.Bot):
             self.lavalink.add_node(HOST, PORT, PSW, "eu", "default-node")
             LOGGER.info("Lavalink client initialized")
 
-        LOGGER.info(f"{APP_NAME_TAG_VER} - {self.shard_info}")
-        LOGGER.info(f"Connected to {len(self.guilds)} guilds on {self.shard_info}")
+        shard_info = (
+            f"Shard {getattr(self, 'shard_id', 'N/A')}/{getattr(self, 'shard_count', 'N/A')}"
+            if hasattr(self, "shard_id")
+            else "No Sharding"
+        )
+        LOGGER.info(f"{APP_NAME_TAG_VER} - {shard_info}")
+        LOGGER.info(f"Connected to {len(self.guilds)} guilds on {shard_info}")
 
         await self.change_presence(
             activity=discord.Activity(
-                type=discord.ActivityType.listening, name=f"📼 {self.shard_info}"
+                type=discord.ActivityType.listening, name="📼 Cassette Tape"
             ),
             status=discord.Status.online,
         )
 
-        # Redis 연결 및 기존 데이터 정리 후 샤드 정보 업데이트
+        # Redis 연결 및 샤드 정보 업데이트
         redis_manager.connect()
-        await self.cleanup_old_shard_data()
         await self.update_shard_status()
 
         self.loop.create_task(self.status_task())
@@ -103,17 +105,20 @@ class TapiBot(commands.Bot):
         try:
             # 서버에서 봇이 메시지를 보낼 수 있는 첫 번째 채널 찾기
             channel = None
-            
+
             # 일반 채널 중에서 찾기
             for ch in guild.text_channels:
                 if ch.permissions_for(guild.me).send_messages:
                     channel = ch
                     break
-            
+
             # 시스템 채널이 있다면 우선 사용
-            if guild.system_channel and guild.system_channel.permissions_for(guild.me).send_messages:
+            if (
+                guild.system_channel
+                and guild.system_channel.permissions_for(guild.me).send_messages
+            ):
                 channel = guild.system_channel
-            
+
             if channel:
                 # 봇의 기본 언어 설정으로 환영 메시지 생성 (guild owner의 언어 설정 사용)
                 try:
@@ -124,46 +129,37 @@ class TapiBot(commands.Bot):
                     # 언어 설정 실패 시 기본 영어 메시지 사용
                     title = "OMG! Hii guys ✧(≧◡≦) ♡"
                     description = "Thank you for inviting me to hang with yall (*≧▽≦)\n\nType /help to view my slash commands ♡"
-                
+
                 # 환영 메시지 embed 생성
                 embed = discord.Embed(
-                    title=title,
-                    description=description,
-                    color=0x7F8C8D
+                    title=title, description=description, color=0x7F8C8D
                 )
-                embed.set_thumbnail(url="https://github.com/leechanwoo-kor/music_bot/blob/main/docs/logo.png?raw=true")
+                embed.set_thumbnail(
+                    url="https://github.com/leechanwoo-kor/music_bot/blob/main/docs/logo.png?raw=true"
+                )
                 embed.set_footer(text=APP_NAME_TAG_VER)
-                
+
                 await channel.send(embed=embed)
-                LOGGER.info(f"Welcome message sent to guild: {guild.name} (ID: {guild.id})")
+                LOGGER.info(
+                    f"Welcome message sent to guild: {guild.name} (ID: {guild.id})"
+                )
             else:
-                LOGGER.warning(f"Could not find a suitable channel to send welcome message in guild: {guild.name} (ID: {guild.id})")
-        
+                LOGGER.warning(
+                    f"Could not find a suitable channel to send welcome message in guild: {guild.name} (ID: {guild.id})"
+                )
+
         except Exception as e:
             LOGGER.error(f"Error sending welcome message to guild {guild.name}: {e}")
-
-    async def cleanup_old_shard_data(self):
-        """기존의 잘못된 형식의 샤드 데이터 정리"""
-        try:
-            client = redis_manager.get_client()
-            if client:
-                # 현재 샤드의 기존 데이터 삭제
-                shard_id = getattr(self, 'shard_id', 0)
-                key = f"shard_stats:{shard_id}"
-                client.delete(key)
-                LOGGER.info(f"Cleaned up old shard data for shard {shard_id}")
-        except Exception as e:
-            LOGGER.error(f"Error cleaning up old shard data: {e}")
 
     async def update_shard_status(self):
         """현재 샤드의 상태 정보를 Redis에 업데이트"""
         try:
-            shard_id = getattr(self, 'shard_id', 0)
-            
+            shard_id = getattr(self, "shard_id", 0)
+
             # 메모리 사용량 정보 가져오기
             process = psutil.Process()
             memory_info = process.memory_info()
-            
+
             # 활성 플레이어 수 계산
             player_count = 0
             if self.lavalink:
@@ -171,17 +167,17 @@ class TapiBot(commands.Bot):
                     player = self.lavalink.player_manager.get(guild.id)
                     if player and player.is_connected:
                         player_count += 1
-            
+
             # 레이턴시 계산
             latency = self.latency
-            latency_ms = round(latency * 1000) if latency != float('inf') else -1
-            
+            latency_ms = round(latency * 1000) if latency != float("inf") else -1
+
             shard_data = {
-                'guild_count': len(self.guilds),
-                'latency': latency_ms,
-                'memory_usage': memory_info.rss,  # Resident Set Size in bytes
-                'player_count': player_count,
-                'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()
+                "guild_count": len(self.guilds),
+                "latency": latency_ms,
+                "memory_usage": memory_info.rss,  # Resident Set Size in bytes
+                "player_count": player_count,
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             }
             redis_manager.update_shard_status(shard_id, shard_data)
             LOGGER.debug(f"Updated shard {shard_id} status: {shard_data}")
@@ -191,7 +187,7 @@ class TapiBot(commands.Bot):
     async def redis_update_task(self):
         """Redis 상태 업데이트 주기적 작업"""
         await self.wait_until_ready()
-        
+
         while True:
             try:
                 await self.update_shard_status()
