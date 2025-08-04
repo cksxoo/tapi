@@ -163,6 +163,7 @@ class TapiBot(commands.Bot):
                 'user_count': sum(guild.member_count for guild in self.guilds if guild.member_count),
                 'shard_info': self.shard_info,
                 'status': 'online',
+                'latency': round(self.latency * 1000, 2),  # WebSocket latency in ms
                 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()
             }
             redis_manager.update_shard_status(shard_id, shard_data)
