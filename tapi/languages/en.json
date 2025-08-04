@@ -7,7 +7,7 @@
     "help_general_description": "`/invite` - Invite bot to other servers",
 
     "help_music_title": "Music Commands",
-    "help_music_description": "**Playback Control**\n🔗 `/connect` - Connect to voice channel\n<:play:1399719809469382779> `/play [song/link]` - Play music\n<:pause:1399721118473912390> `/pause` - Pause/resume\n<:skip:1399719807699521597> `/skip` - Skip to next song\n❌ `/disconnect` - Leave voice channel\n\n**Volume & Queue**\n🔊 `/volume [1-1000]` - Adjust volume\n📋 `/queue` - Check queue\n<:shuffle:1399720936068091964>`/shuffle` - Toggle shuffle mode\n<:repeats:1399721836958449674> `/repeat` - Toggle repeat mode\n\n**Advanced Features**\n🎯 `/nowplaying` - Current song info\n⏰ `/seek [±sec]` - Adjust playback position\n❌ `/remove [number]` - Remove song from queue",
+    "help_music_description": "<:play:1399719809469382779> **Playback Control**\n`/connect` - Connect to voice channel\n`/play [song/link]` - Play music\n`/pause` - Pause/resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n🔊 **Volume & Queue**\n`/volume [1-100]` - Adjust volume\n`/queue` - Check queue\n`/shuffle` - Toggle shuffle mode\n`/repeat` - Toggle repeat mode\n\n⚙️ **Advanced Features**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue",
 
     "welcome_title": "OMG! Hii guys ヾ(｡>﹏<｡)ﾉﾞ✧.",
     "welcome_description": "Thank you for inviting me to hang with yall ✧(≧◡≦) ♡\n\nType /help to view my slash commands ♡",
@@ -19,7 +19,6 @@
     "music_can_not_find_anything": "I didn't find anything!",
     "music_play_playlist": ":arrow_forward: | Playlist play!",
     "music_page": "Page",
-    "music_seek_move_to": "**:clock: | Go to {move_time}!**",
     "music_not_playing": "Music is not playing!",
     "music_skip_next": "**:track_next: | Skip to the next music!**",
     "music_skip_many_music": "**:track_next: | Skipped {music_count} music(s)!**",
@@ -30,7 +29,7 @@
     "music_resume": ":play_pause: | Resume!",
     "music_pause": ":play_pause: | Paused!",
     "music_now_vol": "{volicon} | It's set to {volume}%",
-    "music_input_over_vol": ":loud_sound: | The volume is limited to 1% to 1000%!",
+    "music_input_over_vol": ":loud_sound: | The volume is limited to 1% to 100%!",
     "music_default_vol": "Default : 100%",
     "music_set_vol": "{volicon} | Volume is set to {volume}%",
     "music_shuffle": "Shuffle",

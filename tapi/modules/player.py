@@ -1435,7 +1435,7 @@ class Music(commands.Cog):
             embed.set_footer(text=APP_NAME_TAG_VER)
             return await send_temp_message(interaction, embed)
 
-        if volume > 1000 or volume < 1:
+        if volume > 100 or volume < 1:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_input_over_vol"),
                 description=get_lan(interaction.user.id, "music_default_vol"),
@@ -1492,26 +1492,6 @@ class Music(commands.Cog):
             embed.set_footer(text=APP_NAME_TAG_VER)
             await send_temp_message(interaction, embed)
 
-    @app_commands.command(
-        name="seek",
-        description="Adjust the music play time in seconds by the number after the command!",
-    )
-    @app_commands.describe(seconds="이동할 초를 입력하세요")
-    async def seek(self, interaction: discord.Interaction, seconds: int):
-        await interaction.response.defer()
-
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        track_time = player.position + (seconds * 1000)
-        await player.seek(track_time)
-        embed = discord.Embed(
-            title=get_lan(interaction.user.id, "music_seek_move_to").format(
-                move_time=lavalink.utils.format_time(track_time)
-            ),
-            description="",
-            color=THEME_COLOR,
-        )
-        embed.set_footer(text=APP_NAME_TAG_VER)
-        await send_temp_message(interaction, embed)
 
 
 async def setup(bot):

@@ -8,7 +8,7 @@ from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
 
 class HelpView(discord.ui.View):
     def __init__(self, user_id):
-        super().__init__(timeout=30)
+        super().__init__(timeout=120)
         self.user_id = user_id
         self.message = None
 
@@ -22,7 +22,7 @@ class HelpView(discord.ui.View):
             description=get_lan(self.user_id, "help_music_description"),
             color=THEME_COLOR,
         )
-        embed.set_footer(text=APP_NAME_TAG_VER)
+        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
         
         view = BackToMainView(self.user_id)
         view.message = interaction.message
@@ -38,7 +38,7 @@ class HelpView(discord.ui.View):
             description=get_lan(self.user_id, "help_general_description"),
             color=THEME_COLOR,
         )
-        embed.set_footer(text=APP_NAME_TAG_VER)
+        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
         
         view = BackToMainView(self.user_id)
         view.message = interaction.message
@@ -54,7 +54,7 @@ class HelpView(discord.ui.View):
             description=get_lan(self.user_id, "help_language_description"),
             color=THEME_COLOR,
         )
-        embed.set_footer(text=APP_NAME_TAG_VER)
+        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
         
         view = BackToMainView(self.user_id)
         view.message = interaction.message
@@ -70,7 +70,7 @@ class HelpView(discord.ui.View):
 
 class BackToMainView(discord.ui.View):
     def __init__(self, user_id):
-        super().__init__(timeout=30)
+        super().__init__(timeout=120)
         self.user_id = user_id
         self.message = None
 
