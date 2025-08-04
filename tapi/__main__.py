@@ -5,6 +5,7 @@ import asyncio
 import os
 import time
 import datetime
+import psutil
 from discord.ext import commands
 
 import lavalink
@@ -158,12 +159,19 @@ class TapiBot(commands.Bot):
         """현재 샤드의 상태 정보를 Redis에 업데이트"""
         try:
             shard_id = getattr(self, 'shard_id', 0)
+            
+            # 메모리 사용량 정보 가져오기
+            process = psutil.Process()
+            memory_info = process.memory_info()
+            
             shard_data = {
                 'guild_count': len(self.guilds),
                 'user_count': sum(guild.member_count for guild in self.guilds if guild.member_count),
                 'shard_info': self.shard_info,
                 'status': 'online',
                 'latency': round(self.latency * 1000, 2),  # WebSocket latency in ms
+                'memory_usage': memory_info.rss,  # Resident Set Size in bytes
+                'cpu_usage': process.cpu_percent(),  # CPU usage percentage
                 'timestamp': datetime.datetime.now(datetime.timezone.utc).isoformat()
             }
             redis_manager.update_shard_status(shard_id, shard_data)
