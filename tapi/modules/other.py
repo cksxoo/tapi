@@ -1,12 +1,10 @@
-import time
-import psutil
 import discord
-import datetime
 from discord import app_commands
 from discord.ext import commands
 
 from tapi.utils.language import get_lan
 from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
+from tapi.modules.player import send_temp_message
 
 
 class Other(commands.Cog):
@@ -24,22 +22,9 @@ class Other(commands.Cog):
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.defer()
+        await send_temp_message(interaction, embed, delete_after=8)
 
-    @app_commands.command(
-        name="uptime", description="Let me tell you the server's uptime!"
-    )
-    async def uptime(self, interaction: discord.Interaction):
-        uptime_string = str(
-            datetime.timedelta(seconds=int(time.time() - psutil.boot_time()))
-        )
-        embed = discord.Embed(
-            title=get_lan(interaction.user.id, "other_uptime"),
-            description=f"```{uptime_string}```",
-            color=THEME_COLOR,
-        )
-        embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot):

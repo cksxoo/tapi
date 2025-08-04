@@ -6,6 +6,7 @@ from discord.ext import commands
 from tapi.utils.language import get_lan
 from tapi.utils.database import Database
 from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
+from tapi.modules.player import send_temp_message
 
 lan_pack = [
     file.replace(".json", "")
@@ -32,7 +33,8 @@ class Language(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.response.send_message(embed=embed)
+            await interaction.response.defer()
+            return await send_temp_message(interaction, embed)
 
         if lang not in lan_pack:
             embed = discord.Embed(
@@ -40,7 +42,8 @@ class Language(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.response.send_message(embed=embed)
+            await interaction.response.defer()
+            return await send_temp_message(interaction, embed)
 
         # 현재 사용자 언어 설정 가져오기
         current_lang = self.database.get_user_language(interaction.user.id)
@@ -63,7 +66,8 @@ class Language(commands.Cog):
             )
 
         embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.response.send_message(embed=embed)
+        await interaction.response.defer()
+        await send_temp_message(interaction, embed)
 
 
 async def setup(bot):

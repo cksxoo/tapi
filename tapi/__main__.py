@@ -114,7 +114,7 @@ class TapiBot(commands.Bot):
                 except:
                     # 언어 설정 실패 시 기본 영어 메시지 사용
                     title = "OMG! Hii guys ✧(≧◡≦) ♡"
-                    description = "Thank you for inviting me to hang with yall (*≧▽≦)\n\nyou can ping me to use commands too! Type /help to view my slash commands ♡"
+                    description = "Thank you for inviting me to hang with yall (*≧▽≦)\n\nType /help to view my slash commands ♡"
                 
                 # 환영 메시지 embed 생성
                 embed = discord.Embed(

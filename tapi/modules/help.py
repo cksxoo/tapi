@@ -30,12 +30,6 @@ class Help(commands.Cog):
                 color=THEME_COLOR,
             )
 
-            if "about" in EXTENSIONS:
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_general_about_command"),
-                    value=get_lan(interaction.user.id, "help_general_about_info"),
-                    inline=True,
-                )
 
             if "other" in EXTENSIONS:
                 embed.add_field(
@@ -43,18 +37,7 @@ class Help(commands.Cog):
                     value=get_lan(interaction.user.id, "help_general_invite_info"),
                     inline=True,
                 )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_general_uptime_command"),
-                    value=get_lan(interaction.user.id, "help_general_uptime_info"),
-                    inline=True,
-                )
 
-            if "ping" in EXTENSIONS:
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_general_ping_command"),
-                    value=get_lan(interaction.user.id, "help_general_ping_info"),
-                    inline=True,
-                )
 
             if "set_language" in EXTENSIONS:
                 embed.add_field(
