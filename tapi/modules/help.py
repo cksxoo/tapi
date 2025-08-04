@@ -61,8 +61,11 @@ class HelpView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=view)
 
     async def on_timeout(self):
-        for item in self.children:
-            item.disabled = True
+        if self.message:
+            try:
+                await self.message.delete()
+            except:
+                pass
 
 
 class BackToMainView(discord.ui.View):
@@ -88,8 +91,11 @@ class BackToMainView(discord.ui.View):
         await interaction.response.edit_message(embed=embed, view=view)
 
     async def on_timeout(self):
-        for item in self.children:
-            item.disabled = True
+        if self.message:
+            try:
+                await self.message.delete()
+            except:
+                pass
 
 
 class Help(commands.Cog):
