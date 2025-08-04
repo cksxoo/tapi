@@ -3,152 +3,112 @@ from discord import app_commands
 from discord.ext import commands
 
 from tapi.utils.language import get_lan
-from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR, OWNERS, EXTENSIONS
+from tapi import LOGGER, APP_NAME_TAG_VER, THEME_COLOR
+
+
+class HelpView(discord.ui.View):
+    def __init__(self, user_id):
+        super().__init__(timeout=120)
+        self.user_id = user_id
+        self.message = None
+
+    @discord.ui.button(label="🎵 Music", style=discord.ButtonStyle.primary, custom_id="music")
+    async def music_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
+        
+        embed = discord.Embed(
+            title=get_lan(self.user_id, "help_music_title"),
+            description=get_lan(self.user_id, "help_music_description"),
+            color=THEME_COLOR,
+        )
+        embed.set_footer(text=APP_NAME_TAG_VER)
+        
+        view = BackToMainView(self.user_id)
+        view.message = interaction.message
+        await interaction.response.edit_message(embed=embed, view=view)
+
+    @discord.ui.button(label="⚙️ General", style=discord.ButtonStyle.secondary, custom_id="general")
+    async def general_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
+        
+        embed = discord.Embed(
+            title=get_lan(self.user_id, "help_general_title"),
+            description=get_lan(self.user_id, "help_general_description"),
+            color=THEME_COLOR,
+        )
+        embed.set_footer(text=APP_NAME_TAG_VER)
+        
+        view = BackToMainView(self.user_id)
+        view.message = interaction.message
+        await interaction.response.edit_message(embed=embed, view=view)
+
+    @discord.ui.button(label="🌍 Language", style=discord.ButtonStyle.secondary, custom_id="language")
+    async def language_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
+        
+        embed = discord.Embed(
+            title=get_lan(self.user_id, "help_language_title"),
+            description=get_lan(self.user_id, "help_language_description"),
+            color=THEME_COLOR,
+        )
+        embed.set_footer(text=APP_NAME_TAG_VER)
+        
+        view = BackToMainView(self.user_id)
+        view.message = interaction.message
+        await interaction.response.edit_message(embed=embed, view=view)
+
+    async def on_timeout(self):
+        for item in self.children:
+            item.disabled = True
+
+
+class BackToMainView(discord.ui.View):
+    def __init__(self, user_id):
+        super().__init__(timeout=120)
+        self.user_id = user_id
+        self.message = None
+
+    @discord.ui.button(label="🏠 Main", style=discord.ButtonStyle.success, custom_id="home")
+    async def home_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
+        
+        embed = discord.Embed(
+            title=get_lan(self.user_id, "help_main_title").format(bot_name=interaction.guild.me.display_name if interaction.guild else "Bot"),
+            description=get_lan(self.user_id, "help_main_description"),
+            color=THEME_COLOR,
+        )
+        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+        
+        view = HelpView(self.user_id)
+        view.message = interaction.message
+        await interaction.response.edit_message(embed=embed, view=view)
+
+    async def on_timeout(self):
+        for item in self.children:
+            item.disabled = True
 
 
 class Help(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="help", description="Send help")
-    @app_commands.describe(help_option="Choose help menu")
-    @app_commands.choices(
-        help_option=[
-            app_commands.Choice(name="INFO", value="INFO"),
-            app_commands.Choice(name="GENERAL", value="GENERAL"),
-            app_commands.Choice(name="MUSIC", value="MUSIC"),
-        ]
-    )
-    async def help(self, interaction: discord.Interaction, help_option: str = None):
-        """Send help"""
-        if help_option is not None:
-            help_option = help_option.upper()
-        if help_option == "GENERAL" or help_option == "일반":
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "help_general"),
-                description="",
-                color=THEME_COLOR,
-            )
-
-
-            if "other" in EXTENSIONS:
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_general_invite_command"),
-                    value=get_lan(interaction.user.id, "help_general_invite_info"),
-                    inline=True,
-                )
-
-
-            if "set_language" in EXTENSIONS:
-                embed.add_field(
-                    name="`/language`",
-                    value="Sends a list of available language packs.",
-                    inline=True,
-                )
-                embed.add_field(
-                    name="`/language` [*language pack*]",
-                    value="Apply the language pack.",
-                    inline=True,
-                )
-
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            await interaction.response.send_message(embed=embed)
-
-        elif help_option == "MUSIC" or help_option == "음악":
-            if "player" in EXTENSIONS:
-                embed = discord.Embed(
-                    title=get_lan(interaction.user.id, "help_music"),
-                    description=get_lan(interaction.user.id, "help_music_description"),
-                    color=THEME_COLOR,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_connect_command"),
-                    value=get_lan(interaction.user.id, "help_music_connect_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_play_command"),
-                    value=get_lan(interaction.user.id, "help_music_play_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_stop_command"),
-                    value=get_lan(interaction.user.id, "help_music_stop_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_skip_command"),
-                    value=get_lan(interaction.user.id, "help_music_skip_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_vol_command"),
-                    value=get_lan(interaction.user.id, "help_music_vol_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_now_command"),
-                    value=get_lan(interaction.user.id, "help_music_now_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_q_command"),
-                    value=get_lan(interaction.user.id, "help_music_q_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_pause_command"),
-                    value=get_lan(interaction.user.id, "help_music_pause_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_shuffle_command"),
-                    value=get_lan(interaction.user.id, "help_music_shuffle_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_repeat_command"),
-                    value=get_lan(interaction.user.id, "help_music_repeat_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_seek_command"),
-                    value=get_lan(interaction.user.id, "help_music_seek_info"),
-                    inline=False,
-                )
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_remove_command"),
-                    value=get_lan(interaction.user.id, "help_music_remove_info"),
-                    inline=False,
-                )
-
-                embed.set_footer(text=APP_NAME_TAG_VER)
-                await interaction.response.send_message(embed=embed)
-
-        else:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "help"),
-                description=get_lan(interaction.user.id, "help_info").format(
-                    bot_name=self.bot.user.name
-                ),
-                color=THEME_COLOR,
-            )
-            embed.add_field(
-                name=get_lan(interaction.user.id, "help_general_command"),
-                value=get_lan(interaction.user.id, "help_general_command_info"),
-                inline=False,
-            )
-
-            if "player" in EXTENSIONS:
-                embed.add_field(
-                    name=get_lan(interaction.user.id, "help_music_command"),
-                    value=get_lan(interaction.user.id, "help_music_command_info"),
-                    inline=False,
-                )
-
-
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            await interaction.response.send_message(embed=embed)
+    @app_commands.command(name="help", description="Show help menu")
+    async def help(self, interaction: discord.Interaction):
+        """Show interactive help menu"""
+        embed = discord.Embed(
+            title=get_lan(interaction.user.id, "help_main_title").format(bot_name=self.bot.user.name),
+            description=get_lan(interaction.user.id, "help_main_description"),
+            color=THEME_COLOR,
+        )
+        embed.set_image(url="https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2")
+        
+        view = HelpView(interaction.user.id)
+        await interaction.response.send_message(embed=embed, view=view)
+        view.message = await interaction.original_response()
 
 
 async def setup(bot):

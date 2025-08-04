@@ -51,7 +51,7 @@ services:
 
   bot-shard-0:
     <<: *bot-base
-    container_name: music-bot-shard-0
+    container_name: bot-shard-0
     environment:
       <<: *bot-env
       SHARD_ID: 0
@@ -67,7 +67,7 @@ services:
 
   bot-shard-1:
     <<: *bot-base
-    container_name: music-bot-shard-1
+    container_name: bot-shard-1
     environment:
       <<: *bot-env
       SHARD_ID: 1

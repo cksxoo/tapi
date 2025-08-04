@@ -1,47 +1,18 @@
 {
 
-    "help": "**도움말**",
-    "help_info": "안녕하세요! 전 {bot_name} 에요! 아래에 있는 명령어들을 이용해 도움말을 보세요!",
-    "help_general_command": "`/help GENERAL`",
-    "help_music_command": "`/help MUSIC`",
-    "help_dev_command": "`/dev_help`",
-    "help_general_command_info": ">>> 기본적인 명령어들을 보내드려요!",
-    "help_music_command_info": ">>> 음악 관련 명령어들을 보내드려요!",
-    "help_dev_command_info": ">>> 개발자님이 사용가능한 명령어들을 보내드려요!",
+    "help_main_title": "{bot_name} 도움말",
+    "help_main_description": "안녕하세요! 저는 음악 전문 디스코드 봇이에요!\n아래 버튼을 눌러 원하는 도움말을 확인해보세요.",
 
-    "help_general": "**기본적인 명령어**",
-    "help_general_invite_command": "`/invite`",
-    "help_general_invite_info": "저랑 다른 서버에서 놀고싶으세요? 당신이 서버의 관리자라면 저를 서버에 초대할 수 있어요!",
+    "help_general_title": "⚙️ 기본 설정",
+    "help_general_description": "📨 `/invite` - 다른 서버에 봇 초대하기",
 
-    "help_music": "**음악 명령어**",
-    "help_music_description": "소괄호 () 은(는) 옵션인 경우 쓰입니다. 명령어 뒷쪽의 모든 괄호는 빼주세요!",
-    "help_music_connect_command": ":white_check_mark: | `/connect`",
-    "help_music_connect_info": ">>> 음성 채널에 접속해요!",
-    "help_music_play_command": ":arrow_forward: | `/play` [*음악 이름 혹은 Youtube 링크*]",
-    "help_music_play_info": ">>> 음악을 재생해요!",
-    "help_music_stop_command": ":x: | `/disconnect`",
-    "help_music_stop_info": ">>> 음성 채널을 나갑니다.",
-    "help_music_skip_command": ":track_next: | `/skip`",
-    "help_music_skip_info": ">>> 다음 곡으로 넘어갑니다!",
-    "help_music_vol_command": ":loud_sound: | `/volume` (*1~1000*)",
-    "help_music_vol_info": ">>> 음량을 조절합니다!",
-    "help_music_now_command": ":arrow_down_small: | `/nowplaying`",
-    "help_music_now_info": ">>> 현재 재생중인 곡을 알려드려요!",
-    "help_music_q_command": ":regional_indicator_q: | `/queue`",
-    "help_music_q_info": ">>> 재생 대기목록을 알려드려요!",
-    "help_music_pause_command": ":play_pause: | `/pause`",
-    "help_music_pause_info": ">>> 음악을 일시정지하거나 재개해요!",
-    "help_music_shuffle_command": ":twisted_rightwards_arrows: | `/shuffle`",
-    "help_music_shuffle_info": ">>> 다음 곡부터 재생목록의 음악들이 랜덤으로 나와요!",
-    "help_music_repeat_command": ":repeat: | `/repeat`",
-    "help_music_repeat_info": ">>> 모든 곡 혹은 한 곡을 반복해서 들려드려요!",
-    "help_music_seek_command": ":clock: | `/seek` [*+(초) 혹은 -(초)*]",
-    "help_music_seek_info": ">>> 음악을 명령어 뒤의 숫자만큼 초단위로 진행시간을 조절해요!",
-    "help_music_remove_command": ":asterisk: | `/remove` [*재생목록에서의 음악 순서 번호*]",
+    "help_music_title": "🎵 음악 명령어",
+    "help_music_description": "**재생 제어**\n🔗 `/connect` - 음성 채널에 접속\n<:play:1399719809469382779> `/play [곡명/링크]` - 음악 재생\n<:pause:1399721118473912390> `/pause` - 일시정지/재개\n<:skip:1399719807699521597> `/skip` - 다음 곡으로 건너뛰기\n❌ `/disconnect` - 음성 채널에서 나가기\n\n**음량 & 재생목록**\n🔊 `/volume [1-1000]` - 음량 조절\n📋 `/queue` - 재생 대기목록 확인\n<:shuffle:1399720936068091964>`/shuffle` - 셔플 모드 전환\n<:repeats:1399721836958449674> `/repeat` - 반복 모드 전환\n\n**고급 기능**\n🎯 `/nowplaying` - 현재 재생 중인 곡 정보\n⏰ `/seek [±초]` - 재생 위치 조절\n❌ `/remove [번호]` - 재생목록에서 곡 제거",
 
     "welcome_title": "OMG! 안녕하세요! ヾ(｡>﹏<｡)ﾉﾞ✧.",
     "welcome_description": "저를 서버에 초대해주셔서 감사해요! ✧(≧◡≦) ♡\n\n/help를 입력해서 슬래시 명령어를 확인해보세요 ♡",
-    "help_music_remove_info": ">>> 재생목록에서 음악을 제거해요!",
+    "help_language_title": "🌍 언어 설정",
+    "help_language_description": "🌍 `/language` - 사용 가능한 언어팩 목록\n🌍 `/language [언어코드]` - 언어팩 적용",
 
     "music_connect_voice_channel": ":white_check_mark: | 음성 채널에 접속했어요!",
     "music_already_connected_voice_channel": ":white_check_mark: | 이미 음성 채널에 접속해 있어요!",
@@ -116,6 +87,5 @@
     "vote_description": "저와 함께 음악을 들어주셔서 정말 감사해요! ヾ(｡>﹏<｡)ﾉﾞ✧\n\n혹시 아래 버튼으로 투표나 리뷰 남겨주실 수 있나요? (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
 
     "music_play_fail_title": "재생 실패",
-    "music_play_fail_description": "음악을 재생할 수 없습니다.",
-
+    "music_play_fail_description": "음악을 재생할 수 없습니다."
 }
