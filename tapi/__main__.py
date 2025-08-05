@@ -35,12 +35,11 @@ class TapiBot(commands.Bot):
         # 샤딩 설정
         if shard_id is not None and shard_count is not None:
             super().__init__(
-                intents=intents, shard_id=shard_id, shard_count=shard_count
+                command_prefix=lambda bot, msg: [], intents=intents, shard_id=shard_id, shard_count=shard_count
             )
         else:
-            super().__init__(intents=intents)
+            super().__init__(command_prefix=lambda bot, msg: [], intents=intents)
 
-        self.remove_command("help")
         self.lavalink = None  # ✅ lavalink 속성 미리 정의
 
     async def setup_hook(self):
