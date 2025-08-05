@@ -6,8 +6,7 @@ import yt_dlp
 
 import discord
 from discord import app_commands
-
-from discord.ext import commands  # Re-enabled this line
+from discord.ext import commands
 
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent, TrackExceptionEvent
@@ -29,53 +28,9 @@ from tapi import (
 )
 from tapi.utils.database import Database
 from tapi.utils.statistics import Statistics
+from tapi.utils.embed import send_embed, send_temp_message, send_temp_embed
 
 url_rx = re.compile(r"https?://(?:www\.)?.+")
-
-
-async def send_temp_message(interaction, embed, delete_after=3, refresh_control=True):
-    """임시 메시지를 보내고 일정 시간 후 삭제, 선택적으로 컨트롤 패널 새로고침"""
-    try:
-        message = await interaction.followup.send(embed=embed)
-        await message.delete(delay=delete_after)
-
-        # 컨트롤 패널 새로고침
-        if refresh_control and hasattr(interaction, "guild") and interaction.guild:
-            cog = interaction.client.get_cog("Music")
-            if cog and hasattr(cog, "last_music_messages"):
-                guild_id = interaction.guild.id
-                if guild_id in cog.last_music_messages:
-                    try:
-                        player = interaction.client.lavalink.player_manager.get(
-                            guild_id
-                        )
-                        if player and player.current:
-                            old_message = cog.last_music_messages[guild_id]
-                            control_view = MusicControlView(cog, guild_id)
-
-                            # 가짜 interaction 객체 생성
-                            class FakeInteraction:
-                                def __init__(self, user_id):
-                                    self.user = type(
-                                        "obj", (object,), {"id": user_id}
-                                    )()
-
-                            fake_interaction = FakeInteraction(interaction.user.id)
-                            updated_embed = control_view.update_embed_and_buttons(
-                                fake_interaction, player
-                            )
-
-                            if updated_embed:
-                                await old_message.edit(
-                                    embed=updated_embed, view=control_view
-                                )
-                    except Exception as e:
-                        LOGGER.debug(f"Could not refresh control panel: {e}")
-
-        return message
-    except Exception as e:
-        LOGGER.debug(f"Failed to send/delete temporary message: {e}")
-        return None
 
 
 class AudioConnection(discord.VoiceClient):
@@ -300,21 +255,6 @@ class Music(commands.Cog):
         if self.bot.lavalink:
             self.bot.lavalink._event_hooks.clear()
 
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.CommandInvokeError):
-            embed = discord.Embed(
-                title=error.original, description="", color=THEME_COLOR
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            await ctx.respond(embed=embed)
-            # The above handles errors thrown in this cog and shows them to the user.
-            # This shouldn't be a problem as the only errors thrown in this cog are from `ensure_voice`
-            # which contain a reason string, such as "Join a voicechannel" etc. You can modify the above
-            # if you want to do things differently.
-        else:
-            LOGGER.error(
-                f"Unexpected error in cog_command_error: {traceback.format_exc()}"
-            )
 
     async def create_player(interaction: discord.Interaction):
         """
@@ -688,21 +628,9 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
 
         if not player.is_connected:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_connect_voice_channel"),
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            await interaction.response.send_message(embed=embed)
+            await send_embed(interaction, interaction.user.id, "music_connect_voice_channel")
         else:
-            embed = discord.Embed(
-                title=get_lan(
-                    interaction.user.id, "music_already_connected_voice_channel"
-                ),
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            await interaction.response.send_message(embed=embed)
+            await send_embed(interaction, interaction.user.id, "music_already_connected_voice_channel")
 
     @app_commands.command(
         name="play", description="Searches and plays a song from a given query."
@@ -975,24 +903,14 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
 
         if not query:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_search_no_keyword"),
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
+            return await send_temp_embed(interaction, interaction.user.id, "music_search_no_keyword")
 
         # Use ytsearch: prefix to search YouTube
         query = f"ytsearch:{query}"
         results = await player.node.get_tracks(query)
 
         if not results or not results.tracks:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_search_no_results"),
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
+            return await send_temp_embed(interaction, interaction.user.id, "music_search_no_results")
 
         tracks = results.tracks[:5]  # Limit to 5 results
 
@@ -1069,12 +987,7 @@ class Music(commands.Cog):
         guild_id = interaction.guild.id
         await self._full_disconnect_cleanup(guild_id, "manual_disconnect", send_vote=True, channel_id=interaction.channel.id, user_id=interaction.user.id)
 
-        embed = discord.Embed(
-            title=get_lan(interaction.user.id, "music_dc_disconnected"),
-            color=THEME_COLOR,
-        )
-        embed.set_footer(text=APP_NAME_TAG_VER)
-        await send_temp_message(interaction, embed)
+        await send_temp_embed(interaction, interaction.user.id, "music_dc_disconnected")
 
     @app_commands.command(name="skip", description="Skip to the next song!")
     @app_commands.check(create_player)
@@ -1084,23 +997,11 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
 
         if not player.is_playing:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_not_playing"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
+            return await send_temp_embed(interaction, interaction.user.id, "music_not_playing")
 
         await player.skip()
 
-        embed = discord.Embed(
-            title=get_lan(interaction.user.id, "music_skip_next"),
-            description="",
-            color=THEME_COLOR,
-        )
-        embed.set_footer(text=APP_NAME_TAG_VER)
-        await send_temp_message(interaction, embed)
+        await send_temp_embed(interaction, interaction.user.id, "music_skip_next")
 
     @app_commands.command(
         name="nowplaying", description="Sending the currently playing song!"
@@ -1119,50 +1020,24 @@ class Music(commands.Cog):
             embed.set_footer(text=APP_NAME_TAG_VER)
             return await interaction.followup.send(embed=embed)
 
-        position = lavalink.utils.format_time(player.position)
-        if player.current.stream:
-            duration = "🔴 LIVE"
-        else:
-            duration = lavalink.utils.format_time(player.current.duration)
-        song = f"**[{player.current.title}]({player.current.uri})**\n({position}/{duration})"
-        embed = discord.Embed(
-            color=THEME_COLOR,
-            title=get_lan(interaction.user.id, "music_now_playing"),
-            description=song,
-        )
+        # 기존 음악 메시지 삭제
+        await self._cleanup_music_message(interaction.guild.id, "nowplaying_command")
 
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_shuffle"),
-            value=(
-                get_lan(interaction.user.id, "music_shuffle_already_on")
-                if player.shuffle
-                else get_lan(interaction.user.id, "music_shuffle_already_off")
-            ),
-            inline=True,
-        )
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_repeat"),
-            value=[
-                get_lan(interaction.user.id, "music_repeat_already_off"),
-                get_lan(interaction.user.id, "music_repeat_already_one"),
-                get_lan(interaction.user.id, "music_repeat_already_on"),
-            ][player.loop],
-            inline=True,
-        )
-
-        # 볼륨 정보 추가
-        volicon = volumeicon(player.volume)
-        embed.add_field(
-            name=get_lan(interaction.user.id, "music_volume"),
-            value=f"{player.volume}%",
-            inline=True,
-        )
-
-        embed.set_thumbnail(
-            url=f"{player.current.uri.replace('https://www.youtube.com/watch?v=', 'http://img.youtube.com/vi/')}/0.jpg"
-        )
-        embed.set_footer(text=APP_NAME_TAG_VER)
-        await interaction.followup.send(embed=embed)
+        # 새로운 컨트롤 패널 생성
+        control_view = MusicControlView(self, interaction.guild.id)
+        
+        # 가짜 interaction 객체 생성 (언어 설정을 위해)
+        class FakeInteraction:
+            def __init__(self, user_id):
+                self.user = type("obj", (object,), {"id": user_id})()
+        
+        fake_interaction = FakeInteraction(interaction.user.id)
+        embed = control_view.update_embed_and_buttons(fake_interaction, player)
+        
+        if embed:
+            # 새 음악 메시지를 보내고 저장
+            message = await interaction.followup.send(embed=embed, view=control_view)
+            self.last_music_messages[interaction.guild.id] = message
 
     @app_commands.command(name="queue", description="Send music queue!")
     @app_commands.check(create_player)
@@ -1172,15 +1047,7 @@ class Music(commands.Cog):
         try:
             player = self.bot.lavalink.player_manager.get(interaction.guild.id)
             if not player.queue:
-                embed = discord.Embed(
-                    title=get_lan(
-                        interaction.user.id, "music_no_music_in_the_playlist"
-                    ),
-                    description="",
-                    color=THEME_COLOR,
-                )
-                embed.set_footer(text=APP_NAME_TAG_VER)
-                return await send_temp_message(interaction, embed)
+                return await send_temp_embed(interaction, interaction.user.id, "music_no_music_in_the_playlist")
 
             items_per_page = 10
             pages = [
@@ -1273,13 +1140,7 @@ class Music(commands.Cog):
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         if not player.is_playing:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_not_playing"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
+            return await send_temp_embed(interaction, interaction.user.id, "music_not_playing")
 
         if player.loop == 0:
             player.set_loop(1)
@@ -1290,28 +1151,12 @@ class Music(commands.Cog):
 
         Database().set_loop(interaction.guild.id, player.loop)
 
-        embed = None
         if player.loop == 0:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_repeat_off"),
-                description="",
-                color=THEME_COLOR,
-            )
+            await send_temp_embed(interaction, interaction.user.id, "music_repeat_off")
         elif player.loop == 1:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_repeat_one"),
-                description="",
-                color=THEME_COLOR,
-            )
+            await send_temp_embed(interaction, interaction.user.id, "music_repeat_one")
         elif player.loop == 2:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_repeat_all"),
-                description="",
-                color=THEME_COLOR,
-            )
-        if embed is not None:
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            await send_temp_message(interaction, embed)
+            await send_temp_embed(interaction, interaction.user.id, "music_repeat_all")
 
     @app_commands.command(name="remove", description="Remove music from the playlist!")
     @app_commands.describe(
@@ -1323,19 +1168,12 @@ class Music(commands.Cog):
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         if not player.queue:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_remove_no_wating_music"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
+            return await send_temp_embed(interaction, interaction.user.id, "music_remove_no_wating_music")
         if index > len(player.queue) or index < 1:
             embed = discord.Embed(
                 title=get_lan(interaction.user.id, "music_remove_input_over").format(
                     last_queue=len(player.queue)
                 ),
-                description="",
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
@@ -1345,7 +1183,6 @@ class Music(commands.Cog):
             title=get_lan(interaction.user.id, "music_remove_form_playlist").format(
                 remove_music=removed.title
             ),
-            description="",
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
@@ -1361,32 +1198,16 @@ class Music(commands.Cog):
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         if not player.is_playing:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_not_playing"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
+            return await send_temp_embed(interaction, interaction.user.id, "music_not_playing")
 
         player.set_shuffle(not player.shuffle)
 
         Database().set_shuffle(interaction.guild.id, player.shuffle)
 
         if player.shuffle:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_shuffle_on"),
-                description="",
-                color=THEME_COLOR,
-            )
+            await send_temp_embed(interaction, interaction.user.id, "music_shuffle_on")
         else:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_shuffle_off"),
-                description="",
-                color=THEME_COLOR,
-            )
-        embed.set_footer(text=APP_NAME_TAG_VER)
-        await send_temp_message(interaction, embed)
+            await send_temp_embed(interaction, interaction.user.id, "music_shuffle_off")
 
     @app_commands.command(name="clear", description="Clear the music queue")
     @app_commands.check(create_player)
@@ -1395,13 +1216,7 @@ class Music(commands.Cog):
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         if not player.queue:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_no_music_in_queue"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
+            return await send_temp_embed(interaction, interaction.user.id, "music_no_music_in_queue")
 
         queue_length = len(player.queue)
         await self._cleanup_player(interaction.guild.id, stop_current=False, clear_queue=True)
@@ -1429,7 +1244,6 @@ class Music(commands.Cog):
                 title=get_lan(interaction.user.id, "music_now_vol").format(
                     volicon=volicon, volume=player.volume
                 ),
-                description="",
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
@@ -1453,7 +1267,6 @@ class Music(commands.Cog):
             title=get_lan(interaction.user.id, "music_set_vol").format(
                 volicon=volicon, volume=player.volume
             ),
-            description="",
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
@@ -1466,31 +1279,13 @@ class Music(commands.Cog):
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         if not player.is_playing:
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_not_playing"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
+            return await send_temp_embed(interaction, interaction.user.id, "music_not_playing")
         if player.paused:
             await player.set_pause(False)
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_resume"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            await send_temp_message(interaction, embed)
+            await send_temp_embed(interaction, interaction.user.id, "music_resume")
         else:
             await player.set_pause(True)
-            embed = discord.Embed(
-                title=get_lan(interaction.user.id, "music_pause"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            await send_temp_message(interaction, embed)
+            await send_temp_embed(interaction, interaction.user.id, "music_pause")
 
 
 

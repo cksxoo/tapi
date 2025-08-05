@@ -6,7 +6,7 @@ from discord.ext import commands
 from tapi.utils.language import get_lan
 from tapi.utils.database import Database
 from tapi import LOGGER, THEME_COLOR, APP_BANNER_URL
-from tapi.modules.player import send_temp_message
+from tapi.utils.embed import send_temp_message
 
 lan_pack = [
     file.replace(".json", "")
