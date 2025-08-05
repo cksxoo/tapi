@@ -753,9 +753,7 @@ class Music(commands.Cog):
 
                 # 플레이리스트가 추가되었다는 메시지 표시
                 embed = discord.Embed(color=THEME_COLOR)
-                embed.title = (
-                    get_lan(interaction.user.id, "music_play_playlist") + "  📑"
-                )
+                embed.title = (get_lan(interaction.user.id, "music_play_playlist"))
                 embed.description = f"**{results.playlist_info.name}** - {len(tracks)} tracks {get_lan(interaction.user.id, 'music_added_to_queue')}"
 
             else:
@@ -858,7 +856,7 @@ class Music(commands.Cog):
 
             # 플레이리스트가 추가되었다는 메시지 표시
             embed = discord.Embed(color=THEME_COLOR)
-            embed.title = get_lan(interaction.user.id, "music_play_playlist") + "  📑"
+            embed.title = get_lan(interaction.user.id, "music_play_playlist")
             embed.description = f"**{results.playlist_info.name}** - {len(tracks)} tracks {get_lan(interaction.user.id, 'music_added_to_queue')}"
 
         else:
