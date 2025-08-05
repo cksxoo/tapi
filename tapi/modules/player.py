@@ -1393,10 +1393,10 @@ class MusicControlView(discord.ui.View):
             artist_name = artist_name[:max_artist_length] + "..."
 
         if player.paused:
-            embed.title = f"<:audio:1399724398520434791> TAPI PLAYER"
+            embed.title = f"<:audio:1399724398520434791> TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧"
             # embed.title = f"<:audio:1399724398520434791> | {artist_name}"
         else:
-            embed.title = f"<:audio:1399724398520434791> TAPI PLAYER"
+            embed.title = f"<:audio:1399724398520434791> TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧"
             # embed.title = f"<a:audio_spin:1399727564842336318> | {artist_name}"
 
         # 긴 곡 제목 처리
