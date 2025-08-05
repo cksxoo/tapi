@@ -27,21 +27,18 @@ from tapi.utils.redis_manager import redis_manager
 
 class TapiBot(commands.Bot):
     def __init__(self, shard_id=None, shard_count=None):
-        intents = discord.Intents.default()
-        intents.message_content = True
-        intents.messages = True
-        intents.guilds = True
+        intents = discord.Intents.none()
+        intents.guilds = True  # For basic guild operations
+        intents.voice_states = True  # For Lavalink to manage voice channels
+
 
         # 샤딩 설정
         if shard_id is not None and shard_count is not None:
             super().__init__(
-                command_prefix="$",
-                intents=intents,
-                shard_id=shard_id,
-                shard_count=shard_count,
+                intents=intents, shard_id=shard_id, shard_count=shard_count
             )
         else:
-            super().__init__(command_prefix="$", intents=intents)
+            super().__init__(intents=intents)
 
         self.remove_command("help")
         self.lavalink = None  # ✅ lavalink 속성 미리 정의
@@ -194,11 +191,6 @@ class TapiBot(commands.Bot):
             except Exception as e:
                 LOGGER.error(f"Error in redis_update_task: {e}")
                 await asyncio.sleep(60)
-
-    async def on_message(self, message):
-        if message.author.bot:
-            return
-        await self.process_commands(message)
 
 
 # ────── 실행부 ──────
