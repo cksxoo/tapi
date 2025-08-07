@@ -12,6 +12,14 @@ lavalink:
     # Discord 봇의 설정과 반드시 일치해야 합니다.
     # 보안을 위해 복잡한 비밀번호로 변경하는 것을 강력히 권장합니다.
     password: "youshallnotpass"
+    
+    # 버퍼링 설정 (끊김 방지)
+    frameBufferDurationMs: 5000
+    youtubePlaylistLoadLimit: 6
+    playerUpdateInterval: 5
+    youtubeSearchEnabled: true
+    soundcloudSearchEnabled: true
+    gc-warnings: true
 
     # 기본적으로 활성화할 음악 소스를 지정합니다.
     sources:
