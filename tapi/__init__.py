@@ -11,6 +11,8 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
+logging.getLogger("discord").setLevel(logging.WARNING)
+
 LOGGER = logging.getLogger(__name__)
 
 # if version < 3.11, stop bot.
