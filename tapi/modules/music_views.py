@@ -133,7 +133,10 @@ class RecommendationView(discord.ui.View):
 
             embed.set_footer(text=get_lan(self.user_id, "music_recommend_added_footer"))
 
-            await interaction.edit_original_response(embed=embed, view=None)
+            # 원래 메시지는 그대로 두고, 새로운 공개 메시지로 성공 알림
+            await interaction.followup.send(embed=embed, ephemeral=False)
+            # 원래 추천 메시지는 삭제
+            await interaction.delete_original_response()
 
         except Exception as e:
             LOGGER.error(f"Error adding recommended track: {e}")
@@ -189,7 +192,10 @@ class RecommendationView(discord.ui.View):
                     color=THEME_COLOR,
                 )
 
-            await interaction.edit_original_response(embed=embed, view=None)
+            # 새로운 공개 메시지로 성공 알림
+            await interaction.followup.send(embed=embed, ephemeral=False)
+            # 원래 추천 메시지는 삭제
+            await interaction.delete_original_response()
 
         except Exception as e:
             LOGGER.error(f"Error adding all recommendations: {e}")
@@ -213,7 +219,11 @@ class RecommendationView(discord.ui.View):
             color=THEME_COLOR,
         )
 
-        await interaction.edit_original_response(embed=embed, view=None)
+        from tapi.utils.embed import send_temp_message
+        # 원래 추천 메시지 완전 삭제
+        await interaction.delete_original_response()
+        # 취소 메시지를 임시로 표시
+        await send_temp_message(interaction, embed)
 
 
 class MusicControlView(discord.ui.View):
@@ -557,7 +567,7 @@ class MusicControlView(discord.ui.View):
                 )
 
             await interaction.followup.send(
-                embed=embed, view=recommend_view, ephemeral=True
+                embed=embed, view=recommend_view, ephemeral=False
             )
 
         except Exception as e:
