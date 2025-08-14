@@ -475,9 +475,9 @@ class MusicControlView(discord.ui.View):
             await interaction.edit_original_response(embed=embed, view=self)
 
     @discord.ui.button(
-        emoji="💝",
-        label="Recommend for me!",
-        style=discord.ButtonStyle.secondary,
+        emoji="💗",
+        label="Recommend for me! (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
+        style=discord.ButtonStyle.danger,
     )
     async def recommend(
         self, interaction: discord.Interaction, button: discord.ui.Button
