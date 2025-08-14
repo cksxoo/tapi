@@ -650,6 +650,15 @@ class Music(commands.Cog):
             is_search_query = not url_rx.match(original_query_stripped)
             if is_search_query:
                 current_lavalink_query = f"ytsearch:{original_query_stripped}"
+            else:
+                # URL인 경우 list 파라미터 제거 (단일 곡 재생을 위해)
+                if "youtube.com" in original_query_stripped or "youtu.be" in original_query_stripped:
+                    # list 파라미터와 관련 파라미터들 제거
+                    current_lavalink_query = re.sub(r'[&?]list=[^&]*', '', original_query_stripped)
+                    current_lavalink_query = re.sub(r'[&?]index=[^&]*', '', current_lavalink_query)
+                    # URL 정리 (연속된 &나 ?& 패턴 수정)
+                    current_lavalink_query = re.sub(r'[&?]+', lambda m: '?' if m.start() == original_query_stripped.find('?') else '&', current_lavalink_query)
+                    current_lavalink_query = current_lavalink_query.rstrip('&?')
 
             nofind = 0
             yt_dlp_attempted_for_url = (
