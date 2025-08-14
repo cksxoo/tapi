@@ -53,13 +53,25 @@ DB_NAME = Config.DB_NAME
 DB_PATH = Config.DB_PATH
 
 EXTENSIONS = []
+# Exclude utility modules that are not Discord extensions
+EXCLUDED_MODULES = {
+    "audio_connection",
+    "music_handlers",
+    "music_views",
+    "player_backup",
+}
 for file in os.listdir("tapi/modules"):
     if file.endswith(".py"):
-        EXTENSIONS.append(file.replace(".py", ""))
+        module_name = file.replace(".py", "")
+        if module_name not in EXCLUDED_MODULES:
+            EXTENSIONS.append(module_name)
 
-APP_BANNER_URL = "https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2"
+APP_BANNER_URL = (
+    "https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2"
+)
 APP_NAME_TAG_VER = "%s%s | %s" % (APPLICATION_NAME, APP_TAG, BOT_VER)
 
 # Initialize database after all imports are complete
 from tapi.utils.database import Database
+
 Database().create_table()
