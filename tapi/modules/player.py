@@ -1342,6 +1342,163 @@ class SearchView(discord.ui.View):
                 pass
 
 
+class RecommendationView(discord.ui.View):
+    def __init__(self, recommended_tracks, user_id, player, current_track):
+        super().__init__(timeout=120)  # 2분 후 만료
+        self.recommended_tracks = recommended_tracks
+        self.user_id = user_id
+        self.player = player
+        self.current_track = current_track
+        self.message = None
+
+    async def on_timeout(self):
+        if self.message:
+            try:
+                await self.message.delete()
+            except:
+                pass
+
+    def create_select_options(self):
+        """동적으로 select 옵션 생성"""
+        options = []
+        for i, track in enumerate(self.recommended_tracks[:5]):  # 최대 5개
+            title = track.title[:45] + ('...' if len(track.title) > 45 else '')
+            author = track.author[:40] + ('...' if len(track.author) > 40 else '')
+            duration = lavalink.utils.format_time(track.duration)
+            
+            options.append(discord.SelectOption(
+                label=f"{i+1}. {title}",
+                description=f"{author} - {duration}",
+                value=str(i),
+                emoji="🎵"
+            ))
+        return options
+
+    async def create_select_view(self):
+        """select 컴포넌트를 동적으로 추가"""
+        select = discord.ui.Select(
+            placeholder=get_lan(self.user_id, "music_recommend_select_placeholder"),
+            min_values=1,
+            max_values=1,
+            options=self.create_select_options()
+        )
+        select.callback = self.select_recommendation_callback
+        self.add_item(select)
+
+    async def select_recommendation_callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        # Select 컴포넌트에서 선택된 값 가져오기
+        select = None
+        for item in self.children:
+            if isinstance(item, discord.ui.Select):
+                select = item
+                break
+        
+        if not select or not select.values:
+            return
+            
+        selected_index = int(select.values[0])
+        selected_track = self.recommended_tracks[selected_index]
+        
+        try:
+            # 선택된 곡을 큐에 추가
+            self.player.add(requester=self.user_id, track=selected_track)
+            
+            # 성공 메시지
+            embed = discord.Embed(
+                title=get_lan(self.user_id, "music_recommend_added_title"),
+                description=f"**[{selected_track.title}]({selected_track.uri})**\n{selected_track.author}",
+                color=THEME_COLOR,
+            )
+            
+            # 추가된 곡 썸네일
+            if selected_track.identifier:
+                embed.set_thumbnail(
+                    url=f"http://img.youtube.com/vi/{selected_track.identifier}/0.jpg"
+                )
+            
+            embed.set_footer(text=get_lan(self.user_id, "music_recommend_added_footer"))
+            
+            await interaction.edit_original_response(embed=embed, view=None)
+            
+        except Exception as e:
+            LOGGER.error(f"Error adding recommended track: {e}")
+            await interaction.edit_original_response(
+                content=f"곡 추가 중 오류가 발생했습니다: {str(e)}", 
+                embed=None, 
+                view=None
+            )
+
+    @discord.ui.button(
+        emoji="⭐",
+        label="Add all!",
+        style=discord.ButtonStyle.primary,
+        row=1
+    )
+    async def add_all_recommendations(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        
+        added_count = 0
+        try:
+            for track in self.recommended_tracks:
+                try:
+                    self.player.add(requester=self.user_id, track=track)
+                    added_count += 1
+                except Exception as e:
+                    LOGGER.error(f"Error adding track: {e}")
+            
+            if added_count > 0:
+                embed = discord.Embed(
+                    title=get_lan(self.user_id, "music_recommend_all_added_title"),
+                    description=get_lan(self.user_id, "music_recommend_all_added_description").format(
+                        track_title=self.current_track.title,
+                        count=added_count
+                    ),
+                    color=THEME_COLOR,
+                )
+                
+                # 현재 곡 썸네일
+                if self.current_track.identifier:
+                    embed.set_thumbnail(
+                        url=f"http://img.youtube.com/vi/{self.current_track.identifier}/0.jpg"
+                    )
+                
+                embed.set_footer(text=get_lan(self.user_id, "music_recommend_all_added_footer").format(count=added_count))
+            else:
+                embed = discord.Embed(
+                    title=get_lan(self.user_id, "music_recommend_all_failed"),
+                    description=get_lan(self.user_id, "music_recommend_all_failed_description"),
+                    color=THEME_COLOR,
+                )
+            
+            await interaction.edit_original_response(embed=embed, view=None)
+            
+        except Exception as e:
+            LOGGER.error(f"Error adding all recommendations: {e}")
+            await interaction.edit_original_response(
+                content=f"곡 추가 중 오류가 발생했습니다: {str(e)}", 
+                embed=None, 
+                view=None
+            )
+
+    @discord.ui.button(
+        label="(´･ω･`) Nevermind",
+        style=discord.ButtonStyle.danger,
+        row=1
+    )
+    async def cancel_recommendations(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        
+        embed = discord.Embed(
+            title=get_lan(self.user_id, "music_recommend_cancelled"),
+            description=get_lan(self.user_id, "music_recommend_cancelled_description"),
+            color=THEME_COLOR,
+        )
+        
+        await interaction.edit_original_response(embed=embed, view=None)
+
+
 class MusicControlView(discord.ui.View):
     def __init__(self, cog, guild_id):
         super().__init__(timeout=1800)  # 30분 후 버튼 비활성화
@@ -1599,3 +1756,85 @@ class MusicControlView(discord.ui.View):
         embed = self.update_embed_and_buttons(interaction, player)
         if embed:
             await interaction.edit_original_response(embed=embed, view=self)
+
+    @discord.ui.button(
+        emoji="💝",
+        label="Recommend for me!",
+        style=discord.ButtonStyle.secondary,
+    )
+    async def recommend(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        """추천 곡 보기 버튼"""
+        await interaction.response.defer()
+
+        player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
+        if not player or not player.current:
+            return await interaction.followup.send(
+                get_lan(interaction.user.id, "music_recommend_no_playing"), ephemeral=True
+            )
+
+        current_track = player.current
+        
+        # 현재 곡이 YouTube 곡인지 확인
+        if not current_track.identifier:
+            return await interaction.followup.send(
+                get_lan(interaction.user.id, "music_recommend_youtube_only"), ephemeral=True
+            )
+
+        # RD 라디오 URL 생성
+        radio_url = f"https://www.youtube.com/watch?v={current_track.identifier}&list=RD{current_track.identifier}"
+        
+        try:
+            # 라디오 추천 곡들 가져오기
+            results = await player.node.get_tracks(radio_url)
+            
+            if not results or not results.tracks or len(results.tracks) <= 1:
+                return await interaction.followup.send(
+                    get_lan(interaction.user.id, "music_recommend_not_found"), ephemeral=True
+                )
+
+            # 첫 번째 곡은 현재 곡이므로 제외하고 상위 5곡
+            recommended_tracks = results.tracks[1:6]
+            
+            if not recommended_tracks:
+                return await interaction.followup.send(
+                    get_lan(interaction.user.id, "music_recommend_failed"), ephemeral=True
+                )
+
+            # 추천 곡 리스트 View 생성
+            recommend_view = RecommendationView(recommended_tracks, interaction.user.id, player, current_track)
+            await recommend_view.create_select_view()  # select 컴포넌트 동적 추가
+            
+            # 추천 곡 리스트 embed 생성
+            embed = discord.Embed(
+                title=get_lan(interaction.user.id, "music_recommend_title"),
+                description=get_lan(interaction.user.id, "music_recommend_description").format(
+                    track_title=current_track.title
+                ),
+                color=THEME_COLOR,
+            )
+            
+            for i, track in enumerate(recommended_tracks, 1):
+                duration = lavalink.utils.format_time(track.duration)
+                embed.add_field(
+                    name=f"{i}. {track.title[:50]}{'...' if len(track.title) > 50 else ''}",
+                    value=f"{track.author[:30]}{'...' if len(track.author) > 30 else ''} - {duration}",
+                    inline=False
+                )
+            
+            embed.set_footer(text=get_lan(interaction.user.id, "music_recommend_footer"))
+            
+            # 현재 곡 썸네일 추가
+            if current_track.identifier:
+                embed.set_thumbnail(
+                    url=f"http://img.youtube.com/vi/{current_track.identifier}/0.jpg"
+                )
+            
+            await interaction.followup.send(embed=embed, view=recommend_view, ephemeral=True)
+                
+        except Exception as e:
+            LOGGER.error(f"Error in recommend button: {e}")
+            await interaction.followup.send(
+                f"{get_lan(interaction.user.id, 'music_recommend_error')}: {str(e)}", ephemeral=True
+            )
