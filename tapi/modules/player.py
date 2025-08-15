@@ -551,6 +551,11 @@ class Music(commands.Cog):
                 interaction, interaction.user.id, "music_not_playing"
             )
 
+        # 한 곡 반복모드일 때는 전체 반복으로 전환 후 skip
+        if player.loop == 1:  # 한 곡 반복모드
+            player.set_loop(2)  # 전체 반복으로 전환
+            Database().set_loop(interaction.guild.id, 2)  # 설정 저장
+            
         await player.skip()
         await send_temp_embed(interaction, interaction.user.id, "music_skip_next")
 
