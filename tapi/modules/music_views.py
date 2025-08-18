@@ -228,7 +228,7 @@ class RecommendationView(discord.ui.View):
 
 class MusicControlView(discord.ui.View):
     def __init__(self, cog, guild_id):
-        super().__init__(timeout=1800)  # 30분 후 버튼 비활성화
+        super().__init__(timeout=7200)  # 2시간 후 버튼 비활성화
         self.cog = cog
         self.guild_id = guild_id
 
