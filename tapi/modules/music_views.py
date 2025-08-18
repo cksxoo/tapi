@@ -566,9 +566,10 @@ class MusicControlView(discord.ui.View):
                     url=f"http://img.youtube.com/vi/{current_track.identifier}/0.jpg"
                 )
 
-            await interaction.followup.send(
+            message = await interaction.followup.send(
                 embed=embed, view=recommend_view, ephemeral=False
             )
+            recommend_view.message = message
 
         except Exception as e:
             LOGGER.error(f"Error in recommend button: {e}")
