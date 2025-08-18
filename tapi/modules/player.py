@@ -309,7 +309,7 @@ class Music(commands.Cog):
                             color=THEME_COLOR,
                         )
                         embed.set_footer(text=APP_NAME_TAG_VER)
-                        return await interaction.followup.send(embed=embed)
+                        return await send_temp_message(interaction, embed)
                 else:
                     break
 
@@ -345,7 +345,7 @@ class Music(commands.Cog):
                         url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
                     )
 
-            await interaction.followup.send(embed=embed)
+            await send_temp_message(interaction, embed)
 
             if not player.is_playing:
                 await player.play()
@@ -397,7 +397,7 @@ class Music(commands.Cog):
                         color=THEME_COLOR,
                     )
                     embed.set_footer(text=APP_NAME_TAG_VER)
-                    return await interaction.followup.send(embed=embed)
+                    return await send_temp_message(interaction, embed)
             else:
                 break
 
@@ -430,7 +430,7 @@ class Music(commands.Cog):
                         url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
                     )
 
-        await interaction.followup.send(embed=embed)
+        await send_temp_message(interaction, embed)
 
         if not player.is_playing:
             await player.play()
@@ -490,7 +490,7 @@ class Music(commands.Cog):
                 url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
             )
 
-        await interaction.followup.send(embed=embed, ephemeral=False)
+        await send_temp_message(interaction, embed)
 
         if not player.is_playing:
             await player.play()
@@ -513,7 +513,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         if not interaction.user.voice or (
             player.is_connected
@@ -526,7 +526,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         guild_id = interaction.guild.id
         await self._full_disconnect_cleanup(
@@ -574,7 +574,7 @@ class Music(commands.Cog):
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
-            return await interaction.followup.send(embed=embed)
+            return await send_temp_message(interaction, embed)
 
         # 기존 음악 메시지 삭제
         await self._cleanup_music_message(interaction.guild.id, "nowplaying_command")
@@ -687,7 +687,7 @@ class Music(commands.Cog):
                 color=discord.Color.red(),
             )
             error_embed.set_footer(text=APP_NAME_TAG_VER)
-            await interaction.followup.send(embed=error_embed)
+            await send_temp_message(interaction, error_embed, delete_after=5)
 
     @app_commands.command(
         name="repeat", description="Repeat one song or repeat multiple songs!"

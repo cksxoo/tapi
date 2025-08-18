@@ -10,6 +10,7 @@ from tapi import (
 )
 from tapi.utils.language import get_lan
 from tapi.utils.database import Database
+from tapi.utils.embed import send_temp_message
 
 
 class SearchSelect(discord.ui.Select):
@@ -134,7 +135,7 @@ class RecommendationView(discord.ui.View):
             embed.set_footer(text=get_lan(self.user_id, "music_recommend_added_footer"))
 
             # 원래 메시지는 그대로 두고, 새로운 공개 메시지로 성공 알림
-            await interaction.followup.send(embed=embed, ephemeral=False)
+            await send_temp_message(interaction, embed)
             # 원래 추천 메시지는 삭제
             await interaction.delete_original_response()
 
@@ -193,7 +194,7 @@ class RecommendationView(discord.ui.View):
                 )
 
             # 새로운 공개 메시지로 성공 알림
-            await interaction.followup.send(embed=embed, ephemeral=False)
+            await send_temp_message(interaction, embed)
             # 원래 추천 메시지는 삭제
             await interaction.delete_original_response()
 
@@ -219,7 +220,6 @@ class RecommendationView(discord.ui.View):
             color=THEME_COLOR,
         )
 
-        from tapi.utils.embed import send_temp_message
         # 원래 추천 메시지 완전 삭제
         await interaction.delete_original_response()
         # 취소 메시지를 임시로 표시
