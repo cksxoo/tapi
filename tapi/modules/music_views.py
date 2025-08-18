@@ -402,6 +402,12 @@ class MusicControlView(discord.ui.View):
                 "음악이 재생되고 있지 않습니다!", ephemeral=True
             )
 
+        # 한 곡 반복모드일 때는 전체 반복으로 전환 후 skip
+        if player.loop == 1:  # 한 곡 반복모드
+            player.set_loop(2)  # 전체 반복으로 전환
+            from tapi.utils.database import Database
+            Database().set_loop(self.guild_id, 2)  # 설정 저장
+
         await player.skip()
         # 건너뛰기는 새 곡이 시작되면서 자동으로 새 컨트롤 패널이 나타남
 
