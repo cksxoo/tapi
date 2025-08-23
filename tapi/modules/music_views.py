@@ -492,7 +492,7 @@ class MusicControlView(discord.ui.View):
 
     @discord.ui.button(
         emoji="💗",
-        label="Recommend for me! (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
+        label="Recommend for You! (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
         style=discord.ButtonStyle.danger,
     )
     async def recommend(
