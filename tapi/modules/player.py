@@ -158,6 +158,9 @@ class Music(commands.Cog):
             permissions = voice_channel.permissions_for(interaction.guild.me)
 
             if not permissions.connect or not permissions.speak:
+                await send_temp_embed(
+                    interaction, interaction.user.id, "music_no_permission"
+                )
                 raise app_commands.CheckFailure(
                     get_lan(interaction.user.id, "music_no_permission")
                 )
