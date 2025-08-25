@@ -101,10 +101,14 @@ TAPI Bot features a unique kawaii personality with:
 
 ## 🛠️ Tech Stack
 - **Python 3.11+** with discord.py 2.0+
-- **Lavalink** for high-quality audio processing
-- **Redis** for session management & monitoring
+- **Lavalink v4.1.1** for high-quality audio processing
+- **Redis v7-alpine** for session management & monitoring
 - **Docker** for easy deployment
 - **Interactive UI** with Discord buttons and views
+
+### 🔌 Lavalink Plugins
+- **lavasrc-plugin**: v4.8.0 - Extended source support
+- **youtube-plugin**: v1.13.5 - YouTube audio source integration
 
 ## 📊 Monitoring
 Includes Redis-based monitoring system with:
