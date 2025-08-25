@@ -121,7 +121,7 @@ Includes Redis-based monitoring system with:
 We welcome contributions! Please feel free to submit issues and pull requests to make TAPI even cuter and more functional! ♡(˃͈ દ ˂͈ ༶ )
 
 ## 📝 License
-This project is open source. Feel free to use and modify while keeping the cute spirit alive! ✧(≧◡≦)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. Feel free to use and modify while keeping the cute spirit alive! ✧(≧◡≦)
 
 ---
 
