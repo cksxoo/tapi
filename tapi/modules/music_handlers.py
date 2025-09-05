@@ -39,6 +39,7 @@ class MusicHandlers:
         finally:
             del self.music_cog.last_music_messages[guild_id]
 
+
     async def _cleanup_player(
         self, guild_id: int, stop_current: bool = True, clear_queue: bool = True
     ):
@@ -212,9 +213,10 @@ class MusicHandlers:
                     f"Bot lacks embed_links permission in channel {channel.id} ({channel.name}) in guild {guild.id}"
                 )
                 try:
-                    await channel.send(
+                    temp_msg = await channel.send(
                         f"⚠️ **권한 부족**: 음악 컨트롤 패널을 표시하려면 '링크 임베드' 권한이 필요합니다."
                     )
+                    await temp_msg.delete(delay=5)
                 except:
                     pass
                 return
