@@ -155,7 +155,7 @@ class MusicHandlers:
             now = datetime.now(kst)
             date = now.strftime("%Y-%m-%d")
             time = now.strftime("%H:%M:%S")
-            
+
             # 사용자 정보 안전하게 가져오기
             user_name = "Unknown User"
             try:
@@ -197,6 +197,28 @@ class MusicHandlers:
             LOGGER.error(f"Error saving statistics: {e}")
 
         if channel:
+            # 채널에 메시지를 보낼 권한이 있는지 확인
+            bot_member = guild.get_member(self.bot.user.id)
+            permissions = channel.permissions_for(bot_member) if bot_member else None
+
+            if not bot_member or not permissions or not permissions.send_messages:
+                LOGGER.warning(
+                    f"Bot lacks send_messages permission in channel {channel.id} ({channel.name}) in guild {guild.id}"
+                )
+                return
+
+            if not permissions.embed_links:
+                LOGGER.warning(
+                    f"Bot lacks embed_links permission in channel {channel.id} ({channel.name}) in guild {guild.id}"
+                )
+                try:
+                    await channel.send(
+                        f"⚠️ **권한 부족**: 음악 컨트롤 패널을 표시하려면 '링크 임베드' 권한이 필요합니다."
+                    )
+                except:
+                    pass
+                return
+
             # 이전 음악 메시지 정리
             await self._cleanup_music_message(guild_id, "new_track")
 
@@ -213,10 +235,17 @@ class MusicHandlers:
             embed = control_view.update_embed_and_buttons(fake_interaction, player)
 
             if embed:
-                # 새 음악 메시지를 보내고 저장
-                message = await channel.send(embed=embed, view=control_view)
-                self.music_cog.last_music_messages[guild_id] = message
-                return message
+                try:
+                    # 새 음악 메시지를 보내고 저장
+                    message = await channel.send(embed=embed, view=control_view)
+                    self.music_cog.last_music_messages[guild_id] = message
+                    return message
+                except discord.Forbidden:
+                    LOGGER.warning(
+                        f"Failed to send music message in channel {channel.id} due to insufficient permissions"
+                    )
+                except Exception as e:
+                    LOGGER.error(f"Error sending music message: {e}")
 
     @lavalink.listener(QueueEndEvent)
     async def on_queue_end(self, event: QueueEndEvent):
