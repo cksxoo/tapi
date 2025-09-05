@@ -162,7 +162,7 @@ class Database:
                 .maybe_single()\
                 .execute()
             
-            if response.data:
+            if response and response.data:
                 self._set_cache('guild_settings', guild_id, response.data)
                 return response.data
             else:
