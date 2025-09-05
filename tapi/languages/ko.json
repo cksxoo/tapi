@@ -106,6 +106,6 @@
     "music_play_fail_title": "재생 실패",
     "music_play_fail_description": "음악을 재생할 수 없습니다.",
 
-    "music_permission_dm_title": "🎵 음악 재생 중",
-    "music_permission_dm_description": "**{track_title}** 재생 중\n📍 서버: **{guild_name}** - #{channel_name}\n⚠️ 해당 채널에 메시지 전송 권한이 없어 여기로 알림을 보냅니다."
+    "music_permission_dm_title": "🎧 음악 재생 알림",
+    "music_permission_dm_description": "**{track_title}** 재생 중이에요! 🎧\n🏠 서버: **{guild_name}** - #{channel_name}\n💭 해당 채널에 메시지를 보낼 권한이 없어서 여기로 알려드려요~"
 }

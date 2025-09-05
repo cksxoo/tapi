@@ -106,6 +106,6 @@
     "music_play_fail_title": "再生失敗",
     "music_play_fail_description": "音楽を再生できません。",
 
-    "music_permission_dm_title": "🎵 音楽再生中",
-    "music_permission_dm_description": "**{track_title}** 再生中\n📍 サーバー: **{guild_name}** - #{channel_name}\n⚠️ そのチャンネルにメッセージを送信する権限がないため、こちらで通知します。"
+    "music_permission_dm_title": "🎧 音楽再生通知",
+    "music_permission_dm_description": "**{track_title}** 再生中です！🎧\n🏠 サーバー: **{guild_name}** - #{channel_name}\n💭 そのチャンネルにメッセージを送る権限がないので、こちらでお知らせしますね～"
 }
