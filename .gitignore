@@ -43,6 +43,7 @@ data/shard-*/
 # IDE / Editor specific files
 .idea/
 .vscode/
+.claude/
 *.swp
 
 # OS generated files

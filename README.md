@@ -9,7 +9,7 @@ TAPI is a modern Discord music bot built with Python and discord.py. Designed wi
 - 🎵 **High-quality music playback** with Lavalink integration
 - 🔀 **Smart queue management** with shuffle and repeat modes
 - 📱 **Interactive slash commands** with button-based help system
-- 🌐 **Multi-language support** (Korean/English) with cute messages
+- 🌐 **Multi-language support** (Korean/English/Japanese) with cute messages
 - 🎛️ **Volume control** (1-100% for safe listening)
 - 📊 **Redis-powered monitoring** with web dashboard
 - 🐳 **Docker containerization** with sharding support
@@ -37,7 +37,7 @@ TAPI is a modern Discord music bot built with Python and discord.py. Designed wi
 ## 🌍 General Commands
 - `/help` - Interactive help menu with cute personality
 - `/invite` - Invite bot to other servers
-- `/language` - Switch between Korean/English
+- `/language` - Switch between Korean/English/Japanese
 
 ## 🏗️ Project Structure
 ```
@@ -52,7 +52,8 @@ tapi/
 │   └── send_temp_message.py # Auto-disappearing messages
 ├── languages/        # Language packs
 │   ├── ko.json       # Korean messages
-│   └── en.json       # English messages
+│   ├── en.json       # English messages
+│   └── ja.json       # Japanese messages
 ├── sample_config.py  # Configuration template
 └── __main__.py       # Bot entry point with sharding
 ```
