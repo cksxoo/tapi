@@ -40,17 +40,12 @@ REGION = Config.REGION
 PORT = Config.PORT
 LAVALINK_AUTO_UPDATE = Config.LAVALINK_AUTO_UPDATE
 LAVALINK_PLUGINS = Config.LAVALINK_PLUGINS
-SQL_HOST = Config.SQL_HOST
-SQL_USER = Config.SQL_USER
-SQL_PASSWORD = Config.SQL_PASSWORD
-SQL_DB = Config.SQL_DB
+# SQL settings removed - using Supabase only
 
 KOREANBOT_TOKEN = Config.KOREANBOT_TOKEN
 TOPGG_TOKEN = Config.TOPGG_TOKEN
 
-BASE_DIR = Config.BASE_DIR
-DB_NAME = Config.DB_NAME
-DB_PATH = Config.DB_PATH
+# SQLite database settings removed - using Supabase only
 
 EXTENSIONS = []
 # Exclude utility modules that are not Discord extensions

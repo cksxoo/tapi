@@ -34,11 +34,9 @@ class Config(object):
     KOREANBOT_TOKEN = None
     TOPGG_TOKEN = None
 
-    # SQL
-    SQL_HOST = "localhost"
-    SQL_USER = "root"
-    SQL_PASSWORD = ""
-    SQL_DB = "tapi_bot"
+    # Supabase Database Settings
+    SUPABASE_URL = ""  # Your Supabase project URL
+    SUPABASE_ANON_KEY = ""  # Your Supabase anon key
 
 
 class Production(Config):

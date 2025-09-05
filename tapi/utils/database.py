@@ -1,353 +1,288 @@
 """
-loop:
-    guild_id: int
-    loop: int
-
-shuffle:
-    guild_id: int
-    shuffle: int
+Supabase Database Handler for TAPI Bot
+300+ 서버를 위한 최적화된 데이터베이스 핸들러
 """
 
 import os
-import sqlite3
-from contextlib import closing
-from tapi.config import Development as Config
+import asyncio
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+import logging
+from functools import lru_cache
+import time
+
+# Supabase 클라이언트
+try:
+    from supabase import create_client, Client
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+    logging.warning("Supabase client not installed. Run: pip install supabase")
+
 from tapi import LOGGER
 
-
 class Database:
+    """Supabase 데이터베이스 핸들러"""
+    
+    _instance = None
+    _client: Optional[Client] = None
+    _cache = {}  # 간단한 인메모리 캐시
+    _cache_ttl = 60  # 캐시 TTL (초)
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
     def __init__(self):
-        self.statistics = "statistics"
-        self.language = "language"
-        self.loop_table = "loop_setting"
-        self.shuffle_table = "shuffle"
-
-    def create_table(self) -> None:
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(Config.DB_PATH), exist_ok=True)
-
-        # Create the database
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    """
-                CREATE TABLE IF NOT EXISTS statistics (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    date TEXT,
-                    time TEXT,
-                    guild_id TEXT,
-                    guild_name TEXT,
-                    channel_id TEXT,
-                    channel_name TEXT,
-                    user_id TEXT,
-                    user_name TEXT,
-                    video_id TEXT,
-                    title TEXT,
-                    artist TEXT,
-                    duration INTEGER,
-                    success BOOLEAN,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-                """
-                )
-                # 인덱스 생성
-                cursor.execute(
-                    """
-                CREATE INDEX IF NOT EXISTS idx_date_guild 
-                ON statistics(date, guild_id)
-                """
-                )
-
-                # 스키마 마이그레이션 (컬럼 추가 및 순서 재정렬)
-                cursor.execute("PRAGMA table_info(statistics)")
-                current_columns = [info[1] for info in cursor.fetchall()]
-
-                desired_order = [
-                    'id', 'date', 'time', 'guild_id', 'guild_name', 'channel_id', 'channel_name',
-                    'user_id', 'user_name', 'video_id', 'title', 'artist', 'duration', 'success', 'created_at'
-                ]
-
-                # 컬럼 순서가 다르거나 필요한 컬럼이 없으면 마이그레이션 진행
-                if current_columns != desired_order:
-                    # 임시 테이블 생성
-                    cursor.execute("""
-                    CREATE TABLE statistics_new (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        date TEXT, time TEXT, guild_id TEXT, guild_name TEXT,
-                        channel_id TEXT, channel_name TEXT, user_id TEXT, user_name TEXT,
-                        video_id TEXT, title TEXT, artist TEXT, duration INTEGER,
-                        success BOOLEAN, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-                    """)
-
-                    # 복사할 컬럼 결정 (기존 테이블과 새 테이블에 모두 있는 컬럼)
-                    cols_to_copy = [col for col in desired_order if col in current_columns]
-
-                    # 데이터 복사
-                    cursor.execute(f"INSERT INTO statistics_new ({', '.join(cols_to_copy)}) SELECT {', '.join(cols_to_copy)} FROM statistics")
-
-                    # 기존 테이블 삭제 및 이름 변경
-                    cursor.execute("DROP TABLE statistics")
-                    cursor.execute("ALTER TABLE statistics_new RENAME TO statistics")
-
-                    # 인덱스 재생성
-                    cursor.execute("DROP INDEX IF EXISTS idx_date_guild")
-                    cursor.execute("""
-                    CREATE INDEX IF NOT EXISTS idx_date_guild 
-                    ON statistics(date, guild_id)
-                    """)
-                cursor.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS language (
-                        id TEXT,
-                        language TEXT
-                    )
-                    """
-                )
-                cursor.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS loop_setting (
-                        guild_id TEXT,
-                        loop_set INTEGER
-                    )
-                    """
-                )
-                cursor.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS shuffle (
-                        guild_id TEXT,
-                        shuffle INTEGER
-                    )
-                    """
-                )
-                cursor.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS volume (
-                        guild_id TEXT PRIMARY KEY,
-                        volume INTEGER
-                    )
-                    """
-                )
-                conn.commit()
-            LOGGER.info("Database created successfully.")
-
-    def set_statistics(
-        self,
-        date: str,
-        time: str,
-        guild_id: str,
-        guild_name: str,
-        channel_id: str,
-        channel_name: str,
-        user_id: str,
-        user_name: str,
-        video_id: str,
-        title: str,
-        artist: str,
-        duration: int,
-        success: bool,
-        created_at: str = None,
-    ) -> None:
-        """통계 저장"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                if created_at:
-                    # 명시적으로 created_at 값 제공
-                    cursor.execute(
-                        f"""INSERT INTO {self.statistics} (
-                            date, time, guild_id, guild_name, channel_id, channel_name,
-                            user_id, user_name, video_id, title, artist, duration, success, created_at
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                        (
-                            date,
-                            time,
-                            guild_id,
-                            guild_name,
-                            channel_id,
-                            channel_name,
-                            user_id,
-                            user_name,
-                            video_id,
-                            title,
-                            artist,
-                            duration,
-                            success,
-                            created_at,
-                        ),
-                    )
-                else:
-                    # 기본값 사용 (기존 동작)
-                    cursor.execute(
-                        f"""INSERT INTO {self.statistics} (
-                            date, time, guild_id, guild_name, channel_id, channel_name,
-                            user_id, user_name, video_id, title, artist, duration, success
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                        (
-                            date,
-                            time,
-                            guild_id,
-                            guild_name,
-                            channel_id,
-                            channel_name,
-                            user_id,
-                            user_name,
-                            video_id,
-                            title,
-                            artist,
-                            duration,
-                            success,
-                        ),
-                    )
-                conn.commit()
-
-    def set_loop(self, guild_id: int, loop: int) -> None:
-        """길드 아이디로 루프 저장"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                guild = str(guild_id)
-
-                # read loop
-                cursor.execute(
-                    f"SELECT * FROM {self.loop_table} WHERE guild_id=?", (guild,)
-                )
-                db_loop = cursor.fetchone()
-                if db_loop is None:
-                    # add loop
-                    cursor.execute(
-                        f"INSERT INTO {self.loop_table} VALUES(?, ?)", (guild, loop)
-                    )
-                else:
-                    # modify loop
-                    cursor.execute(
-                        f"UPDATE {self.loop_table} SET loop_set=? WHERE guild_id=?",
-                        (loop, guild),
-                    )
-
-                conn.commit()
-
-    def get_loop(self, guild_id: int) -> int | None:
-        """모든 루프설정 가져오기"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                # read loop
-                cursor.execute(
-                    f"SELECT * FROM {self.loop_table} WHERE guild_id=?",
-                    (str(guild_id),),
-                )
-                loop = cursor.fetchone()
-
-                if loop is not None:
-                    loop = loop[1]
-
-                return loop
-
-    def set_shuffle(self, guild_id: int, shuffle: bool) -> None:
-        """길드 아이디로 셔플 저장"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                guild = str(guild_id)
-
-                # read shuffle
-                cursor.execute(
-                    f"SELECT * FROM {self.shuffle_table} WHERE guild_id=?", (guild,)
-                )
-                db_shuffle = cursor.fetchone()
-                if db_shuffle is None:
-                    # add shuffle
-                    cursor.execute(
-                        f"INSERT INTO {self.shuffle_table} VALUES(?, ?)",
-                        (guild, shuffle),
-                    )
-                else:
-                    # modify shuffle
-                    cursor.execute(
-                        f"UPDATE {self.shuffle_table} SET shuffle=? WHERE guild_id=?",
-                        (shuffle, guild),
-                    )
-
-                conn.commit()
-
-    def get_shuffle(self, guild_id: int) -> bool | None:
-        """모든 셔플설정 가져오기"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                # read shuffle
-                cursor.execute(
-                    f"SELECT * FROM {self.shuffle_table} WHERE guild_id=?",
-                    (str(guild_id),),
-                )
-                shuffle = cursor.fetchone()
-
-                if shuffle is not None:
-                    shuffle = shuffle[1]
-
-                return shuffle
-
-    def set_volume(self, guild_id: int, volume: int) -> None:
-        """길드별 볼륨 설정 저장"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                # 길드 ID를 문자열로 변환
-                guild = str(guild_id)
-
-                # 기존 볼륨 설정 확인
-                cursor.execute("SELECT * FROM volume WHERE guild_id=?", (guild,))
-                db_volume = cursor.fetchone()
-
-                if db_volume is None:
-                    # 새로운 볼륨 설정 추가
-                    cursor.execute("INSERT INTO volume VALUES(?, ?)", (guild, volume))
-                else:
-                    # 기존 볼륨 설정 수정
-                    cursor.execute(
-                        "UPDATE volume SET volume=? WHERE guild_id=?", (volume, guild)
-                    )
-                conn.commit()
-
+        """싱글톤 패턴으로 한 번만 초기화"""
+        if not hasattr(self, 'initialized'):
+            self.initialize()
+            self.initialized = True
+            self.stats_buffer = []  # 통계 배치 처리용
+            self.last_flush = time.time()
+            self.buffer_size = 50
+            self.flush_interval = 30  # 30초마다 플러시
+    
+    def initialize(self):
+        """Supabase 클라이언트 초기화"""
+        if not SUPABASE_AVAILABLE:
+            LOGGER.error("Supabase client not available")
+            return False
+        
+        # config.py에서 먼저 가져오고, 없으면 환경변수 사용
+        try:
+            from tapi.config import Development as Config
+            url = getattr(Config, 'SUPABASE_URL', None)
+            key = getattr(Config, 'SUPABASE_ANON_KEY', None)
+        except ImportError:
+            url = None
+            key = None
+        
+        # config.py에 없으면 환경변수 사용
+        if not url or not key:
+            url = os.getenv('SUPABASE_URL')
+            key = os.getenv('SUPABASE_ANON_KEY')
+        
+        if not url or not key:
+            LOGGER.error("Supabase credentials not found in config.py or environment variables")
+            return False
+        
+        try:
+            self._client = create_client(url, key)
+            LOGGER.info("Successfully connected to Supabase")
+            return True
+        except Exception as e:
+            LOGGER.error(f"Failed to connect to Supabase: {e}")
+            return False
+    
+    def get_client(self) -> Optional[Client]:
+        """클라이언트 인스턴스 반환"""
+        if not self._client:
+            self.initialize()
+        return self._client
+    
+    def _get_cache_key(self, table: str, key: Any) -> str:
+        """캐시 키 생성"""
+        return f"{table}:{key}"
+    
+    def _get_from_cache(self, table: str, key: Any) -> Optional[Dict]:
+        """캐시에서 데이터 조회"""
+        cache_key = self._get_cache_key(table, key)
+        if cache_key in self._cache:
+            data, timestamp = self._cache[cache_key]
+            if time.time() - timestamp < self._cache_ttl:
+                return data
+            else:
+                del self._cache[cache_key]
+        return None
+    
+    def _set_cache(self, table: str, key: Any, data: Dict):
+        """캐시에 데이터 저장"""
+        cache_key = self._get_cache_key(table, key)
+        self._cache[cache_key] = (data, time.time())
+    
+    def _clear_cache(self, table: str = None, key: Any = None):
+        """캐시 클리어"""
+        if table and key:
+            cache_key = self._get_cache_key(table, key)
+            self._cache.pop(cache_key, None)
+        elif table:
+            # 특정 테이블의 모든 캐시 클리어
+            keys_to_remove = [k for k in self._cache.keys() if k.startswith(f"{table}:")]
+            for k in keys_to_remove:
+                del self._cache[k]
+        else:
+            # 전체 캐시 클리어
+            self._cache.clear()
+    
+    # ===== 길드 설정 관련 메서드 =====
+    
     def get_volume(self, guild_id: int) -> int:
-        """길드별 볼륨 설정 가져오기"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    "SELECT volume FROM volume WHERE guild_id=?", (str(guild_id),)
-                )
-                result = cursor.fetchone()
-
-                # 결과가 없으면 기본값 100 반환
-                return result[0] if result else 20
-
-    def set_user_language(self, user_id: int, language: str) -> None:
-        """사용자 언어 설정 저장"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                user_id_str = str(user_id)
+        """길드 볼륨 설정 가져오기"""
+        settings = self.get_guild_settings(guild_id)
+        return settings.get('volume', 20)
+    
+    def set_volume(self, guild_id: int, volume: int) -> None:
+        """길드 볼륨 설정"""
+        self.upsert_guild_settings(guild_id, volume=volume)
+    
+    def get_loop(self, guild_id: int) -> Optional[int]:
+        """길드 루프 설정 가져오기"""
+        settings = self.get_guild_settings(guild_id)
+        return settings.get('loop_mode', 0)
+    
+    def set_loop(self, guild_id: int, loop_mode: int) -> None:
+        """길드 루프 설정"""
+        self.upsert_guild_settings(guild_id, loop_mode=loop_mode)
+    
+    def get_shuffle(self, guild_id: int) -> Optional[bool]:
+        """길드 셔플 설정 가져오기"""
+        settings = self.get_guild_settings(guild_id)
+        return settings.get('shuffle', False)
+    
+    def set_shuffle(self, guild_id: int, shuffle: bool) -> None:
+        """길드 셔플 설정"""
+        self.upsert_guild_settings(guild_id, shuffle=shuffle)
+    
+    def get_guild_settings(self, guild_id: int) -> Dict:
+        """길드 설정 통합 조회 (캐시 활용)"""
+        # 캐시 확인
+        cached = self._get_from_cache('guild_settings', guild_id)
+        if cached:
+            return cached
+        
+        client = self.get_client()
+        if not client:
+            return {'guild_id': guild_id, 'volume': 20, 'loop_mode': 0, 'shuffle': False, 'language': 'ko'}
+        
+        try:
+            response = client.table('guild_settings')\
+                .select('*')\
+                .eq('guild_id', str(guild_id))\
+                .maybe_single()\
+                .execute()
+            
+            if response.data:
+                self._set_cache('guild_settings', guild_id, response.data)
+                return response.data
+            else:
+                # 기본값
+                default_settings = {
+                    'guild_id': guild_id,
+                    'volume': 20,
+                    'loop_mode': 0,
+                    'shuffle': False,
+                    'language': 'ko'
+                }
+                return default_settings
                 
-                # 기존 언어 설정 확인
-                cursor.execute(
-                    "SELECT * FROM language WHERE id=?", (user_id_str,)
-                )
-                existing = cursor.fetchone()
-                
-                if existing is None:
-                    # 새로운 언어 설정 추가
-                    cursor.execute(
-                        "INSERT INTO language VALUES(?, ?)", (user_id_str, language)
-                    )
-                else:
-                    # 기존 언어 설정 수정
-                    cursor.execute(
-                        "UPDATE language SET language=? WHERE id=?", (language, user_id_str)
-                    )
-                conn.commit()
-
-    def get_user_language(self, user_id: int) -> str:
-        """사용자 언어 설정 가져오기"""
-        with closing(sqlite3.connect(Config.DB_PATH)) as conn:
-            with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    "SELECT language FROM language WHERE id=?", (str(user_id),)
-                )
-                result = cursor.fetchone()
-                
-                # 기본 언어는 한국어
-                return result[0] if result else "kr"
+        except Exception as e:
+            LOGGER.error(f"Error getting guild settings: {e}")
+            return {'guild_id': guild_id, 'volume': 20, 'loop_mode': 0, 'shuffle': False, 'language': 'ko'}
+    
+    def upsert_guild_settings(self, guild_id: int, **kwargs) -> Dict:
+        """길드 설정 UPSERT"""
+        client = self.get_client()
+        if not client:
+            return {}
+        
+        try:
+            data = {'guild_id': str(guild_id)}
+            data.update(kwargs)
+            # updated_at은 트리거에서 자동 설정되지만 명시적으로 설정
+            if 'updated_at' not in data:
+                data['updated_at'] = datetime.now().isoformat()
+            
+            response = client.table('guild_settings')\
+                .upsert(data)\
+                .execute()
+            
+            # 캐시 무효화
+            self._clear_cache('guild_settings', guild_id)
+            
+            return response.data[0] if response.data else {}
+            
+        except Exception as e:
+            LOGGER.error(f"Error upserting guild settings: {e}")
+            return {}
+    
+    
+    # ===== 길드 언어 설정 관련 메서드 =====
+    
+    def get_guild_language(self, guild_id: int) -> str:
+        """길드 기본 언어 설정 가져오기"""
+        settings = self.get_guild_settings(guild_id)
+        return settings.get('language', 'ko')
+    
+    def set_guild_language(self, guild_id: int, language: str) -> None:
+        """길드 기본 언어 설정"""
+        self.upsert_guild_settings(guild_id, language=language)
+    
+    # ===== 통계 관련 메서드 =====
+    
+    def set_statistics(self, date: str, time_str: str, guild_id: str, guild_name: str,
+                      channel_id: str, channel_name: str, user_id: str, user_name: str,
+                      video_id: str, title: str, artist: str, duration: int,
+                      success: bool, created_at: str = None) -> None:
+        """통계 저장 (배치 처리)"""
+        stats_data = {
+            'date': date,
+            'time': time_str,
+            'guild_id': str(guild_id),
+            'guild_name': guild_name,
+            'channel_id': str(channel_id) if channel_id else None,
+            'channel_name': channel_name,
+            'user_id': str(user_id),
+            'user_name': user_name,
+            'video_id': video_id,
+            'title': title,
+            'artist': artist,
+            'duration': duration,
+            'success': success,
+            'created_at': created_at or datetime.now().isoformat()
+        }
+        
+        # 버퍼에 추가
+        self.stats_buffer.append(stats_data)
+        
+        # 버퍼가 가득 찼거나 시간이 지났으면 플러시
+        if len(self.stats_buffer) >= self.buffer_size or \
+           time.time() - self.last_flush > self.flush_interval:
+            self.flush_statistics()
+    
+    def flush_statistics(self) -> None:
+        """통계 버퍼 플러시 (배치 인서트)"""
+        if not self.stats_buffer:
+            return
+        
+        client = self.get_client()
+        if not client:
+            self.stats_buffer = []  # 연결 실패시 버퍼 클리어
+            return
+        
+        try:
+            # Supabase는 한 번에 대량 삽입 가능
+            response = client.table('statistics')\
+                .insert(self.stats_buffer)\
+                .execute()
+            
+            LOGGER.debug(f"Flushed {len(self.stats_buffer)} statistics to Supabase")
+            self.stats_buffer = []
+            self.last_flush = time.time()
+            
+        except Exception as e:
+            LOGGER.error(f"Error flushing statistics: {e}")
+            # 실패한 데이터는 버퍼에 유지 (재시도를 위해)
+            if len(self.stats_buffer) > 1000:  # 버퍼 오버플로우 방지
+                self.stats_buffer = self.stats_buffer[-500:]
+    
+    def create_table(self) -> None:
+        """테이블 생성 (Supabase에서는 SQL Editor에서 직접 실행)"""
+        LOGGER.info("Tables should be created directly in Supabase SQL Editor")
+        pass
+    
+    def __del__(self):
+        """소멸자에서 남은 통계 플러시"""
+        if hasattr(self, 'stats_buffer') and self.stats_buffer:
+            self.flush_statistics()

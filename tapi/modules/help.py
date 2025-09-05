@@ -7,8 +7,9 @@ from tapi import LOGGER, THEME_COLOR, APP_BANNER_URL
 
 
 class HelpView(discord.ui.View):
-    def __init__(self, user_id):
+    def __init__(self, guild_id, user_id):
         super().__init__(timeout=120)
+        self.guild_id = guild_id
         self.user_id = user_id
         self.message = None
 
@@ -18,13 +19,13 @@ class HelpView(discord.ui.View):
             return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
         
         embed = discord.Embed(
-            title=get_lan(self.user_id, "help_music_title"),
-            description=get_lan(self.user_id, "help_music_description"),
+            title=get_lan(self.guild_id, "help_music_title"),
+            description=get_lan(self.guild_id, "help_music_description"),
             color=THEME_COLOR,
         )
         embed.set_image(url=APP_BANNER_URL)
         
-        view = BackToMainView(self.user_id)
+        view = BackToMainView(self.guild_id, self.user_id)
         view.message = interaction.message
         await interaction.response.edit_message(embed=embed, view=view)
 
@@ -34,13 +35,13 @@ class HelpView(discord.ui.View):
             return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
         
         embed = discord.Embed(
-            title=get_lan(self.user_id, "help_general_title"),
-            description=get_lan(self.user_id, "help_general_description"),
+            title=get_lan(self.guild_id, "help_general_title"),
+            description=get_lan(self.guild_id, "help_general_description"),
             color=THEME_COLOR,
         )
         embed.set_image(url=APP_BANNER_URL)
         
-        view = BackToMainView(self.user_id)
+        view = BackToMainView(self.guild_id, self.user_id)
         view.message = interaction.message
         await interaction.response.edit_message(embed=embed, view=view)
 
@@ -50,13 +51,13 @@ class HelpView(discord.ui.View):
             return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
         
         embed = discord.Embed(
-            title=get_lan(self.user_id, "help_language_title"),
-            description=get_lan(self.user_id, "help_language_description"),
+            title=get_lan(self.guild_id, "help_language_title"),
+            description=get_lan(self.guild_id, "help_language_description"),
             color=THEME_COLOR,
         )
         embed.set_image(url=APP_BANNER_URL)
         
-        view = BackToMainView(self.user_id)
+        view = BackToMainView(self.guild_id, self.user_id)
         view.message = interaction.message
         await interaction.response.edit_message(embed=embed, view=view)
 
@@ -69,8 +70,9 @@ class HelpView(discord.ui.View):
 
 
 class BackToMainView(discord.ui.View):
-    def __init__(self, user_id):
+    def __init__(self, guild_id, user_id):
         super().__init__(timeout=120)
+        self.guild_id = guild_id
         self.user_id = user_id
         self.message = None
 
@@ -80,13 +82,13 @@ class BackToMainView(discord.ui.View):
             return await interaction.response.send_message("This button can only be used by the user who executed the command.", ephemeral=True)
         
         embed = discord.Embed(
-            title=get_lan(self.user_id, "help_main_title"),
-            description=get_lan(self.user_id, "help_main_description"),
+            title=get_lan(self.guild_id, "help_main_title"),
+            description=get_lan(self.guild_id, "help_main_description"),
             color=THEME_COLOR,
         )
         embed.set_image(url=APP_BANNER_URL)
         
-        view = HelpView(self.user_id)
+        view = HelpView(self.guild_id, self.user_id)
         view.message = interaction.message
         await interaction.response.edit_message(embed=embed, view=view)
 
@@ -106,13 +108,13 @@ class Help(commands.Cog):
     async def help(self, interaction: discord.Interaction):
         """Show interactive help menu"""
         embed = discord.Embed(
-            title=get_lan(interaction.user.id, "help_main_title"),
-            description=get_lan(interaction.user.id, "help_main_description"),
+            title=get_lan(interaction.guild.id, "help_main_title"),
+            description=get_lan(interaction.guild.id, "help_main_description"),
             color=THEME_COLOR,
         )
         embed.set_image(url=APP_BANNER_URL)
         
-        view = HelpView(interaction.user.id)
+        view = HelpView(interaction.guild.id, interaction.user.id)
         await interaction.response.send_message(embed=embed, view=view)
         view.message = await interaction.original_response()
 

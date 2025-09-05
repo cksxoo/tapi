@@ -6,11 +6,11 @@ THEME_COLOR = Development.THEME_COLOR
 APP_NAME_TAG_VER = f"{Development.APPLICATION_NAME} {Development.APP_TAG}"
 
 
-def create_standard_embed(user_id, title_key, description_key=None, color=THEME_COLOR):
-    title = get_lan(user_id, title_key)
+def create_standard_embed(guild_id, title_key, description_key=None, color=THEME_COLOR):
+    title = get_lan(guild_id, title_key)
     
     if description_key:
-        description = get_lan(user_id, description_key)
+        description = get_lan(guild_id, description_key)
         embed = discord.Embed(title=title, description=description, color=color)
     else:
         embed = discord.Embed(title=title, color=color)
@@ -25,13 +25,13 @@ def create_error_embed(error_message, color=THEME_COLOR):
     return embed
 
 
-async def send_embed(interaction, user_id, title_key, description_key=None, color=THEME_COLOR, ephemeral=False):
-    embed = create_standard_embed(user_id, title_key, description_key, color)
+async def send_embed(interaction, guild_id, title_key, description_key=None, color=THEME_COLOR, ephemeral=False):
+    embed = create_standard_embed(guild_id, title_key, description_key, color)
     await interaction.response.send_message(embed=embed, ephemeral=ephemeral)
 
 
-async def send_temp_embed(interaction, user_id, title_key, description_key=None, color=THEME_COLOR, delete_after=3):
-    embed = create_standard_embed(user_id, title_key, description_key, color)
+async def send_temp_embed(interaction, guild_id, title_key, description_key=None, color=THEME_COLOR, delete_after=3):
+    embed = create_standard_embed(guild_id, title_key, description_key, color)
     await send_temp_message(interaction, embed, delete_after)
 
 
@@ -54,10 +54,11 @@ async def send_temp_message(interaction, embed, delete_after=3, refresh_control=
                             control_view = MusicControlView(cog, guild_id)
 
                             class FakeInteraction:
-                                def __init__(self, user_id):
+                                def __init__(self, user_id, guild_id):
                                     self.user = type("obj", (object,), {"id": user_id})()
+                                    self.guild = type("obj", (object,), {"id": guild_id})()
 
-                            fake_interaction = FakeInteraction(interaction.user.id)
+                            fake_interaction = FakeInteraction(interaction.user.id, guild_id)
                             updated_embed = control_view.update_embed_and_buttons(fake_interaction, player)
 
                             if updated_embed:

@@ -11,3 +11,4 @@ youtube_dl
 pytz
 redis
 pandas
+supabase

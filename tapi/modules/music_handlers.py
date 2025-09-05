@@ -67,13 +67,10 @@ class MusicHandlers:
             if not channel:
                 return
 
-            # 사용자 ID가 없으면 봇 ID 사용 (기본 언어)
-            if user_id is None:
-                user_id = self.bot.user.id
-
+            # 길드 기반 언어 설정 사용
             embed = discord.Embed(
-                title=get_lan(user_id, "vote_title"),
-                description=get_lan(user_id, "vote_description"),
+                title=get_lan(guild_id, "vote_title"),
+                description=get_lan(guild_id, "vote_description"),
                 color=THEME_COLOR,
             )
             embed.set_image(
@@ -158,8 +155,21 @@ class MusicHandlers:
             now = datetime.now(kst)
             date = now.strftime("%Y-%m-%d")
             time = now.strftime("%H:%M:%S")
-            requester = await self.bot.fetch_user(requester_id)
-            user_name = requester.name if requester else "Unknown User"
+            
+            # 사용자 정보 안전하게 가져오기
+            user_name = "Unknown User"
+            try:
+                # 먼저 캐시에서 확인
+                requester = self.bot.get_user(requester_id)
+                if requester:
+                    user_name = requester.name
+                else:
+                    # 캐시에 없으면 API에서 가져오기
+                    requester = await self.bot.fetch_user(requester_id)
+                    user_name = requester.name if requester else f"User-{requester_id}"
+            except Exception as user_error:
+                LOGGER.warning(f"Could not fetch user {requester_id}: {user_error}")
+                user_name = f"User-{requester_id}"
 
             # duration을 밀리초에서 초로 변환
             duration_seconds = track.duration // 1000
@@ -169,7 +179,7 @@ class MusicHandlers:
 
             Database().set_statistics(
                 date=date,
-                time=time,
+                time_str=time,
                 guild_id=str(guild.id),
                 guild_name=guild.name,
                 channel_id=str(channel.id),
@@ -195,10 +205,11 @@ class MusicHandlers:
 
             # 일관된 embed 생성 (가짜 interaction 객체 생성)
             class FakeInteraction:
-                def __init__(self, user_id):
+                def __init__(self, user_id, guild_id):
                     self.user = type("obj", (object,), {"id": user_id})()
+                    self.guild = type("obj", (object,), {"id": guild_id})()
 
-            fake_interaction = FakeInteraction(requester_id)
+            fake_interaction = FakeInteraction(requester_id, guild_id)
             embed = control_view.update_embed_and_buttons(fake_interaction, player)
 
             if embed:
