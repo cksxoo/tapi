@@ -4,7 +4,7 @@ import logging
 
 
 # Bot version
-BOT_VER = "v0.7.6"
+BOT_VER = "v0.8"
 
 # enable logging
 logging.basicConfig(
@@ -12,6 +12,7 @@ logging.basicConfig(
 )
 
 logging.getLogger("discord").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 LOGGER = logging.getLogger(__name__)
 

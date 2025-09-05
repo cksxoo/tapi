@@ -5,7 +5,6 @@ Supabase Database Handler for TAPI Bot
 
 import os
 import asyncio
-from typing import Optional, Dict, Any, List
 from datetime import datetime
 import logging
 from functools import lru_cache
@@ -25,7 +24,7 @@ class Database:
     """Supabase 데이터베이스 핸들러"""
     
     _instance = None
-    _client: Optional[Client] = None
+    _client = None
     _cache = {}  # 간단한 인메모리 캐시
     _cache_ttl = 60  # 캐시 TTL (초)
     
@@ -76,17 +75,17 @@ class Database:
             LOGGER.error(f"Failed to connect to Supabase: {e}")
             return False
     
-    def get_client(self) -> Optional[Client]:
+    def get_client(self):
         """클라이언트 인스턴스 반환"""
         if not self._client:
             self.initialize()
         return self._client
     
-    def _get_cache_key(self, table: str, key: Any) -> str:
+    def _get_cache_key(self, table, key):
         """캐시 키 생성"""
         return f"{table}:{key}"
     
-    def _get_from_cache(self, table: str, key: Any) -> Optional[Dict]:
+    def _get_from_cache(self, table, key):
         """캐시에서 데이터 조회"""
         cache_key = self._get_cache_key(table, key)
         if cache_key in self._cache:
@@ -97,12 +96,12 @@ class Database:
                 del self._cache[cache_key]
         return None
     
-    def _set_cache(self, table: str, key: Any, data: Dict):
+    def _set_cache(self, table, key, data: Dict):
         """캐시에 데이터 저장"""
         cache_key = self._get_cache_key(table, key)
         self._cache[cache_key] = (data, time.time())
     
-    def _clear_cache(self, table: str = None, key: Any = None):
+    def _clear_cache(self, table=None, key=None):
         """캐시 클리어"""
         if table and key:
             cache_key = self._get_cache_key(table, key)
@@ -118,34 +117,34 @@ class Database:
     
     # ===== 길드 설정 관련 메서드 =====
     
-    def get_volume(self, guild_id: int) -> int:
+    def get_volume(self, guild_id):
         """길드 볼륨 설정 가져오기"""
         settings = self.get_guild_settings(guild_id)
         return settings.get('volume', 20)
     
-    def set_volume(self, guild_id: int, volume: int) -> None:
+    def set_volume(self, guild_id, volume):
         """길드 볼륨 설정"""
         self.upsert_guild_settings(guild_id, volume=volume)
     
-    def get_loop(self, guild_id: int) -> Optional[int]:
+    def get_loop(self, guild_id):
         """길드 루프 설정 가져오기"""
         settings = self.get_guild_settings(guild_id)
         return settings.get('loop_mode', 0)
     
-    def set_loop(self, guild_id: int, loop_mode: int) -> None:
+    def set_loop(self, guild_id, loop_mode):
         """길드 루프 설정"""
         self.upsert_guild_settings(guild_id, loop_mode=loop_mode)
     
-    def get_shuffle(self, guild_id: int) -> Optional[bool]:
+    def get_shuffle(self, guild_id):
         """길드 셔플 설정 가져오기"""
         settings = self.get_guild_settings(guild_id)
         return settings.get('shuffle', False)
     
-    def set_shuffle(self, guild_id: int, shuffle: bool) -> None:
+    def set_shuffle(self, guild_id, shuffle):
         """길드 셔플 설정"""
         self.upsert_guild_settings(guild_id, shuffle=shuffle)
     
-    def get_guild_settings(self, guild_id: int) -> Dict:
+    def get_guild_settings(self, guild_id):
         """길드 설정 통합 조회 (캐시 활용)"""
         # 캐시 확인
         cached = self._get_from_cache('guild_settings', guild_id)
@@ -181,7 +180,7 @@ class Database:
             LOGGER.error(f"Error getting guild settings: {e}")
             return {'guild_id': guild_id, 'volume': 20, 'loop_mode': 0, 'shuffle': False, 'language': 'ko'}
     
-    def upsert_guild_settings(self, guild_id: int, **kwargs) -> Dict:
+    def upsert_guild_settings(self, guild_id, **kwargs):
         """길드 설정 UPSERT"""
         client = self.get_client()
         if not client:
@@ -210,21 +209,21 @@ class Database:
     
     # ===== 길드 언어 설정 관련 메서드 =====
     
-    def get_guild_language(self, guild_id: int) -> str:
+    def get_guild_language(self, guild_id):
         """길드 기본 언어 설정 가져오기"""
         settings = self.get_guild_settings(guild_id)
         return settings.get('language', 'ko')
     
-    def set_guild_language(self, guild_id: int, language: str) -> None:
+    def set_guild_language(self, guild_id, language):
         """길드 기본 언어 설정"""
         self.upsert_guild_settings(guild_id, language=language)
     
     # ===== 통계 관련 메서드 =====
     
-    def set_statistics(self, date: str, time_str: str, guild_id: str, guild_name: str,
-                      channel_id: str, channel_name: str, user_id: str, user_name: str,
-                      video_id: str, title: str, artist: str, duration: int,
-                      success: bool, created_at: str = None) -> None:
+    def set_statistics(self, date, time_str, guild_id, guild_name,
+                      channel_id, channel_name, user_id, user_name,
+                      video_id, title, artist, duration,
+                      success, created_at=None):
         """통계 저장 (배치 처리)"""
         stats_data = {
             'date': date,
@@ -251,7 +250,7 @@ class Database:
            time.time() - self.last_flush > self.flush_interval:
             self.flush_statistics()
     
-    def flush_statistics(self) -> None:
+    def flush_statistics(self):
         """통계 버퍼 플러시 (배치 인서트)"""
         if not self.stats_buffer:
             return
@@ -277,7 +276,7 @@ class Database:
             if len(self.stats_buffer) > 1000:  # 버퍼 오버플로우 방지
                 self.stats_buffer = self.stats_buffer[-500:]
     
-    def create_table(self) -> None:
+    def create_table(self):
         """테이블 생성 (Supabase에서는 SQL Editor에서 직접 실행)"""
         LOGGER.info("Tables should be created directly in Supabase SQL Editor")
         pass
