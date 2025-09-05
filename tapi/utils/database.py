@@ -96,7 +96,7 @@ class Database:
                 del self._cache[cache_key]
         return None
     
-    def _set_cache(self, table, key, data: Dict):
+    def _set_cache(self, table, key, data):
         """캐시에 데이터 저장"""
         cache_key = self._get_cache_key(table, key)
         self._cache[cache_key] = (data, time.time())
