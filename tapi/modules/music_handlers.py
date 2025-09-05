@@ -15,6 +15,7 @@ from tapi import (
 )
 from tapi.utils.language import get_lan
 from tapi.utils.database import Database
+from tapi.utils.embed import create_standard_embed
 from tapi.modules.music_views import MusicControlView
 
 
@@ -212,38 +213,22 @@ class MusicHandlers:
                     if not requester:
                         requester = await self.bot.fetch_user(requester_id)
                     if requester:
-                        await requester.send(
-                            f"🎵 **{track.title}** 재생 중\n"
-                            f"📍 서버: **{guild.name}** - #{channel.name}\n"
-                            f"⚠️ 해당 채널에 메시지 전송 권한이 없어 여기로 알림을 보냅니다."
+                        # TAPI 스타일의 embed 생성
+                        embed = create_standard_embed(guild_id, "music_permission_dm_title", "music_permission_dm_description")
+                        
+                        # description에 실제 값 적용
+                        description = get_lan(guild_id, "music_permission_dm_description").format(
+                            track_title=track.title,
+                            guild_name=guild.name,
+                            channel_name=channel.name
                         )
+                        embed.description = description
+                        
+                        await requester.send(embed=embed)
                 except:
                     pass
                 return
 
-            if not permissions.embed_links:
-                LOGGER.warning(
-                    f"Bot lacks embed_links permission in channel222 {channel.id} ({channel.name}) in guild {guild.id}"
-                )
-                # 권한이 없어도 최소한의 텍스트 알림은 보내기
-                try:
-                    user_name = "Unknown User"
-                    try:
-                        requester = self.bot.get_user(requester_id)
-                        if requester:
-                            user_name = requester.name
-                    except:
-                        pass
-                    
-                    simple_msg = await channel.send(
-                        f"🎵 **{user_name}**님이 요청한 **{track.title}** 재생 중\n"
-                        f"⚠️ 음악 컨트롤 패널을 보려면 '링크 임베드' 권한이 필요합니다."
-                    )
-                    # 이 메시지는 삭제하지 않고 유지 (사용자가 뭐가 재생되는지 알 수 있도록)
-                    self.music_cog.last_music_messages[guild_id] = simple_msg
-                except:
-                    pass
-                return
 
             # 이전 음악 메시지 정리
             await self._cleanup_music_message(guild_id, "new_track")

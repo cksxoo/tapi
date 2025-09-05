@@ -102,5 +102,8 @@
     "vote_description": "Thank you so much for listening to music with me! ヾ(｡>﹏<｡)ﾉﾞ✧\n\nIf you like me, could you maybe vote or leave a review using the buttons below? (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
 
     "music_play_fail_title": "Playback Failed",
-    "music_play_fail_description": "Unable to play the music."
+    "music_play_fail_description": "Unable to play the music.",
+
+    "music_permission_dm_title": "🎵 Music Playing",
+    "music_permission_dm_description": "**{track_title}** is now playing\n📍 Server: **{guild_name}** - #{channel_name}\n⚠️ Bot lacks permission to send messages in that channel, so I'm notifying you here."
 }
