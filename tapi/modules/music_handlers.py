@@ -206,17 +206,41 @@ class MusicHandlers:
                 LOGGER.warning(
                     f"Bot lacks send_messages permission in channel {channel.id} ({channel.name}) in guild {guild.id}"
                 )
+                # 채널에 메시지를 못 보내니 DM으로라도 알림
+                try:
+                    requester = self.bot.get_user(requester_id)
+                    if not requester:
+                        requester = await self.bot.fetch_user(requester_id)
+                    if requester:
+                        await requester.send(
+                            f"🎵 **{track.title}** 재생 중\n"
+                            f"📍 서버: **{guild.name}** - #{channel.name}\n"
+                            f"⚠️ 해당 채널에 메시지 전송 권한이 없어 여기로 알림을 보냅니다."
+                        )
+                except:
+                    pass
                 return
 
             if not permissions.embed_links:
                 LOGGER.warning(
-                    f"Bot lacks embed_links permission in channel {channel.id} ({channel.name}) in guild {guild.id}"
+                    f"Bot lacks embed_links permission in channel222 {channel.id} ({channel.name}) in guild {guild.id}"
                 )
+                # 권한이 없어도 최소한의 텍스트 알림은 보내기
                 try:
-                    temp_msg = await channel.send(
-                        f"⚠️ **권한 부족**: 음악 컨트롤 패널을 표시하려면 '링크 임베드' 권한이 필요합니다."
+                    user_name = "Unknown User"
+                    try:
+                        requester = self.bot.get_user(requester_id)
+                        if requester:
+                            user_name = requester.name
+                    except:
+                        pass
+                    
+                    simple_msg = await channel.send(
+                        f"🎵 **{user_name}**님이 요청한 **{track.title}** 재생 중\n"
+                        f"⚠️ 음악 컨트롤 패널을 보려면 '링크 임베드' 권한이 필요합니다."
                     )
-                    await temp_msg.delete(delay=5)
+                    # 이 메시지는 삭제하지 않고 유지 (사용자가 뭐가 재생되는지 알 수 있도록)
+                    self.music_cog.last_music_messages[guild_id] = simple_msg
                 except:
                     pass
                 return
