@@ -172,8 +172,8 @@ class Database:
                 .execute()
             )
 
-            if response.data:
-                self._set_cache("guild_settings", guild_id, response.data)
+            if response and response.data:
+                self._set_cache('guild_settings', guild_id, response.data)
                 return response.data
             else:
                 # 기본값

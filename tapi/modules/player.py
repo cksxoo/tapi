@@ -96,17 +96,21 @@ class Music(commands.Cog):
                 interaction.guild.id
             )
 
-            # 저장된 볼륨 설정 가져오기
-            saved_volume = Database().get_volume(interaction.guild.id)
+            # 저장된 설정 한번에 가져오기
+            db = Database()
+            settings = db.get_guild_settings(interaction.guild.id)
+            
+            # 볼륨 설정
+            saved_volume = settings.get('volume', 20)
             await player.set_volume(saved_volume)
 
-            # 저장된 반복 상태 설정
-            loop = Database().get_loop(interaction.guild.id)
+            # 반복 상태 설정
+            loop = settings.get('loop_mode', 0)
             if loop is not None:
                 player.set_loop(loop)
 
-            # 저장된 셔플 상태 설정
-            shuffle = Database().get_shuffle(interaction.guild.id)
+            # 셔플 상태 설정
+            shuffle = settings.get('shuffle', False)
             if shuffle is not None:
                 player.set_shuffle(shuffle)
         except Exception as e:
