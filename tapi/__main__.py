@@ -1,5 +1,3 @@
-# tapi/__main__.py
-
 import discord
 import asyncio
 import os
@@ -31,11 +29,13 @@ class TapiBot(commands.Bot):
         intents.guilds = True  # For basic guild operations
         intents.voice_states = True  # For Lavalink to manage voice channels
 
-
         # 샤딩 설정
         if shard_id is not None and shard_count is not None:
             super().__init__(
-                command_prefix=lambda bot, msg: [], intents=intents, shard_id=shard_id, shard_count=shard_count
+                command_prefix=lambda bot, msg: [],
+                intents=intents,
+                shard_id=shard_id,
+                shard_count=shard_count,
             )
         else:
             super().__init__(command_prefix=lambda bot, msg: [], intents=intents)
@@ -89,7 +89,8 @@ class TapiBot(commands.Bot):
             try:
                 await self.change_presence(
                     activity=discord.Activity(
-                        type=discord.ActivityType.listening, name="🎶 music! ヾ(｡>﹏<｡)ﾉﾞ✧"
+                        type=discord.ActivityType.listening,
+                        name="🎶 music! ヾ(｡>﹏<｡)ﾉﾞ✧",
                     ),
                     status=discord.Status.online,
                 )
