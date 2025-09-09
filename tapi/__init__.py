@@ -63,7 +63,7 @@ for file in os.listdir("tapi/modules"):
             EXTENSIONS.append(module_name)
 
 APP_BANNER_URL = (
-    "https://github.com/cksxoo/tapi/blob/main/docs/discord.png?raw=true&v=2"
+    "https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord.png"
 )
 APP_NAME_TAG_VER = "%s%s | %s" % (APPLICATION_NAME, APP_TAG, BOT_VER)
 
