@@ -91,8 +91,8 @@ async def send_temp_message(interaction, embed, delete_after=3, refresh_control=
 
                             if updated_embed:
                                 await old_message.edit(embed=updated_embed, view=control_view)
-                    except Exception:
-                        pass
+                    except (discord.NotFound, discord.Forbidden, discord.HTTPException):
+                        pass  # 메시지 업데이트 실패 시 무시
         return message
     except Exception:
         return None
