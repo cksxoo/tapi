@@ -124,7 +124,7 @@ class TapiBot(commands.Bot):
                     owner_id = guild.owner_id if guild.owner_id else self.user.id
                     title = get_lan(owner_id, "welcome_title")
                     description = get_lan(owner_id, "welcome_description")
-                except:
+                except (KeyError, ValueError, TypeError):
                     # 언어 설정 실패 시 기본 영어 메시지 사용
                     title = "OMG! Hii guys ✧(≧◡≦) ♡"
                     description = "Thank you for inviting me to hang with yall (*≧▽≦)\n\nType /help to view my slash commands ♡"

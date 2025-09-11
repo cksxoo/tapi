@@ -65,7 +65,9 @@ class HelpView(discord.ui.View):
         if self.message:
             try:
                 await self.message.delete()
-            except:
+            except discord.NotFound:
+                pass
+            except discord.Forbidden:
                 pass
 
 
@@ -96,7 +98,9 @@ class BackToMainView(discord.ui.View):
         if self.message:
             try:
                 await self.message.delete()
-            except:
+            except discord.NotFound:
+                pass
+            except discord.Forbidden:
                 pass
 
 

@@ -20,7 +20,7 @@ class Config(object):
     THEME_COLOR = 0xC68E6E  # Theme color code
 
     # Music
-    HOST = "0.0.0.0"
+    HOST = "127.0.0.1"
     PSW = ""  # Lavalink password
     REGION = "eu"  # Server region
     PORT = 2333

@@ -2,7 +2,6 @@ import re
 import traceback
 from datetime import datetime
 import pytz
-import yt_dlp
 
 import discord
 import lavalink
@@ -225,7 +224,7 @@ class MusicHandlers:
                         embed.description = description
                         
                         await requester.send(embed=embed)
-                except:
+                except (discord.Forbidden, discord.NotFound, discord.HTTPException):
                     pass
                 return
 
@@ -306,63 +305,9 @@ class MusicHandlers:
             )
         ):
 
-            LOGGER.info(
-                f"Attempting yt-dlp fallback for failed track: {original_track_uri}"
+            LOGGER.warning(
+                f"Track failed: {original_track_title} - {event.message}"
             )
-            try:
-                ydl_opts = {
-                    "format": "bestaudio/best",
-                    "noplaylist": True,
-                    "quiet": True,
-                    "no_warnings": True,
-                    "skip_download": True,
-                    "source_address": "0.0.0.0",
-                }
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(original_track_uri, download=False)
-
-                stream_url_from_yt_dlp = None
-                if info and "url" in info:
-                    stream_url_from_yt_dlp = info["url"]
-                elif info and info.get("entries") and info["entries"][0].get("url"):
-                    stream_url_from_yt_dlp = info["entries"][0]["url"]
-
-                if stream_url_from_yt_dlp:
-                    LOGGER.info(
-                        f"yt-dlp provided stream URL for '{original_track_title}': {stream_url_from_yt_dlp}"
-                    )
-                    new_results = await player.node.get_tracks(stream_url_from_yt_dlp)
-                    if new_results and new_results.tracks:
-                        new_track = new_results.tracks[0]
-                        new_track.requester = requester
-
-                        # Add to front of queue. If player stopped due to exception, this should play next.
-                        player.add(track=new_track, requester=requester, index=0)
-                        LOGGER.info(
-                            f"Added yt-dlp fallback track '{new_track.title}' to front of queue for guild {player.guild_id}."
-                        )
-
-                        # If player is not playing (e.g., exception stopped it and didn't auto-play next)
-                        if (
-                            not player.is_playing
-                            and not player.paused
-                            and player.is_connected
-                        ):
-                            await player.play()
-                        return
-                    else:
-                        LOGGER.warning(
-                            f"yt-dlp got a stream URL, but Lavalink couldn't load it as a track: {stream_url_from_yt_dlp}"
-                        )
-                else:
-                    LOGGER.warning(
-                        f"yt-dlp did not find a streamable URL for: {original_track_uri}"
-                    )
-
-            except Exception as e:
-                LOGGER.error(
-                    f"yt-dlp fallback in on_track_exception failed for '{original_track_uri}': {e}"
-                )
 
         # If fallback was not attempted or failed, send a message to the user
         channel_id = player.fetch("channel")
