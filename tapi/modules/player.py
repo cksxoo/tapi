@@ -1,6 +1,5 @@
 import re
 import traceback
-import yt_dlp
 
 import discord
 from discord import app_commands
@@ -240,56 +239,17 @@ class Music(commands.Cog):
         
         return original_query_stripped, is_search_query
 
-    async def _try_yt_dlp_fallback(self, original_query: str) -> str | None:
-        """yt-dlp을 사용한 폴백 시도"""
-        try:
-            ydl_opts = {
-                "format": "bestaudio/best",
-                "noplaylist": True,
-                "quiet": True,
-                "no_warnings": True,
-                "skip_download": True,
-                "source_address": "0.0.0.0",
-            }
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(original_query, download=False)
-                
-                if info and "url" in info:
-                    return info["url"]
-                elif info and info.get("entries") and info["entries"][0].get("url"):
-                    return info["entries"][0]["url"]
-                    
-        except Exception as e:
-            LOGGER.error(f"Error during yt-dlp processing for '{original_query}': {e}")
-            
-        return None
 
     async def _search_tracks(self, player, query: str, original_query: str, is_search_query: bool):
-        """트랙 검색 및 폴백 처리"""
+        """트랙 검색 처리"""
         current_query = query
         nofind = 0
-        yt_dlp_attempted = False
 
         while True:
             results = await player.node.get_tracks(current_query)
 
             if results.load_type == LoadType.EMPTY or not results or not results.tracks:
-                if not is_search_query and not yt_dlp_attempted:
-                    yt_dlp_attempted = True
-                    LOGGER.info(f"Lavalink failed for URL '{original_query}'. Trying yt-dlp.")
-                    
-                    stream_url = await self._try_yt_dlp_fallback(original_query)
-                    if stream_url:
-                        LOGGER.info(f"yt-dlp provided stream URL: {stream_url}")
-                        current_query = stream_url
-                        continue
-                    else:
-                        LOGGER.warning(f"yt-dlp did not find a streamable URL for: {original_query}")
-
                 nofind += 1
-                if not is_search_query and yt_dlp_attempted:
-                    nofind = 3
-                    
                 if nofind >= 3:
                     return None
             else:
@@ -628,7 +588,9 @@ class Music(commands.Cog):
                     if self.message:
                         try:
                             await self.message.delete()
-                        except:
+                        except discord.NotFound:
+                            pass
+                        except discord.Forbidden:
                             pass
 
                 @discord.ui.button(label="Previous", style=discord.ButtonStyle.gray)
