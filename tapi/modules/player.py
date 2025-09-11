@@ -21,7 +21,14 @@ from tapi import (
 )
 from tapi.utils.database import Database
 from tapi.utils.statistics import Statistics
-from tapi.utils.embed import send_embed, send_temp_message, send_temp_embed
+from tapi.utils.embed import (
+    send_embed, 
+    send_temp_message, 
+    send_temp_embed,
+    create_track_embed,
+    create_playlist_embed,
+    create_error_embed
+)
 
 # 분리된 모듈들 import
 from tapi.modules.audio_connection import AudioConnection
@@ -81,6 +88,72 @@ class Music(commands.Cog):
         return await self.handlers.on_voice_state_update(member, before, after)
 
     @staticmethod
+    async def _setup_player_settings(player, guild_id: int):
+        """플레이어 설정 초기화"""
+        db = Database()
+        settings = db.get_guild_settings(guild_id)
+        
+        # 볼륨 설정
+        saved_volume = settings.get('volume', 20)
+        await player.set_volume(saved_volume)
+
+        # 반복 상태 설정
+        loop = settings.get('loop_mode', 0)
+        if loop is not None:
+            player.set_loop(loop)
+
+        # 셔플 상태 설정
+        shuffle = settings.get('shuffle', False)
+        if shuffle is not None:
+            player.set_shuffle(shuffle)
+
+    @staticmethod
+    async def _validate_user_voice_state(interaction: discord.Interaction):
+        """사용자 음성 상태 검증"""
+        if not interaction.user.voice or not interaction.user.voice.channel:
+            embed = discord.Embed(
+                title=get_lan(interaction.guild.id, "music_not_in_voice_channel_title"),
+                description=get_lan(
+                    interaction.guild.id, "music_not_in_voice_channel_description"
+                ),
+                color=THEME_COLOR,
+            )
+            embed.set_footer(
+                text=get_lan(interaction.guild.id, "music_not_in_voice_channel_footer")
+                + "\n"
+                + APP_NAME_TAG_VER
+            )
+            embed.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/1043307948483653642/1043308015911542794/headphones.png"
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            raise app_commands.CheckFailure("User not in voice channel")
+        
+        return interaction.user.voice.channel
+
+    @staticmethod
+    async def _validate_voice_permissions(interaction: discord.Interaction, voice_channel):
+        """음성 채널 권한 검증"""
+        permissions = voice_channel.permissions_for(interaction.guild.me)
+        
+        if not permissions.connect or not permissions.speak:
+            await send_temp_embed(
+                interaction, interaction.guild.id, "music_no_permission"
+            )
+            raise app_commands.CheckFailure(
+                get_lan(interaction.guild.id, "music_no_permission")
+            )
+
+        if voice_channel.user_limit > 0:
+            if (
+                len(voice_channel.members) >= voice_channel.user_limit
+                and not interaction.guild.me.guild_permissions.move_members
+            ):
+                raise app_commands.CheckFailure(
+                    get_lan(interaction.guild.id, "music_voice_channel_is_full")
+                )
+
+    @staticmethod
     async def create_player(interaction: discord.Interaction):
         """
         A check that is invoked before any commands marked with `@app_commands.check(create_player)` can run.
@@ -95,24 +168,7 @@ class Music(commands.Cog):
             player = interaction.client.lavalink.player_manager.create(
                 interaction.guild.id
             )
-
-            # 저장된 설정 한번에 가져오기
-            db = Database()
-            settings = db.get_guild_settings(interaction.guild.id)
-            
-            # 볼륨 설정
-            saved_volume = settings.get('volume', 20)
-            await player.set_volume(saved_volume)
-
-            # 반복 상태 설정
-            loop = settings.get('loop_mode', 0)
-            if loop is not None:
-                player.set_loop(loop)
-
-            # 셔플 상태 설정
-            shuffle = settings.get('shuffle', False)
-            if shuffle is not None:
-                player.set_shuffle(shuffle)
+            await Music._setup_player_settings(player, interaction.guild.id)
         except Exception as e:
             LOGGER.error(f"Failed to create player: {e}")
             LOGGER.error(
@@ -129,29 +185,7 @@ class Music(commands.Cog):
         )
 
         voice_client = interaction.guild.voice_client
-
-        if not interaction.user.voice or not interaction.user.voice.channel:
-            embed = discord.Embed(
-                title=get_lan(interaction.guild.id, "music_not_in_voice_channel_title"),
-                description=get_lan(
-                    interaction.guild.id, "music_not_in_voice_channel_description"
-                ),
-                color=THEME_COLOR,
-            )
-            embed.set_footer(
-                text=get_lan(interaction.guild.id, "music_not_in_voice_channel_footer")
-                + "\n"
-                + APP_NAME_TAG_VER
-            )
-
-            embed.set_thumbnail(
-                url="https://cdn.discordapp.com/attachments/1043307948483653642/1043308015911542794/headphones.png"
-            )
-
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-            raise app_commands.CheckFailure("User not in voice channel")
-
-        voice_channel = interaction.user.voice.channel
+        voice_channel = await Music._validate_user_voice_state(interaction)
 
         if voice_client is None:
             if not should_connect:
@@ -159,27 +193,9 @@ class Music(commands.Cog):
                     get_lan(interaction.guild.id, "music_not_connected_voice_channel")
                 )
 
-            permissions = voice_channel.permissions_for(interaction.guild.me)
-
-            if not permissions.connect or not permissions.speak:
-                await send_temp_embed(
-                    interaction, interaction.guild.id, "music_no_permission"
-                )
-                raise app_commands.CheckFailure(
-                    get_lan(interaction.guild.id, "music_no_permission")
-                )
-
-            if voice_channel.user_limit > 0:
-                if (
-                    len(voice_channel.members) >= voice_channel.user_limit
-                    and not interaction.guild.me.guild_permissions.move_members
-                ):
-                    raise app_commands.CheckFailure(
-                        get_lan(interaction.guild.id, "music_voice_channel_is_full")
-                    )
-
+            await Music._validate_voice_permissions(interaction, voice_channel)
             player.store("channel", interaction.channel.id)
-            await interaction.user.voice.channel.connect(cls=AudioConnection)
+            await voice_channel.connect(cls=AudioConnection)
         elif voice_client.channel.id != voice_channel.id:
             raise app_commands.CheckFailure(
                 get_lan(interaction.guild.id, "music_come_in_my_voice_channel")
@@ -203,6 +219,106 @@ class Music(commands.Cog):
                 "music_already_connected_voice_channel",
             )
 
+    def _prepare_query(self, query: str) -> tuple[str, bool]:
+        """쿼리를 처리하고 검색 타입을 결정"""
+        original_query_stripped = query.strip("<>")
+        is_search_query = not url_rx.match(original_query_stripped)
+        
+        if is_search_query:
+            return f"ytsearch:{original_query_stripped}", is_search_query
+        
+        # URL인 경우 list 파라미터 제거 (단일 곡 재생을 위해)
+        if "youtube.com" in original_query_stripped or "youtu.be" in original_query_stripped:
+            current_lavalink_query = re.sub(r"[&?]list=[^&]*", "", original_query_stripped)
+            current_lavalink_query = re.sub(r"[&?]index=[^&]*", "", current_lavalink_query)
+            current_lavalink_query = re.sub(
+                r"[&?]+",
+                lambda m: "?" if m.start() == original_query_stripped.find("?") else "&",
+                current_lavalink_query,
+            )
+            return current_lavalink_query.rstrip("&?"), is_search_query
+        
+        return original_query_stripped, is_search_query
+
+    async def _try_yt_dlp_fallback(self, original_query: str) -> str | None:
+        """yt-dlp을 사용한 폴백 시도"""
+        try:
+            ydl_opts = {
+                "format": "bestaudio/best",
+                "noplaylist": True,
+                "quiet": True,
+                "no_warnings": True,
+                "skip_download": True,
+                "source_address": "0.0.0.0",
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(original_query, download=False)
+                
+                if info and "url" in info:
+                    return info["url"]
+                elif info and info.get("entries") and info["entries"][0].get("url"):
+                    return info["entries"][0]["url"]
+                    
+        except Exception as e:
+            LOGGER.error(f"Error during yt-dlp processing for '{original_query}': {e}")
+            
+        return None
+
+    async def _search_tracks(self, player, query: str, original_query: str, is_search_query: bool):
+        """트랙 검색 및 폴백 처리"""
+        current_query = query
+        nofind = 0
+        yt_dlp_attempted = False
+
+        while True:
+            results = await player.node.get_tracks(current_query)
+
+            if results.load_type == LoadType.EMPTY or not results or not results.tracks:
+                if not is_search_query and not yt_dlp_attempted:
+                    yt_dlp_attempted = True
+                    LOGGER.info(f"Lavalink failed for URL '{original_query}'. Trying yt-dlp.")
+                    
+                    stream_url = await self._try_yt_dlp_fallback(original_query)
+                    if stream_url:
+                        LOGGER.info(f"yt-dlp provided stream URL: {stream_url}")
+                        current_query = stream_url
+                        continue
+                    else:
+                        LOGGER.warning(f"yt-dlp did not find a streamable URL for: {original_query}")
+
+                nofind += 1
+                if not is_search_query and yt_dlp_attempted:
+                    nofind = 3
+                    
+                if nofind >= 3:
+                    return None
+            else:
+                return results
+
+    def _create_track_embed(self, results, interaction: discord.Interaction):
+        """트랙 또는 플레이리스트에 대한 embed 생성"""
+        if results.load_type == LoadType.PLAYLIST:
+            return create_playlist_embed(
+                interaction.guild.id, 
+                results.playlist_info.name, 
+                len(results.tracks)
+            )
+        else:
+            track = results.tracks[0]
+            return create_track_embed(track, interaction.user.display_name)
+
+    async def _add_tracks_to_player(self, player, results, user_id: int):
+        """플레이어에 트랙 추가"""
+        if results.load_type == LoadType.PLAYLIST:
+            for track in results.tracks:
+                try:
+                    player.add(requester=user_id, track=track)
+                except Exception as e:
+                    LOGGER.error(f"Error adding track from playlist: {e}")
+        else:
+            track = results.tracks[0]
+            player.add(requester=user_id, track=track)
+
     @app_commands.command(
         name="play", description="Searches and plays a song from a given query."
     )
@@ -212,146 +328,28 @@ class Music(commands.Cog):
         await interaction.response.defer()
 
         try:
-            # Get the player for this guild from cache.
             player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-
             original_query_stripped = query.strip("<>")
-
-            current_lavalink_query = original_query_stripped
-            is_search_query = not url_rx.match(original_query_stripped)
-            if is_search_query:
-                current_lavalink_query = f"ytsearch:{original_query_stripped}"
-            else:
-                # URL인 경우 list 파라미터 제거 (단일 곡 재생을 위해)
-                if (
-                    "youtube.com" in original_query_stripped
-                    or "youtu.be" in original_query_stripped
-                ):
-                    # list 파라미터와 관련 파라미터들 제거
-                    current_lavalink_query = re.sub(
-                        r"[&?]list=[^&]*", "", original_query_stripped
-                    )
-                    current_lavalink_query = re.sub(
-                        r"[&?]index=[^&]*", "", current_lavalink_query
-                    )
-                    # URL 정리 (연속된 &나 ?& 패턴 수정)
-                    current_lavalink_query = re.sub(
-                        r"[&?]+",
-                        lambda m: (
-                            "?"
-                            if m.start() == original_query_stripped.find("?")
-                            else "&"
-                        ),
-                        current_lavalink_query,
-                    )
-                    current_lavalink_query = current_lavalink_query.rstrip("&?")
-
-            nofind = 0
-            yt_dlp_attempted_for_url = False
-
-            while True:
-                results = await player.node.get_tracks(current_lavalink_query)
-
-                if (
-                    results.load_type == LoadType.EMPTY
-                    or not results
-                    or not results.tracks
-                ):
-                    if not is_search_query and not yt_dlp_attempted_for_url:
-                        yt_dlp_attempted_for_url = True
-                        LOGGER.info(
-                            f"Lavalink failed for URL '{original_query_stripped}'. Trying yt-dlp."
-                        )
-                        try:
-                            ydl_opts = {
-                                "format": "bestaudio/best",
-                                "noplaylist": True,
-                                "quiet": True,
-                                "no_warnings": True,
-                                "skip_download": True,
-                                "source_address": "0.0.0.0",
-                            }
-                            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                                info = ydl.extract_info(
-                                    original_query_stripped, download=False
-                                )
-
-                                stream_url_from_yt_dlp = None
-                                if info and "url" in info:
-                                    stream_url_from_yt_dlp = info["url"]
-                                elif (
-                                    info
-                                    and info.get("entries")
-                                    and info["entries"][0].get("url")
-                                ):
-                                    stream_url_from_yt_dlp = info["entries"][0]["url"]
-
-                                if stream_url_from_yt_dlp:
-                                    LOGGER.info(
-                                        f"yt-dlp provided stream URL: {stream_url_from_yt_dlp}"
-                                    )
-                                    current_lavalink_query = stream_url_from_yt_dlp
-                                    continue
-                                else:
-                                    LOGGER.warning(
-                                        f"yt-dlp did not find a streamable URL for: {original_query_stripped}"
-                                    )
-                        except Exception as e:
-                            LOGGER.error(
-                                f"Error during yt-dlp processing for '{original_query_stripped}': {e}"
-                            )
-
-                    if nofind < 3:
-                        if not is_search_query and yt_dlp_attempted_for_url:
-                            nofind = 3
-                        else:
-                            nofind += 1
-
-                    if nofind >= 3:
-                        embed = discord.Embed(
-                            title=get_lan(
-                                interaction.guild.id, "music_can_not_find_anything"
-                            ),
-                            description=f"Query: {original_query_stripped}",
-                            color=THEME_COLOR,
-                        )
-                        embed.set_footer(text=APP_NAME_TAG_VER)
-                        return await send_temp_message(interaction, embed)
-                else:
-                    break
-
-            if results.load_type == LoadType.PLAYLIST:
-                tracks = results.tracks
-                trackcount = 0
-                first_track = None
-
-                for track in tracks:
-                    try:
-                        if trackcount != 1:
-                            first_track = track
-                            trackcount = 1
-
-                        player.add(requester=interaction.user.id, track=track)
-                    except Exception as e:
-                        LOGGER.error(f"Error adding track from playlist: {e}")
-
-                embed = discord.Embed(color=THEME_COLOR)
-                embed.title = get_lan(interaction.guild.id, "music_play_playlist")
-                embed.description = f"**{results.playlist_info.name}** - {len(tracks)} tracks {get_lan(interaction.guild.id, 'music_added_to_queue')}"
-
-            else:
-                track = results.tracks[0]
-
-                player.add(requester=interaction.user.id, track=track)
-
-                embed = discord.Embed(color=THEME_COLOR)
-                embed.description = f"**[{track.title}]({track.uri})** - {track.author}\nby {interaction.user.display_name}"
-
-                if track.identifier:
-                    embed.set_thumbnail(
-                        url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
-                    )
-
+            
+            # 쿼리 준비
+            current_lavalink_query, is_search_query = self._prepare_query(query)
+            
+            # 트랙 검색
+            results = await self._search_tracks(
+                player, current_lavalink_query, original_query_stripped, is_search_query
+            )
+            
+            if not results:
+                embed = create_error_embed(
+                    f"{get_lan(interaction.guild.id, 'music_can_not_find_anything')}\nQuery: {original_query_stripped}"
+                )
+                return await send_temp_message(interaction, embed)
+            
+            # 플레이어에 트랙 추가
+            await self._add_tracks_to_player(player, results, interaction.user.id)
+            
+            # embed 생성 및 전송
+            embed = self._create_track_embed(results, interaction)
             await send_temp_message(interaction, embed)
 
             if not player.is_playing:
@@ -361,7 +359,7 @@ class Music(commands.Cog):
             LOGGER.error(f"Error in play command: {e}")
             try:
                 Statistics().record_play(
-                    track=track if "track" in locals() else None,
+                    track=results.tracks[0] if "results" in locals() and results and results.tracks else None,
                     guild_id=interaction.guild_id,
                     channel_id=interaction.channel_id,
                     user_id=interaction.guild.id,
@@ -467,10 +465,10 @@ class Music(commands.Cog):
 
         tracks = results.tracks[:5]
 
-        embed = discord.Embed(
-            title=get_lan(interaction.guild.id, "music_search_results"),
-            description=get_lan(interaction.guild.id, "music_search_select"),
-            color=THEME_COLOR,
+        embed = create_standard_embed(
+            interaction.guild.id,
+            "music_search_results",
+            "music_search_select"
         )
         for i, track in enumerate(tracks, start=1):
             embed.add_field(
@@ -478,7 +476,6 @@ class Music(commands.Cog):
                 value=f"{track.author} - {lavalink.format_time(track.duration)}",
                 inline=False,
             )
-        embed.set_footer(text=APP_NAME_TAG_VER)
 
         view = SearchView(tracks, self, interaction)
         message = await interaction.followup.send(embed=embed, view=view)

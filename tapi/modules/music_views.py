@@ -10,7 +10,7 @@ from tapi import (
 )
 from tapi.utils.language import get_lan
 from tapi.utils.database import Database
-from tapi.utils.embed import send_temp_message
+from tapi.utils.embed import send_temp_message, format_text_with_limit
 
 
 class SearchSelect(discord.ui.Select):
@@ -268,42 +268,17 @@ class MusicControlView(discord.ui.View):
         total_time = lavalink.utils.format_time(total)
         return f"`{bar}`   {current_time}/{total_time}"
 
-    def update_embed_and_buttons(self, interaction, player):
-        """embed와 모든 버튼 상태를 현재 플레이어 상태로 업데이트"""
-        track = player.current
-        if not track:
-            return None
 
-        # 진행률 바 생성
-        progress_bar = self.create_progress_bar(player.position, track.duration)
+    def _create_embed_description(self, track, progress_bar: str) -> str:
+        """embed 설명 생성"""
+        title = format_text_with_limit(track.title, 30)
+        artist_name = format_text_with_limit(track.author, 30)
+        
+        return f"> [{title}]({track.uri})\n> {artist_name}\n> {progress_bar}"
 
-        # 현재 재생 정보 embed 생성
-        embed = discord.Embed(color=IDLE_COLOR)
-
-        # 제목에 재생 상태 이모지 추가 (긴 아티스트명 처리)
-        max_artist_length = 30
-        artist_name = track.author
-        if len(artist_name) > max_artist_length:
-            artist_name = artist_name[:max_artist_length] + "..."
-
-        if player.paused:
-            embed.title = f"<:audio:1399724398520434791> TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧"
-            # embed.title = f"<:audio:1399724398520434791> | {artist_name}"
-        else:
-            embed.title = f"<:audio:1399724398520434791> TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧"
-            # embed.title = f"<a:audio_spin:1399727564842336318> | {artist_name}"
-
-        # 긴 곡 제목 처리
-        max_title_length = 30
-        title = track.title
-        if len(title) > max_title_length:
-            title = title[:max_title_length] + "..."
-
-        embed.description = f"> [{title}]({track.uri})"
-        embed.description += f"\n> {artist_name}"
-        embed.description += f"\n> {progress_bar}"
-
-        # 상태 정보 추가
+    def _add_status_fields(self, embed, interaction, player):
+        """상태 정보 필드 추가"""
+        # 셔플 상태
         embed.add_field(
             name=get_lan(interaction.guild.id, "music_shuffle"),
             value=(
@@ -314,33 +289,28 @@ class MusicControlView(discord.ui.View):
             inline=True,
         )
 
+        # 반복 상태
+        repeat_values = [
+            get_lan(interaction.guild.id, "music_repeat_already_off"),
+            get_lan(interaction.guild.id, "music_repeat_already_one"),
+            get_lan(interaction.guild.id, "music_repeat_already_on"),
+        ]
         embed.add_field(
             name=get_lan(interaction.guild.id, "music_repeat"),
-            value=[
-                get_lan(interaction.guild.id, "music_repeat_already_off"),
-                get_lan(interaction.guild.id, "music_repeat_already_one"),
-                get_lan(interaction.guild.id, "music_repeat_already_on"),
-            ][player.loop],
+            value=repeat_values[player.loop],
             inline=True,
         )
 
-        # 볼륨 정보 추가
+        # 볼륨 상태
         embed.add_field(
             name=get_lan(interaction.guild.id, "music_volume"),
             value=f"{player.volume}%",
             inline=True,
         )
 
-        # YouTube 썸네일 추가 (적당한 크기)
-        if track.identifier:
-            embed.set_thumbnail(
-                url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
-            )
-
-        # 하단 배너 이미지 추가
-        embed.set_image(url=APP_BANNER_URL)
-
-        # 모든 버튼 상태 업데이트
+    def _update_button_states(self, player):
+        """모든 버튼 상태 업데이트"""
+        # 일시정지/재생 버튼
         if player.paused:
             self.pause_resume.emoji = "<:play:1399719809469382779>"
             self.pause_resume.label = "Play"
@@ -348,17 +318,44 @@ class MusicControlView(discord.ui.View):
             self.pause_resume.emoji = "<:pause:1399721118473912390>"
             self.pause_resume.label = "Pause"
 
-        # 반복 버튼 상태 업데이트
+        # 반복 버튼
         self.repeat.emoji = "<:repeats:1399721836958449674>"
 
-        # 셔플 버튼 상태 업데이트
+        # 셔플 버튼
         self.shuffle.style = (
             discord.ButtonStyle.success
             if player.shuffle
             else discord.ButtonStyle.secondary
         )
 
+    def update_embed_and_buttons(self, interaction, player):
+        """embed와 모든 버튼 상태를 현재 플레이어 상태로 업데이트"""
+        track = player.current
+        if not track:
+            return None
+
+        # 진행률 바 생성
+        progress_bar = self.create_progress_bar(player.position, track.duration)
+
+        # embed 생성
+        embed = discord.Embed(color=IDLE_COLOR)
+        embed.title = f"<:audio:1399724398520434791> TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧"
+        embed.description = self._create_embed_description(track, progress_bar)
+        
+        # 상태 정보 추가
+        self._add_status_fields(embed, interaction, player)
+
+        # 썸네일 및 배너 이미지 추가
+        if track.identifier:
+            embed.set_thumbnail(
+                url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
+            )
+        embed.set_image(url=APP_BANNER_URL)
         embed.set_footer(text=APP_NAME_TAG_VER)
+
+        # 버튼 상태 업데이트
+        self._update_button_states(player)
+        
         return embed
 
     @discord.ui.button(
@@ -448,20 +445,18 @@ class MusicControlView(discord.ui.View):
             )
 
         # 반복 모드 순환: 0(off) → 1(한곡) → 2(전곡) → 0(off)
-        if player.loop == 0:
-            player.set_loop(1)
-        elif player.loop == 1:
-            player.set_loop(2)
-        elif player.loop == 2:
-            player.set_loop(0)
+        next_loop = (player.loop + 1) % 3
+        player.set_loop(next_loop)
 
         # 데이터베이스에 설정 저장
         Database().set_loop(self.guild_id, player.loop)
 
         # embed와 모든 버튼 상태 업데이트
         embed = self.update_embed_and_buttons(interaction, player)
-        if embed:
-            await interaction.edit_original_response(embed=embed, view=self)
+        if not embed:
+            return
+            
+        await interaction.edit_original_response(embed=embed, view=self)
 
     @discord.ui.button(
         emoji="<:shuffle:1399720936068091964>",
@@ -488,8 +483,10 @@ class MusicControlView(discord.ui.View):
 
         # embed와 모든 버튼 상태 업데이트
         embed = self.update_embed_and_buttons(interaction, player)
-        if embed:
-            await interaction.edit_original_response(embed=embed, view=self)
+        if not embed:
+            return
+            
+        await interaction.edit_original_response(embed=embed, view=self)
 
     @discord.ui.button(
         emoji="💗",

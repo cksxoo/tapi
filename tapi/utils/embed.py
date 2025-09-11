@@ -35,6 +35,34 @@ async def send_temp_embed(interaction, guild_id, title_key, description_key=None
     await send_temp_message(interaction, embed, delete_after)
 
 
+def format_text_with_limit(text: str, max_length: int) -> str:
+    """텍스트를 제한된 길이로 포맷"""
+    return text[:max_length] + "..." if len(text) > max_length else text
+
+
+def create_track_embed(track, user_display_name: str) -> discord.Embed:
+    """단일 트랙용 embed 생성"""
+    embed = discord.Embed(color=THEME_COLOR)
+    embed.description = f"**[{track.title}]({track.uri})** - {track.author}\nby {user_display_name}"
+    
+    if track.identifier:
+        embed.set_thumbnail(
+            url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
+        )
+    
+    embed.set_footer(text=APP_NAME_TAG_VER)
+    return embed
+
+
+def create_playlist_embed(guild_id: int, playlist_name: str, track_count: int) -> discord.Embed:
+    """플레이리스트용 embed 생성"""
+    embed = discord.Embed(color=THEME_COLOR)
+    embed.title = get_lan(guild_id, "music_play_playlist")
+    embed.description = f"**{playlist_name}** - {track_count} tracks {get_lan(guild_id, 'music_added_to_queue')}"
+    embed.set_footer(text=APP_NAME_TAG_VER)
+    return embed
+
+
 async def send_temp_message(interaction, embed, delete_after=3, refresh_control=True):
     try:
         message = await interaction.followup.send(embed=embed)
