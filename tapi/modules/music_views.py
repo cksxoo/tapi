@@ -50,7 +50,9 @@ class SearchView(discord.ui.View):
         if self.message:
             try:
                 await self.message.delete()
-            except:
+            except discord.NotFound:
+                pass
+            except discord.Forbidden:
                 pass
 
 
@@ -68,7 +70,9 @@ class RecommendationView(discord.ui.View):
         if self.message:
             try:
                 await self.message.delete()
-            except:
+            except discord.NotFound:
+                pass
+            except discord.Forbidden:
                 pass
 
     def create_select_options(self):
@@ -254,7 +258,7 @@ class MusicControlView(discord.ui.View):
                     if player.shuffle
                     else discord.ButtonStyle.secondary
                 )
-        except:
+        except (AttributeError, ValueError, KeyError):
             pass  # 오류 시 기본 상태 유지
 
     def create_progress_bar(self, current, total, length=25):
