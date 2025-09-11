@@ -137,4 +137,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-<img alt="image" src="https://github.com/leechanwoo-kor/music_bot/blob/main/docs/banner.png?raw=true" />
+<img alt="image" src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/banner_summer.png" />

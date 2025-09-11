@@ -1,4 +1,4 @@
-![TAPI 봇 설명](https://github.com/cksxoo/tapi/blob/main/docs/descriptions/bot_description_for_image_kr.png?raw=true)
+![TAPI 봇 설명](https://raw.githubusercontent.com/cksxoo/tapi/main/docs/descriptions/bot_description_for_image_kr.png)
 
 ### **깔끔한 인터페이스, 안정적인 스트리밍**
 
@@ -9,6 +9,7 @@
 ---
 
 ### **빠른 시작**
+
 ```
 1. TAPI를 서버에 추가
 2. 음성 채널 입장

@@ -1,4 +1,4 @@
-![TAPI Bot Description](https://github.com/cksxoo/tapi/blob/main/docs/descriptions/bot_description_for_image_en.png?raw=true)
+![TAPI Bot Description](https://raw.githubusercontent.com/cksxoo/tapi/main/docs/descriptions/bot_description_for_image_en.png)
 
 ### **Clean Interface, Reliable Streaming**
 
@@ -9,6 +9,7 @@
 ---
 
 ### **Quick Start**
+
 ```
 1. Add TAPI to your server
 2. Join a voice channel
