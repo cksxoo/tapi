@@ -21,12 +21,13 @@ from tapi import (
 from tapi.utils.database import Database
 from tapi.utils.statistics import Statistics
 from tapi.utils.embed import (
-    send_embed, 
-    send_temp_message, 
+    send_embed,
+    send_temp_message,
     send_temp_embed,
     create_track_embed,
     create_playlist_embed,
-    create_error_embed
+    create_error_embed,
+    create_standard_embed
 )
 
 # 분리된 모듈들 import
