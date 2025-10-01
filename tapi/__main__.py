@@ -3,6 +3,7 @@ import asyncio
 import os
 import time
 import datetime
+from datetime import timezone, timedelta
 import psutil
 from discord.ext import commands
 
@@ -173,7 +174,7 @@ class TapiBot(commands.Bot):
                 "latency": latency_ms,
                 "memory_usage": memory_info.rss,  # Resident Set Size in bytes
                 "player_count": player_count,
-                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "timestamp": datetime.datetime.now(timezone(timedelta(hours=9))).replace(microsecond=0, tzinfo=None).isoformat(),
             }
             redis_manager.update_shard_status(shard_id, shard_data)
             LOGGER.debug(f"Updated shard {shard_id} status: {shard_data}")

@@ -1,6 +1,6 @@
 import os
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import logging
 from functools import lru_cache
 import time
@@ -208,8 +208,7 @@ class Database:
             data.update(kwargs)
             # updated_at을 한국시간으로 명시적으로 설정
             if "updated_at" not in data:
-                tz = pytz.timezone('Asia/Seoul')
-                data["updated_at"] = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S+09")
+                data["updated_at"] = datetime.now(timezone(timedelta(hours=9))).replace(microsecond=0, tzinfo=None).isoformat()
 
             response = client.table("guild_settings").upsert(data).execute()
 
@@ -267,7 +266,7 @@ class Database:
             "artist": artist,
             "duration": duration,
             "success": success,
-            "created_at": created_at or datetime.now(pytz.timezone('Asia/Seoul')).strftime("%Y-%m-%d %H:%M:%S+09"),
+            "created_at": created_at or datetime.now(timezone(timedelta(hours=9))).replace(microsecond=0, tzinfo=None).isoformat(),
         }
 
         # 버퍼에 추가
