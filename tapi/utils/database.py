@@ -206,10 +206,10 @@ class Database:
         try:
             data = {"guild_id": str(guild_id)}
             data.update(kwargs)
-            # updated_at은 트리거에서 자동 설정되지만 명시적으로 설정
+            # updated_at을 한국시간으로 명시적으로 설정 (statistics와 동일한 형식)
             if "updated_at" not in data:
                 tz = pytz.timezone('Asia/Seoul')
-                data["updated_at"] = datetime.now(tz).isoformat()
+                data["updated_at"] = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S+09")
 
             response = client.table("guild_settings").upsert(data).execute()
 
