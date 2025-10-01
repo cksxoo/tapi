@@ -206,7 +206,7 @@ class Database:
         try:
             data = {"guild_id": str(guild_id)}
             data.update(kwargs)
-            # updated_at을 한국시간으로 명시적으로 설정 (statistics와 동일한 형식)
+            # updated_at을 한국시간으로 명시적으로 설정
             if "updated_at" not in data:
                 tz = pytz.timezone('Asia/Seoul')
                 data["updated_at"] = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S+09")
@@ -267,7 +267,7 @@ class Database:
             "artist": artist,
             "duration": duration,
             "success": success,
-            "created_at": created_at or datetime.now().isoformat(),
+            "created_at": created_at or datetime.now(pytz.timezone('Asia/Seoul')).strftime("%Y-%m-%d %H:%M:%S+09"),
         }
 
         # 버퍼에 추가
