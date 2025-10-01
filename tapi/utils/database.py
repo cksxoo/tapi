@@ -4,6 +4,7 @@ from datetime import datetime
 import logging
 from functools import lru_cache
 import time
+import pytz
 
 # Supabase 클라이언트
 try:
@@ -207,7 +208,8 @@ class Database:
             data.update(kwargs)
             # updated_at은 트리거에서 자동 설정되지만 명시적으로 설정
             if "updated_at" not in data:
-                data["updated_at"] = datetime.now().isoformat()
+                tz = pytz.timezone('Asia/Seoul')
+                data["updated_at"] = datetime.now(tz).isoformat()
 
             response = client.table("guild_settings").upsert(data).execute()
 
