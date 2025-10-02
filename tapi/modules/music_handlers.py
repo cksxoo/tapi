@@ -39,7 +39,6 @@ class MusicHandlers:
         finally:
             del self.music_cog.last_music_messages[guild_id]
 
-
     async def _cleanup_player(
         self, guild_id: int, stop_current: bool = True, clear_queue: bool = True
     ):
@@ -82,21 +81,24 @@ class MusicHandlers:
             view = discord.ui.View()
             view.add_item(
                 discord.ui.Button(
-                    label="🌟 Top.gg Vote",
+                    emoji="<:topgg:1422912056549441630>",
+                    label="Top.gg Vote",
                     url="https://top.gg/bot/1157593204682657933/vote",
                     style=discord.ButtonStyle.link,
                 )
             )
             view.add_item(
                 discord.ui.Button(
-                    label="💬 Top.gg Reviews",
+                    emoji="<:topgg:1422912056549441630>",
+                    label="Top.gg Reviews",
                     url="https://top.gg/bot/1157593204682657933#reviews",
                     style=discord.ButtonStyle.link,
                 )
             )
             view.add_item(
                 discord.ui.Button(
-                    label="🇰🇷 KoreanBots",
+                    emoji="<:koreanbots:1422912074819960833>",
+                    label="KoreanBots",
                     url="https://koreanbots.dev/bots/1157593204682657933/vote",
                     style=discord.ButtonStyle.link,
                 )
@@ -209,21 +211,26 @@ class MusicHandlers:
                         requester = await self.bot.fetch_user(requester_id)
                     if requester:
                         # TAPI 스타일의 embed 생성
-                        embed = create_standard_embed(guild_id, "music_permission_dm_title", "music_permission_dm_description")
-                        
+                        embed = create_standard_embed(
+                            guild_id,
+                            "music_permission_dm_title",
+                            "music_permission_dm_description",
+                        )
+
                         # description에 실제 값 적용
-                        description = get_lan(guild_id, "music_permission_dm_description").format(
+                        description = get_lan(
+                            guild_id, "music_permission_dm_description"
+                        ).format(
                             track_title=track.title,
                             guild_name=guild.name,
-                            channel_name=channel.name
+                            channel_name=channel.name,
                         )
                         embed.description = description
-                        
+
                         await requester.send(embed=embed)
                 except (discord.Forbidden, discord.NotFound, discord.HTTPException):
                     pass
                 return
-
 
             # 이전 음악 메시지 정리
             await self._cleanup_music_message(guild_id, "new_track")
@@ -301,9 +308,7 @@ class MusicHandlers:
             )
         ):
 
-            LOGGER.warning(
-                f"Track failed: {original_track_title} - {event.message}"
-            )
+            LOGGER.warning(f"Track failed: {original_track_title} - {event.message}")
 
         # If fallback was not attempted or failed, send a message to the user
         channel_id = player.fetch("channel")
