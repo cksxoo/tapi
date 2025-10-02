@@ -57,10 +57,7 @@ class Statistics:
                 guild_name = str(guild_id)
                 channel_name = str(channel_id)
                 user_name = str(user_id)
-            
-            # created_at을 설정된 시간대로 설정 (타임존 정보 포함)
-            created_at = now.strftime("%Y-%m-%d %H:%M:%S+09")
-            
+
             # Record in database
             self.database.set_statistics(
                 date=date_str,
@@ -76,7 +73,6 @@ class Statistics:
                 artist=artist,
                 duration=duration,
                 success=success,
-                created_at=created_at,
             )
             
         except Exception as e:

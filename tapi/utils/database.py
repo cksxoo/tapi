@@ -206,10 +206,7 @@ class Database:
         try:
             data = {"guild_id": str(guild_id)}
             data.update(kwargs)
-            # updated_at을 한국시간으로 명시적으로 설정
-            if "updated_at" not in data:
-                kst = datetime.now(timezone(timedelta(hours=9)))
-                data["updated_at"] = kst.strftime("%Y-%m-%d %H:%M:%S+09")
+            # updated_at은 Supabase의 기본값 사용: timezone('Asia/Seoul'::text, now())
 
             response = client.table("guild_settings").upsert(data).execute()
 
@@ -250,7 +247,6 @@ class Database:
         artist,
         duration,
         success,
-        created_at=None,
     ):
         """통계 저장 (배치 처리)"""
         stats_data = {
@@ -267,7 +263,7 @@ class Database:
             "artist": artist,
             "duration": duration,
             "success": success,
-            "created_at": created_at or datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d %H:%M:%S+09"),
+            # created_at은 Supabase의 기본값 사용: timezone('Asia/Seoul'::text, now())
         }
 
         # 버퍼에 추가

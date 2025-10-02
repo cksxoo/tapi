@@ -175,9 +175,6 @@ class MusicHandlers:
             # duration을 밀리초에서 초로 변환
             duration_seconds = track.duration // 1000
 
-            # created_at을 한국 시간대로 설정
-            created_at = now.strftime("%Y-%m-%d %H:%M:%S+09")
-
             Database().set_statistics(
                 date=date,
                 time_str=time,
@@ -192,7 +189,6 @@ class MusicHandlers:
                 artist=track.author,
                 duration=duration_seconds,
                 success=True,
-                created_at=created_at,
             )
         except Exception as e:
             LOGGER.error(f"Error saving statistics: {e}")
