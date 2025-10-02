@@ -208,7 +208,8 @@ class Database:
             data.update(kwargs)
             # updated_at을 한국시간으로 명시적으로 설정
             if "updated_at" not in data:
-                data["updated_at"] = datetime.now(timezone(timedelta(hours=9))).replace(microsecond=0, tzinfo=None).isoformat()
+                kst = datetime.now(timezone(timedelta(hours=9)))
+                data["updated_at"] = kst.strftime("%Y-%m-%d %H:%M:%S+09")
 
             response = client.table("guild_settings").upsert(data).execute()
 
@@ -266,7 +267,7 @@ class Database:
             "artist": artist,
             "duration": duration,
             "success": success,
-            "created_at": created_at or datetime.now(timezone(timedelta(hours=9))).replace(microsecond=0, tzinfo=None).isoformat(),
+            "created_at": created_at or datetime.now(timezone(timedelta(hours=9))).strftime("%Y-%m-%d %H:%M:%S+09"),
         }
 
         # 버퍼에 추가

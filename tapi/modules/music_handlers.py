@@ -176,7 +176,7 @@ class MusicHandlers:
             duration_seconds = track.duration // 1000
 
             # created_at을 한국 시간대로 설정
-            created_at = now.strftime("%Y-%m-%d %H:%M:%S")
+            created_at = now.strftime("%Y-%m-%d %H:%M:%S+09")
 
             Database().set_statistics(
                 date=date,
