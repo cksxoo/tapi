@@ -4,7 +4,7 @@ import logging
 
 
 # Bot version
-BOT_VER = "v0.8.2"
+BOT_VER = "v0.8.3"
 
 # enable logging
 logging.basicConfig(
@@ -63,7 +63,8 @@ for file in os.listdir("tapi/modules"):
             EXTENSIONS.append(module_name)
 
 APP_BANNER_URL = (
-    "https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_rainny2.png"
+    "https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_halloween.png"
+    
 )
 APP_NAME_TAG_VER = "%s%s | %s" % (APPLICATION_NAME, APP_TAG, BOT_VER)
 
