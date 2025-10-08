@@ -64,7 +64,6 @@ for file in os.listdir("tapi/modules"):
 
 APP_BANNER_URL = (
     "https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_halloween.png"
-    
 )
 APP_NAME_TAG_VER = "%s%s | %s" % (APPLICATION_NAME, APP_TAG, BOT_VER)
 

@@ -120,5 +120,8 @@
     "music_play_fail_description": "音楽を再生できません。",
 
     "music_permission_dm_title": "🎧 音楽再生通知",
-    "music_permission_dm_description": "**{track_title}** 再生中です！🎧\n🏠 サーバー: **{guild_name}** - #{channel_name}\n💭 そのチャンネルにメッセージを送る権限がないので、こちらでお知らせしますね～"
+    "music_permission_dm_description": "**{track_title}** 再生中です！🎧\n🏠 サーバー: **{guild_name}** - #{channel_name}\n💭 そのチャンネルにメッセージを送る権限がないので、こちらでお知らせしますね～",
+
+    "vote_required_title": "🗳️ 投票が必要です！",
+    "vote_required_description": "TAPIを使用するには、まず投票してください。\n一度投票すれば永久に使用できます！"
 }

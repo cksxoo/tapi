@@ -27,7 +27,7 @@ from tapi.utils.embed import (
     create_track_embed,
     create_playlist_embed,
     create_error_embed,
-    create_standard_embed
+    create_standard_embed,
 )
 
 # 분리된 모듈들 import
@@ -36,6 +36,70 @@ from tapi.modules.music_views import SearchView, MusicControlView
 from tapi.modules.music_handlers import MusicHandlers
 
 url_rx = re.compile(r"https?://(?:www\.)?.+")
+
+
+# 투표 확인 데코레이터
+async def check_vote(interaction: discord.Interaction):
+    """사용자가 투표했는지 확인"""
+    db = Database()
+    if not db.has_voted(interaction.user.id):
+        # 유저 locale 감지 (ko, en, ja 지원)
+        user_locale = str(interaction.locale)
+        if user_locale.startswith("ko"):
+            lang = "ko"
+        elif user_locale.startswith("ja"):
+            lang = "ja"
+        else:
+            lang = "en"
+
+        # 언어 파일에서 메시지 가져오기
+        import json
+
+        try:
+            with open(f"tapi/languages/{lang}.json", encoding="utf-8") as f:
+                language_data = json.load(f)
+            title = language_data.get("vote_required_title", "🗳️ Vote Required!")
+            description = language_data.get(
+                "vote_required_description",
+                "To use TAPI, please vote for us first.\nJust vote once and you can use it forever!",
+            )
+        except:
+            title = "🗳️ Vote Required!"
+            description = "To use TAPI, please vote for us first.\nJust vote once and you can use it forever!"
+
+        # 유저 멘션 추가
+        embed = discord.Embed(
+            title=title,
+            description=f"{interaction.user.mention} {description}",
+            color=THEME_COLOR
+        )
+        # 배너 이미지 추가
+        embed.set_image(
+            url="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_halloween.png"
+        )
+
+        # 투표 링크 버튼 생성
+        view = discord.ui.View()
+        view.add_item(
+            discord.ui.Button(
+                emoji="<:topgg:1422912056549441630>",
+                label="Top.gg Vote",
+                url="https://top.gg/bot/1157593204682657933/vote",
+                style=discord.ButtonStyle.link,
+            )
+        )
+        view.add_item(
+            discord.ui.Button(
+                emoji="<:koreanbots:1422912074819960833>",
+                label="KoreanBots Vote",
+                url="https://koreanbots.dev/bots/1157593204682657933/vote",
+                style=discord.ButtonStyle.link,
+            )
+        )
+
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        return False
+    return True
 
 
 class Music(commands.Cog):
@@ -93,23 +157,23 @@ class Music(commands.Cog):
         # 봇 메시지 무시
         if message.author.bot:
             return
-        
+
         # DM 무시
         if not message.guild:
             return
-        
+
         # 자동 재생 채널 확인
         db = Database()
         auto_channel_id = db.get_auto_play_channel(message.guild.id)
-        
+
         if not auto_channel_id or str(message.channel.id) != str(auto_channel_id):
             return
-        
+
         # URL 감지
         urls = url_rx.findall(message.content)
         if not urls:
             return
-        
+
         # 유저가 음성 채널에 있는지 확인
         if not message.author.voice or not message.author.voice.channel:
             try:
@@ -123,52 +187,52 @@ class Music(commands.Cog):
             except Exception:
                 pass
             return
-        
+
         # 첫 번째 URL만 처리
         query = urls[0].strip("<>")
-        
+
         try:
             # 플레이어 생성 또는 가져오기
             player = self.bot.lavalink.player_manager.create(message.guild.id)
             await self._setup_player_settings(player, message.guild.id)
-            
+
             # 봇이 음성 채널에 연결되어 있지 않으면 연결
             voice_client = message.guild.voice_client
             voice_channel = message.author.voice.channel
-            
+
             if voice_client is None:
                 # 권한 확인
                 permissions = voice_channel.permissions_for(message.guild.me)
                 if not permissions.connect or not permissions.speak:
                     return
-                
+
                 player.store("channel", message.channel.id)
                 await voice_channel.connect(cls=AudioConnection)
             elif voice_client.channel.id != voice_channel.id:
                 # 다른 음성 채널에 있으면 무시
                 return
-            
+
             # 쿼리 준비
             current_lavalink_query, is_search_query = self._prepare_query(query)
-            
+
             # 트랙 검색
             results = await self._search_tracks(
                 player, current_lavalink_query, query, is_search_query
             )
-            
+
             if not results:
                 await message.add_reaction("❌")
                 return
-            
+
             # 플레이어에 트랙 추가
             await self._add_tracks_to_player(player, results, message.author.id)
-            
+
             # 리액션으로 확인 표시
             await message.add_reaction("✅")
-            
+
             if not player.is_playing:
                 await player.play()
-                
+
         except Exception as e:
             LOGGER.error(f"Error in auto-play on_message: {e}")
             try:
@@ -176,24 +240,23 @@ class Music(commands.Cog):
             except:
                 pass
 
-
     @staticmethod
     async def _setup_player_settings(player, guild_id: int):
         """플레이어 설정 초기화"""
         db = Database()
         settings = db.get_guild_settings(guild_id)
-        
+
         # 볼륨 설정
-        saved_volume = settings.get('volume', 20)
+        saved_volume = settings.get("volume", 20)
         await player.set_volume(saved_volume)
 
         # 반복 상태 설정
-        loop = settings.get('loop_mode', 0)
+        loop = settings.get("loop_mode", 0)
         if loop is not None:
             player.set_loop(loop)
 
         # 셔플 상태 설정
-        shuffle = settings.get('shuffle', False)
+        shuffle = settings.get("shuffle", False)
         if shuffle is not None:
             player.set_shuffle(shuffle)
 
@@ -218,14 +281,16 @@ class Music(commands.Cog):
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
             raise app_commands.CheckFailure("User not in voice channel")
-        
+
         return interaction.user.voice.channel
 
     @staticmethod
-    async def _validate_voice_permissions(interaction: discord.Interaction, voice_channel):
+    async def _validate_voice_permissions(
+        interaction: discord.Interaction, voice_channel
+    ):
         """음성 채널 권한 검증"""
         permissions = voice_channel.permissions_for(interaction.guild.me)
-        
+
         if not permissions.connect or not permissions.speak:
             await send_temp_embed(
                 interaction, interaction.guild.id, "music_no_permission"
@@ -313,25 +378,35 @@ class Music(commands.Cog):
         """쿼리를 처리하고 검색 타입을 결정"""
         original_query_stripped = query.strip("<>")
         is_search_query = not url_rx.match(original_query_stripped)
-        
+
         if is_search_query:
             return f"ytsearch:{original_query_stripped}", is_search_query
-        
+
         # URL인 경우 list 파라미터 제거 (단일 곡 재생을 위해)
-        if "youtube.com" in original_query_stripped or "youtu.be" in original_query_stripped:
-            current_lavalink_query = re.sub(r"[&?]list=[^&]*", "", original_query_stripped)
-            current_lavalink_query = re.sub(r"[&?]index=[^&]*", "", current_lavalink_query)
+        if (
+            "youtube.com" in original_query_stripped
+            or "youtu.be" in original_query_stripped
+        ):
+            current_lavalink_query = re.sub(
+                r"[&?]list=[^&]*", "", original_query_stripped
+            )
+            current_lavalink_query = re.sub(
+                r"[&?]index=[^&]*", "", current_lavalink_query
+            )
             current_lavalink_query = re.sub(
                 r"[&?]+",
-                lambda m: "?" if m.start() == original_query_stripped.find("?") else "&",
+                lambda m: (
+                    "?" if m.start() == original_query_stripped.find("?") else "&"
+                ),
                 current_lavalink_query,
             )
             return current_lavalink_query.rstrip("&?"), is_search_query
-        
+
         return original_query_stripped, is_search_query
 
-
-    async def _search_tracks(self, player, query: str, original_query: str, is_search_query: bool):
+    async def _search_tracks(
+        self, player, query: str, original_query: str, is_search_query: bool
+    ):
         """트랙 검색 처리"""
         current_query = query
         nofind = 0
@@ -350,9 +425,7 @@ class Music(commands.Cog):
         """트랙 또는 플레이리스트에 대한 embed 생성"""
         if results.load_type == LoadType.PLAYLIST:
             return create_playlist_embed(
-                interaction.guild.id, 
-                results.playlist_info.name, 
-                len(results.tracks)
+                interaction.guild.id, results.playlist_info.name, len(results.tracks)
             )
         else:
             track = results.tracks[0]
@@ -376,29 +449,33 @@ class Music(commands.Cog):
     @app_commands.describe(query="찾고싶은 음악의 제목이나 링크를 입력하세요")
     @app_commands.check(create_player)
     async def play(self, interaction: discord.Interaction, query: str):
+        # 투표 확인
+        if not await check_vote(interaction):
+            return
+
         await interaction.response.defer()
 
         try:
             player = self.bot.lavalink.player_manager.get(interaction.guild.id)
             original_query_stripped = query.strip("<>")
-            
+
             # 쿼리 준비
             current_lavalink_query, is_search_query = self._prepare_query(query)
-            
+
             # 트랙 검색
             results = await self._search_tracks(
                 player, current_lavalink_query, original_query_stripped, is_search_query
             )
-            
+
             if not results:
                 embed = create_error_embed(
                     f"{get_lan(interaction.guild.id, 'music_can_not_find_anything')}\nQuery: {original_query_stripped}"
                 )
                 return await send_temp_message(interaction, embed)
-            
+
             # 플레이어에 트랙 추가
             await self._add_tracks_to_player(player, results, interaction.user.id)
-            
+
             # embed 생성 및 전송
             embed = self._create_track_embed(results, interaction)
             await send_temp_message(interaction, embed)
@@ -410,7 +487,11 @@ class Music(commands.Cog):
             LOGGER.error(f"Error in play command: {e}")
             try:
                 Statistics().record_play(
-                    track=results.tracks[0] if "results" in locals() and results and results.tracks else None,
+                    track=(
+                        results.tracks[0]
+                        if "results" in locals() and results and results.tracks
+                        else None
+                    ),
                     guild_id=interaction.guild_id,
                     channel_id=interaction.channel_id,
                     user_id=interaction.guild.id,
@@ -429,6 +510,10 @@ class Music(commands.Cog):
     )
     @app_commands.check(create_player)
     async def scplay(self, interaction: discord.Interaction, query: str):
+        # 투표 확인
+        if not await check_vote(interaction):
+            return
+
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
@@ -497,6 +582,10 @@ class Music(commands.Cog):
     @app_commands.describe(query="Enter the keyword to search for songs")
     @app_commands.check(create_player)
     async def search(self, interaction: discord.Interaction, query: str):
+        # 투표 확인
+        if not await check_vote(interaction):
+            return
+
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
@@ -517,9 +606,7 @@ class Music(commands.Cog):
         tracks = results.tracks[:5]
 
         embed = create_standard_embed(
-            interaction.guild.id,
-            "music_search_results",
-            "music_search_select"
+            interaction.guild.id, "music_search_results", "music_search_select"
         )
         for i, track in enumerate(tracks, start=1):
             embed.add_field(
@@ -592,7 +679,9 @@ class Music(commands.Cog):
             user_id=interaction.guild.id,
         )
 
-        await send_temp_embed(interaction, interaction.guild.id, "music_dc_disconnected")
+        await send_temp_embed(
+            interaction, interaction.guild.id, "music_dc_disconnected"
+        )
 
     @app_commands.command(name="skip", description="Skip to the next song!")
     @app_commands.check(create_player)
@@ -610,7 +699,7 @@ class Music(commands.Cog):
         if player.loop == 1:  # 한 곡 반복모드
             player.set_loop(2)  # 전체 반복으로 전환
             Database().set_loop(interaction.guild.id, 2)  # 설정 저장
-            
+
         await player.skip()
         await send_temp_embed(interaction, interaction.guild.id, "music_skip_next")
 
@@ -828,7 +917,9 @@ class Music(commands.Cog):
         if player.shuffle:
             await send_temp_embed(interaction, interaction.guild.id, "music_shuffle_on")
         else:
-            await send_temp_embed(interaction, interaction.guild.id, "music_shuffle_off")
+            await send_temp_embed(
+                interaction, interaction.guild.id, "music_shuffle_off"
+            )
 
     @app_commands.command(name="clear", description="Clear the music queue")
     @app_commands.check(create_player)
@@ -848,9 +939,9 @@ class Music(commands.Cog):
 
         embed = discord.Embed(
             title=get_lan(interaction.guild.id, "music_queue_cleared"),
-            description=get_lan(interaction.guild.id, "music_queue_cleared_desc").format(
-                count=queue_length
-            ),
+            description=get_lan(
+                interaction.guild.id, "music_queue_cleared_desc"
+            ).format(count=queue_length),
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
@@ -917,12 +1008,13 @@ class Music(commands.Cog):
             await player.set_pause(True)
             await send_temp_embed(interaction, interaction.guild.id, "music_pause")
 
-
     @app_commands.command(
         name="autoplay",
-        description="Set up a channel for automatic music playback from URLs"
+        description="Set up a channel for automatic music playback from URLs",
     )
-    @app_commands.describe(channel="Select a channel for auto-play (leave empty to check current settings)")
+    @app_commands.describe(
+        channel="Select a channel for auto-play (leave empty to check current settings)"
+    )
     async def autoplay(
         self, interaction: discord.Interaction, channel: discord.TextChannel = None
     ):
@@ -939,26 +1031,39 @@ class Music(commands.Cog):
                     ch = interaction.guild.get_channel(int(current_channel_id))
                     if ch:
                         embed = discord.Embed(
-                            title=get_lan(interaction.guild.id, "autoplay_current_title"),
-                            description=get_lan(interaction.guild.id, "autoplay_current_description").format(channel=ch.mention),
+                            title=get_lan(
+                                interaction.guild.id, "autoplay_current_title"
+                            ),
+                            description=get_lan(
+                                interaction.guild.id, "autoplay_current_description"
+                            ).format(channel=ch.mention),
                             color=THEME_COLOR,
                         )
                     else:
                         embed = discord.Embed(
-                            title=get_lan(interaction.guild.id, "autoplay_channel_not_found_title"),
-                            description=get_lan(interaction.guild.id, "autoplay_channel_not_found_description"),
+                            title=get_lan(
+                                interaction.guild.id, "autoplay_channel_not_found_title"
+                            ),
+                            description=get_lan(
+                                interaction.guild.id,
+                                "autoplay_channel_not_found_description",
+                            ),
                             color=THEME_COLOR,
                         )
                 except Exception:
                     embed = discord.Embed(
                         title=get_lan(interaction.guild.id, "autoplay_error_title"),
-                        description=get_lan(interaction.guild.id, "autoplay_error_description"),
+                        description=get_lan(
+                            interaction.guild.id, "autoplay_error_description"
+                        ),
                         color=THEME_COLOR,
                     )
             else:
                 embed = discord.Embed(
                     title=get_lan(interaction.guild.id, "autoplay_not_set_title"),
-                    description=get_lan(interaction.guild.id, "autoplay_not_set_description"),
+                    description=get_lan(
+                        interaction.guild.id, "autoplay_not_set_description"
+                    ),
                     color=THEME_COLOR,
                 )
 
@@ -970,7 +1075,9 @@ class Music(commands.Cog):
         if not permissions.read_messages or not permissions.send_messages:
             embed = discord.Embed(
                 title=get_lan(interaction.guild.id, "autoplay_no_permission_title"),
-                description=get_lan(interaction.guild.id, "autoplay_no_permission_description").format(channel=channel.mention),
+                description=get_lan(
+                    interaction.guild.id, "autoplay_no_permission_description"
+                ).format(channel=channel.mention),
                 color=THEME_COLOR,
             )
             embed.set_footer(text=APP_NAME_TAG_VER)
@@ -981,12 +1088,13 @@ class Music(commands.Cog):
 
         embed = discord.Embed(
             title=get_lan(interaction.guild.id, "autoplay_setup_complete_title"),
-            description=get_lan(interaction.guild.id, "autoplay_setup_complete_description").format(channel=channel.mention),
+            description=get_lan(
+                interaction.guild.id, "autoplay_setup_complete_description"
+            ).format(channel=channel.mention),
             color=THEME_COLOR,
         )
         embed.set_footer(text=APP_NAME_TAG_VER)
         await send_temp_message(interaction, embed)
-
 
 
 async def setup(bot):

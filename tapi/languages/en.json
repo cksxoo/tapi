@@ -118,5 +118,8 @@
     "music_play_fail_description": "Unable to play the music.",
 
     "music_permission_dm_title": "🎧 Music Notification",
-    "music_permission_dm_description": "**{track_title}** is now playing! 🎧\n🏠 Server: **{guild_name}** - #{channel_name}\n💭 I can't send messages in that channel, so I'm letting you know here~"
+    "music_permission_dm_description": "**{track_title}** is now playing! 🎧\n🏠 Server: **{guild_name}** - #{channel_name}\n💭 I can't send messages in that channel, so I'm letting you know here~",
+
+    "vote_required_title": "🗳️ Vote Required!",
+    "vote_required_description": "To use TAPI, please vote for us first.\nJust vote once and you can use it forever!"
 }

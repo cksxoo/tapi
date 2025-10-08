@@ -311,6 +311,39 @@ class Database:
             if len(self.stats_buffer) > 1000:  # 버퍼 오버플로우 방지
                 self.stats_buffer = self.stats_buffer[-500:]
 
+    # ===== 투표 관련 메서드 =====
+
+    def has_voted(self, user_id):
+        """사용자가 한 번이라도 투표한 적이 있는지 확인 (캐시 활용)"""
+        # 캐시 확인
+        cached = self._get_from_cache("votes", user_id)
+        if cached is not None:
+            return cached
+
+        client = self.get_client()
+        if not client:
+            return False
+
+        try:
+            response = (
+                client.table("votes")
+                .select("id")
+                .eq("user_id", str(user_id))
+                .limit(1)
+                .execute()
+            )
+
+            has_vote = bool(response.data) if response else False
+
+            # 캐시에 저장 (투표 기록이 있으면 True, 없으면 False)
+            self._set_cache("votes", user_id, has_vote)
+
+            return has_vote
+
+        except Exception as e:
+            LOGGER.error(f"Error checking vote status: {e}")
+            return False
+
     def create_table(self):
         """테이블 생성 (Supabase에서는 SQL Editor에서 직접 실행)"""
         LOGGER.info("Tables should be created directly in Supabase SQL Editor")
