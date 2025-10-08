@@ -87,6 +87,96 @@ class Music(commands.Cog):
     async def on_voice_state_update(self, member, before, after):
         return await self.handlers.on_voice_state_update(member, before, after)
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        """자동 재생 기능: 설정된 채널에서 URL 감지 시 자동 재생"""
+        # 봇 메시지 무시
+        if message.author.bot:
+            return
+        
+        # DM 무시
+        if not message.guild:
+            return
+        
+        # 자동 재생 채널 확인
+        db = Database()
+        auto_channel_id = db.get_auto_play_channel(message.guild.id)
+        
+        if not auto_channel_id or str(message.channel.id) != str(auto_channel_id):
+            return
+        
+        # URL 감지
+        urls = url_rx.findall(message.content)
+        if not urls:
+            return
+        
+        # 유저가 음성 채널에 있는지 확인
+        if not message.author.voice or not message.author.voice.channel:
+            try:
+                # 음성 채널에 없음을 알림
+                warning_text = f"🎵 {message.author.mention} {get_lan(message.guild.id, 'autoplay_need_voice_channel')}"
+                embed = create_error_embed(warning_text)
+                warning_msg = await message.channel.send(embed=embed)
+                await message.add_reaction("⚠️")
+                # 5초 후 메시지 삭제
+                await warning_msg.delete(delay=5)
+            except Exception:
+                pass
+            return
+        
+        # 첫 번째 URL만 처리
+        query = urls[0].strip("<>")
+        
+        try:
+            # 플레이어 생성 또는 가져오기
+            player = self.bot.lavalink.player_manager.create(message.guild.id)
+            await self._setup_player_settings(player, message.guild.id)
+            
+            # 봇이 음성 채널에 연결되어 있지 않으면 연결
+            voice_client = message.guild.voice_client
+            voice_channel = message.author.voice.channel
+            
+            if voice_client is None:
+                # 권한 확인
+                permissions = voice_channel.permissions_for(message.guild.me)
+                if not permissions.connect or not permissions.speak:
+                    return
+                
+                player.store("channel", message.channel.id)
+                await voice_channel.connect(cls=AudioConnection)
+            elif voice_client.channel.id != voice_channel.id:
+                # 다른 음성 채널에 있으면 무시
+                return
+            
+            # 쿼리 준비
+            current_lavalink_query, is_search_query = self._prepare_query(query)
+            
+            # 트랙 검색
+            results = await self._search_tracks(
+                player, current_lavalink_query, query, is_search_query
+            )
+            
+            if not results:
+                await message.add_reaction("❌")
+                return
+            
+            # 플레이어에 트랙 추가
+            await self._add_tracks_to_player(player, results, message.author.id)
+            
+            # 리액션으로 확인 표시
+            await message.add_reaction("✅")
+            
+            if not player.is_playing:
+                await player.play()
+                
+        except Exception as e:
+            LOGGER.error(f"Error in auto-play on_message: {e}")
+            try:
+                await message.add_reaction("❌")
+            except:
+                pass
+
+
     @staticmethod
     async def _setup_player_settings(player, guild_id: int):
         """플레이어 설정 초기화"""
@@ -826,6 +916,77 @@ class Music(commands.Cog):
         else:
             await player.set_pause(True)
             await send_temp_embed(interaction, interaction.guild.id, "music_pause")
+
+
+    @app_commands.command(
+        name="autoplay",
+        description="Set up a channel for automatic music playback from URLs"
+    )
+    @app_commands.describe(channel="Select a channel for auto-play (leave empty to check current settings)")
+    async def autoplay(
+        self, interaction: discord.Interaction, channel: discord.TextChannel = None
+    ):
+        await interaction.response.defer()
+
+        db = Database()
+
+        if channel is None:
+            # 현재 설정 확인
+            current_channel_id = db.get_auto_play_channel(interaction.guild.id)
+
+            if current_channel_id:
+                try:
+                    ch = interaction.guild.get_channel(int(current_channel_id))
+                    if ch:
+                        embed = discord.Embed(
+                            title=get_lan(interaction.guild.id, "autoplay_current_title"),
+                            description=get_lan(interaction.guild.id, "autoplay_current_description").format(channel=ch.mention),
+                            color=THEME_COLOR,
+                        )
+                    else:
+                        embed = discord.Embed(
+                            title=get_lan(interaction.guild.id, "autoplay_channel_not_found_title"),
+                            description=get_lan(interaction.guild.id, "autoplay_channel_not_found_description"),
+                            color=THEME_COLOR,
+                        )
+                except Exception:
+                    embed = discord.Embed(
+                        title=get_lan(interaction.guild.id, "autoplay_error_title"),
+                        description=get_lan(interaction.guild.id, "autoplay_error_description"),
+                        color=THEME_COLOR,
+                    )
+            else:
+                embed = discord.Embed(
+                    title=get_lan(interaction.guild.id, "autoplay_not_set_title"),
+                    description=get_lan(interaction.guild.id, "autoplay_not_set_description"),
+                    color=THEME_COLOR,
+                )
+
+            embed.set_footer(text=APP_NAME_TAG_VER)
+            return await send_temp_message(interaction, embed)
+
+        # 채널 권한 확인
+        permissions = channel.permissions_for(interaction.guild.me)
+        if not permissions.read_messages or not permissions.send_messages:
+            embed = discord.Embed(
+                title=get_lan(interaction.guild.id, "autoplay_no_permission_title"),
+                description=get_lan(interaction.guild.id, "autoplay_no_permission_description").format(channel=channel.mention),
+                color=THEME_COLOR,
+            )
+            embed.set_footer(text=APP_NAME_TAG_VER)
+            return await send_temp_message(interaction, embed)
+
+        # 설정 저장
+        db.set_auto_play_channel(interaction.guild.id, channel.id)
+
+        embed = discord.Embed(
+            title=get_lan(interaction.guild.id, "autoplay_setup_complete_title"),
+            description=get_lan(interaction.guild.id, "autoplay_setup_complete_description").format(channel=channel.mention),
+            color=THEME_COLOR,
+        )
+        embed.set_footer(text=APP_NAME_TAG_VER)
+        await send_temp_message(interaction, embed)
+
 
 
 async def setup(bot):
