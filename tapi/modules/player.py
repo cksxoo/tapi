@@ -260,6 +260,36 @@ class Music(commands.Cog):
 
         return True
 
+    @staticmethod
+    async def require_playing(interaction: discord.Interaction):
+        if interaction.guild is None:
+            raise app_commands.NoPrivateMessage()
+
+        # Check if user is in a voice channel
+        if not interaction.user.voice or not interaction.user.voice.channel:
+            embed = discord.Embed(
+                description=get_lan(
+                    interaction.guild.id, "music_not_in_voice_channel_description"
+                ),
+                color=THEME_COLOR,
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            raise app_commands.CheckFailure("User not in voice channel")
+
+        # Get player
+        player = interaction.client.lavalink.player_manager.get(interaction.guild.id)
+
+        # Check if music is playing
+        if not player.is_playing:
+            embed = discord.Embed(
+                description=get_lan(interaction.guild.id, "music_not_playing"),
+                color=THEME_COLOR,
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            raise app_commands.CheckFailure("Music not playing")
+
+        return True
+
     @app_commands.command(name="connect", description="Connect to voice channel!")
     @app_commands.check(create_player)
     async def connect(self, interaction: discord.Interaction):
@@ -586,16 +616,11 @@ class Music(commands.Cog):
         )
 
     @app_commands.command(name="skip", description="Skip to the next song!")
-    @app_commands.check(create_player)
+    @app_commands.check(require_playing)
     async def skip(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-
-        if not player.is_playing:
-            return await send_temp_embed(
-                interaction, interaction.guild.id, "music_not_playing"
-            )
 
         # 한 곡 반복모드일 때는 전체 반복으로 전환 후 skip
         if player.loop == 1:  # 한 곡 반복모드
@@ -608,19 +633,11 @@ class Music(commands.Cog):
     @app_commands.command(
         name="nowplaying", description="Sending the currently playing song!"
     )
-    @app_commands.check(create_player)
+    @app_commands.check(require_playing)
     async def nowplaying(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        if not player.current:
-            embed = discord.Embed(
-                title=get_lan(interaction.guild.id, "music_no_playing_music"),
-                description="",
-                color=THEME_COLOR,
-            )
-            embed.set_footer(text=APP_NAME_TAG_VER)
-            return await send_temp_message(interaction, embed)
 
         # 기존 음악 메시지 삭제
         await self._cleanup_music_message(interaction.guild.id, "nowplaying_command")
@@ -741,15 +758,11 @@ class Music(commands.Cog):
     @app_commands.command(
         name="repeat", description="Repeat one song or repeat multiple songs!"
     )
-    @app_commands.check(create_player)
+    @app_commands.check(require_playing)
     async def repeat(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        if not player.is_playing:
-            return await send_temp_embed(
-                interaction, interaction.guild.id, "music_not_playing"
-            )
 
         if player.loop == 0:
             player.set_loop(1)
@@ -803,15 +816,11 @@ class Music(commands.Cog):
         name="shuffle",
         description="The music in the playlist comes out randomly from the next song!",
     )
-    @app_commands.check(create_player)
+    @app_commands.check(require_playing)
     async def shuffle(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        if not player.is_playing:
-            return await send_temp_embed(
-                interaction, interaction.guild.id, "music_not_playing"
-            )
 
         player.set_shuffle(not player.shuffle)
         Database().set_shuffle(interaction.guild.id, player.shuffle)
@@ -851,7 +860,7 @@ class Music(commands.Cog):
 
     @app_commands.command(name="volume", description="Changes or display the volume")
     @app_commands.describe(volume="볼륨값을 입력하세요")
-    @app_commands.check(create_player)
+    @app_commands.check(require_playing)
     async def volume(self, interaction: discord.Interaction, volume: int = None):
         await interaction.response.defer()
 
@@ -894,15 +903,12 @@ class Music(commands.Cog):
         await send_temp_message(interaction, embed)
 
     @app_commands.command(name="pause", description="Pause or resume music!")
-    @app_commands.check(create_player)
+    @app_commands.check(require_playing)
     async def pause(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        if not player.is_playing:
-            return await send_temp_embed(
-                interaction, interaction.guild.id, "music_not_playing"
-            )
+
         if player.paused:
             await player.set_pause(False)
             await send_temp_embed(interaction, interaction.guild.id, "music_resume")
