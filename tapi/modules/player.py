@@ -82,17 +82,17 @@ async def check_vote(interaction: discord.Interaction):
         view = discord.ui.View()
         view.add_item(
             discord.ui.Button(
-                emoji="<:topgg:1422912056549441630>",
-                label="Top.gg Vote",
-                url="https://top.gg/bot/1157593204682657933/vote",
+                emoji="<:koreanbots:1422912074819960833>",
+                label="KoreanBots Vote",
+                url="https://koreanbots.dev/bots/1157593204682657933/vote",
                 style=discord.ButtonStyle.link,
             )
         )
         view.add_item(
             discord.ui.Button(
-                emoji="<:koreanbots:1422912074819960833>",
-                label="KoreanBots Vote",
-                url="https://koreanbots.dev/bots/1157593204682657933/vote",
+                emoji="<:topgg:1422912056549441630>",
+                label="Top.gg Vote",
+                url="https://top.gg/bot/1157593204682657933/vote",
                 style=discord.ButtonStyle.link,
             )
         )
