@@ -29,8 +29,6 @@ class TapiBot(commands.Bot):
         intents = discord.Intents.none()
         intents.guilds = True  # For basic guild operations
         intents.voice_states = True  # For Lavalink to manage voice channels
-        intents.guild_messages = True  # For receiving guild messages
-        intents.message_content = True  # For auto-play feature to read message URLs
 
         # 샤딩 설정
         if shard_id is not None and shard_count is not None:
@@ -70,7 +68,7 @@ class TapiBot(commands.Bot):
         )
         LOGGER.info(f"{APP_NAME_TAG_VER} - {shard_info}")
         LOGGER.info(f"Connected to {len(self.guilds)} guilds on {shard_info}")
-        LOGGER.info(f"Bot intents: guilds={self.intents.guilds}, guild_messages={self.intents.guild_messages}, voice_states={self.intents.voice_states}, message_content={self.intents.message_content}")
+        LOGGER.info(f"Bot intents: guilds={self.intents.guilds}, voice_states={self.intents.voice_states}")
 
         await self.change_presence(
             activity=discord.Activity(
