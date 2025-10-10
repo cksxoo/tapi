@@ -176,19 +176,10 @@ class Music(commands.Cog):
         """사용자 음성 상태 검증"""
         if not interaction.user.voice or not interaction.user.voice.channel:
             embed = discord.Embed(
-                title=get_lan(interaction.guild.id, "music_not_in_voice_channel_title"),
                 description=get_lan(
                     interaction.guild.id, "music_not_in_voice_channel_description"
                 ),
                 color=THEME_COLOR,
-            )
-            embed.set_footer(
-                text=get_lan(interaction.guild.id, "music_not_in_voice_channel_footer")
-                + "\n"
-                + APP_NAME_TAG_VER
-            )
-            embed.set_thumbnail(
-                url="https://cdn.discordapp.com/attachments/1043307948483653642/1043308015911542794/headphones.png"
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
             raise app_commands.CheckFailure("User not in voice channel")
