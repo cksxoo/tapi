@@ -261,7 +261,7 @@ class MusicControlView(discord.ui.View):
         except (AttributeError, ValueError, KeyError):
             pass  # 오류 시 기본 상태 유지
 
-    def create_progress_bar(self, current, total, length=25):
+    def create_progress_bar(self, current, total, length=20):
         """유니코드 문자로 진행률 바 생성"""
         if total == 0:
             return "`" + "░" * length + "` 00:00/00:00"
@@ -270,15 +270,16 @@ class MusicControlView(discord.ui.View):
         bar = "█" * filled + "░" * (length - filled)
         current_time = lavalink.utils.format_time(current)
         total_time = lavalink.utils.format_time(total)
-        return f"`{bar}`   {current_time}/{total_time}"
+        time = f"{current_time}/{total_time}"
+        return f"`{bar}`", f"{time}"
 
 
-    def _create_embed_description(self, track, progress_bar: str) -> str:
+    def _create_embed_description(self, track, progress_bar: str, time: str) -> str:
         """embed 설명 생성"""
-        title = format_text_with_limit(track.title, 30)
-        artist_name = format_text_with_limit(track.author, 30)
-        
-        return f"> [{title}]({track.uri})\n> {artist_name}\n> {progress_bar}"
+        title = format_text_with_limit(track.title, 25)
+        artist_name = format_text_with_limit(track.author, 25)
+
+        return f"> [{title}]({track.uri})\n> {artist_name}\n> {progress_bar}\n> {time}"
 
     def _add_status_fields(self, embed, interaction, player):
         """상태 정보 필드 추가"""
@@ -339,12 +340,18 @@ class MusicControlView(discord.ui.View):
             return None
 
         # 진행률 바 생성
-        progress_bar = self.create_progress_bar(player.position, track.duration)
+        progress_bar, time = self.create_progress_bar(player.position, track.duration)
 
         # embed 생성
-        embed = discord.Embed(color=IDLE_COLOR)
-        embed.title = f"<:audio:1399724398520434791> TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧"
-        embed.description = self._create_embed_description(track, progress_bar)
+        # embed = discord.Embed(color=IDLE_COLOR)
+        # embed.title = f"<:audio:1399724398520434791> TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧"
+
+        embed = discord.Embed(color=0xFF6600)  # 할로윈 호박색
+        embed.set_author(
+            name="👻 TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧",
+        )
+
+        embed.description = self._create_embed_description(track, progress_bar, time)
         
         # 상태 정보 추가
         self._add_status_fields(embed, interaction, player)
@@ -355,7 +362,11 @@ class MusicControlView(discord.ui.View):
                 url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
             )
         embed.set_image(url=APP_BANNER_URL)
-        embed.set_footer(text=APP_NAME_TAG_VER)
+
+        # embed.set_footer(text=APP_NAME_TAG_VER)
+        embed.set_footer(
+            text=f" {APP_NAME_TAG_VER} • Halloween Edition 🎃",
+        )
 
         # 버튼 상태 업데이트
         self._update_button_states(player)
