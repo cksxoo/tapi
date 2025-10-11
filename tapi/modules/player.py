@@ -175,13 +175,7 @@ class Music(commands.Cog):
     async def _validate_user_voice_state(interaction: discord.Interaction):
         """사용자 음성 상태 검증"""
         if not interaction.user.voice or not interaction.user.voice.channel:
-            embed = discord.Embed(
-                description=get_lan(
-                    interaction.guild.id, "music_not_in_voice_channel_description"
-                ),
-                color=THEME_COLOR,
-            )
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            # Check 함수 내에서는 interaction을 소비하지 않도록 예외만 발생
             raise app_commands.CheckFailure("User not in voice channel")
 
         return interaction.user.voice.channel
@@ -267,13 +261,7 @@ class Music(commands.Cog):
 
         # Check if user is in a voice channel
         if not interaction.user.voice or not interaction.user.voice.channel:
-            embed = discord.Embed(
-                description=get_lan(
-                    interaction.guild.id, "music_not_in_voice_channel_description"
-                ),
-                color=THEME_COLOR,
-            )
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            # Check 함수 내에서는 interaction을 소비하지 않도록 예외만 발생
             raise app_commands.CheckFailure("User not in voice channel")
 
         # Get player
@@ -281,11 +269,7 @@ class Music(commands.Cog):
 
         # Check if music is playing
         if not player.is_playing:
-            embed = discord.Embed(
-                description=get_lan(interaction.guild.id, "music_not_playing"),
-                color=THEME_COLOR,
-            )
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            # Check 함수 내에서는 interaction을 소비하지 않도록 예외만 발생
             raise app_commands.CheckFailure("Music not playing")
 
         return True
@@ -915,6 +899,43 @@ class Music(commands.Cog):
         else:
             await player.set_pause(True)
             await send_temp_embed(interaction, interaction.guild.id, "music_pause")
+
+    async def cog_app_command_error(
+        self, interaction: discord.Interaction, error: app_commands.AppCommandError
+    ):
+        """Cog 레벨 에러 핸들러"""
+        if isinstance(error, app_commands.CheckFailure):
+            # CheckFailure인 경우, 사용자에게 친절한 메시지 전송
+            error_message = str(error)
+            
+            if "User not in voice channel" in error_message:
+                embed = discord.Embed(
+                    description=get_lan(
+                        interaction.guild.id, "music_not_in_voice_channel_description"
+                    ),
+                    color=THEME_COLOR,
+                )
+            elif "Music not playing" in error_message:
+                embed = discord.Embed(
+                    description=get_lan(interaction.guild.id, "music_not_playing"),
+                    color=THEME_COLOR,
+                )
+            else:
+                # 다른 CheckFailure는 로그만 남김
+                LOGGER.warning(f"CheckFailure: {error}")
+                return
+            
+            # interaction이 이미 응답되지 않았다면 응답
+            try:
+                if not interaction.response.is_done():
+                    await interaction.response.send_message(embed=embed, ephemeral=True)
+                else:
+                    await interaction.followup.send(embed=embed, ephemeral=True)
+            except Exception as e:
+                LOGGER.error(f"Failed to send error message: {e}")
+        else:
+            # 다른 에러는 기본 처리
+            LOGGER.error(f"Command error in {interaction.command.name}: {error}")
 
 
 async def setup(bot):
