@@ -12,8 +12,6 @@
 
     "welcome_title": "OMG! 안녕하세요! ヾ(｡>﹏<｡)ﾉﾞ✧.",
     "welcome_description": "저를 서버에 초대해주셔서 감사해요! ✧(≧◡≦) ♡\n\n/help를 입력해서 슬래시 명령어를 확인해보세요 ♡",
-    "help_language_title": "언어 설정",
-    "help_language_description": "`/language` - 사용 가능한 언어팩 목록\n`/language [언어코드]` - 언어팩 적용",
 
     "music_connect_voice_channel": "음성 채널에 접속했어요!",
     "music_already_connected_voice_channel": "이미 음성 채널에 접속해 있어요!",
@@ -77,11 +75,6 @@
 
     "other_invite_title": "**절 당신이 관리하는 서버에 초대해주시다니!**",
     "other_invite_description": "정말 감사합니다! [여기]({link})를 눌러 서버에 초대해주세요!",
-
-
-    "set_language_pack_list": "아래 언어팩 중 하나를 선택해 주세요",
-    "set_language_pack_not_exist": "해당 언어팩은 존재하지 않아요!",
-    "set_language_complete": "언어팩 설정 완료!",
         
     "music_search_results": "검색 결과",
     "music_search_select": "아래 목록에서 재생할 곡을 선택하세요",

@@ -6,15 +6,15 @@ THEME_COLOR = Development.THEME_COLOR
 APP_NAME_TAG_VER = f"{Development.APPLICATION_NAME} {Development.APP_TAG}"
 
 
-def create_standard_embed(guild_id, title_key, description_key=None, color=THEME_COLOR):
-    title = get_lan(guild_id, title_key)
-    
+def create_standard_embed(interaction_or_guild_id, title_key, description_key=None, color=THEME_COLOR):
+    title = get_lan(interaction_or_guild_id, title_key)
+
     if description_key:
-        description = get_lan(guild_id, description_key)
+        description = get_lan(interaction_or_guild_id, description_key)
         embed = discord.Embed(title=title, description=description, color=color)
     else:
         embed = discord.Embed(title=title, color=color)
-    
+
     embed.set_footer(text=APP_NAME_TAG_VER)
     return embed
 
@@ -25,13 +25,13 @@ def create_error_embed(error_message, color=THEME_COLOR):
     return embed
 
 
-async def send_embed(interaction, guild_id, title_key, description_key=None, color=THEME_COLOR, ephemeral=False):
-    embed = create_standard_embed(guild_id, title_key, description_key, color)
+async def send_embed(interaction, interaction_or_guild_id, title_key, description_key=None, color=THEME_COLOR, ephemeral=False):
+    embed = create_standard_embed(interaction_or_guild_id, title_key, description_key, color)
     await interaction.response.send_message(embed=embed, ephemeral=ephemeral)
 
 
-async def send_temp_embed(interaction, guild_id, title_key, description_key=None, color=THEME_COLOR, delete_after=3):
-    embed = create_standard_embed(guild_id, title_key, description_key, color)
+async def send_temp_embed(interaction, interaction_or_guild_id, title_key, description_key=None, color=THEME_COLOR, delete_after=3):
+    embed = create_standard_embed(interaction_or_guild_id, title_key, description_key, color)
     await send_temp_message(interaction, embed, delete_after)
 
 
@@ -54,11 +54,11 @@ def create_track_embed(track, user_display_name: str) -> discord.Embed:
     return embed
 
 
-def create_playlist_embed(guild_id: int, playlist_name: str, track_count: int) -> discord.Embed:
+def create_playlist_embed(interaction_or_guild_id, playlist_name: str, track_count: int) -> discord.Embed:
     """플레이리스트용 embed 생성"""
     embed = discord.Embed(color=THEME_COLOR)
-    embed.title = get_lan(guild_id, "music_play_playlist")
-    embed.description = f"**{playlist_name}** - {track_count} tracks {get_lan(guild_id, 'music_added_to_queue')}"
+    embed.title = get_lan(interaction_or_guild_id, "music_play_playlist")
+    embed.description = f"**{playlist_name}** - {track_count} tracks {get_lan(interaction_or_guild_id, 'music_added_to_queue')}"
     embed.set_footer(text=APP_NAME_TAG_VER)
     return embed
 

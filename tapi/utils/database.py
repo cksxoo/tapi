@@ -162,7 +162,6 @@ class Database:
                 "volume": 20,
                 "loop_mode": 0,
                 "shuffle": False,
-                "language": "ko",
             }
 
         try:
@@ -184,7 +183,6 @@ class Database:
                     "volume": 20,
                     "loop_mode": 0,
                     "shuffle": False,
-                    "language": "ko",
                 }
                 return default_settings
 
@@ -195,7 +193,6 @@ class Database:
                 "volume": 20,
                 "loop_mode": 0,
                 "shuffle": False,
-                "language": "ko",
             }
 
     def upsert_guild_settings(self, guild_id, **kwargs):
@@ -219,17 +216,6 @@ class Database:
         except Exception as e:
             LOGGER.error(f"Error upserting guild settings: {e}")
             return {}
-
-    # ===== 길드 언어 설정 관련 메서드 =====
-
-    def get_guild_language(self, guild_id):
-        """길드 기본 언어 설정 가져오기"""
-        settings = self.get_guild_settings(guild_id)
-        return settings.get("language", "ko")
-
-    def set_guild_language(self, guild_id, language):
-        """길드 기본 언어 설정"""
-        self.upsert_guild_settings(guild_id, language=language)
 
     # ===== 통계 관련 메서드 =====
 

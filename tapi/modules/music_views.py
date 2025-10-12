@@ -27,7 +27,7 @@ class SearchSelect(discord.ui.Select):
             for i, track in enumerate(tracks)
         ]
         super().__init__(
-            placeholder=get_lan(interaction.guild.id, "music_search_select_placeholder"),
+            placeholder=get_lan(interaction, "music_search_select_placeholder"),
             min_values=1,
             max_values=1,
             options=options,
@@ -96,7 +96,7 @@ class RecommendationView(discord.ui.View):
     async def create_select_view(self):
         """select 컴포넌트를 동적으로 추가"""
         select = discord.ui.Select(
-            placeholder=get_lan(self.guild_id, "music_recommend_select_placeholder"),
+            placeholder="Select a song...",  # 하드코딩 (interaction 없음)
             min_values=1,
             max_values=1,
             options=self.create_select_options(),
@@ -126,7 +126,7 @@ class RecommendationView(discord.ui.View):
 
             # 성공 메시지
             embed = discord.Embed(
-                title=get_lan(self.guild_id, "music_recommend_added_title"),
+                title=get_lan(interaction, "music_recommend_added_title"),
                 description=f"**[{selected_track.title}]({selected_track.uri})**\n{selected_track.author}",
                 color=THEME_COLOR,
             )
@@ -137,7 +137,7 @@ class RecommendationView(discord.ui.View):
                     url=f"http://img.youtube.com/vi/{selected_track.identifier}/0.jpg"
                 )
 
-            embed.set_footer(text=get_lan(self.guild_id, "music_recommend_added_footer"))
+            embed.set_footer(text=get_lan(interaction, "music_recommend_added_footer"))
 
             # 원래 메시지는 그대로 두고, 새로운 공개 메시지로 성공 알림
             await send_temp_message(interaction, embed)
@@ -171,9 +171,9 @@ class RecommendationView(discord.ui.View):
 
             if added_count > 0:
                 embed = discord.Embed(
-                    title=get_lan(self.guild_id, "music_recommend_all_added_title"),
+                    title=get_lan(interaction, "music_recommend_all_added_title"),
                     description=get_lan(
-                        self.user_id, "music_recommend_all_added_description"
+                        interaction, "music_recommend_all_added_description"
                     ).format(track_title=self.current_track.title, count=added_count),
                     color=THEME_COLOR,
                 )
@@ -186,14 +186,14 @@ class RecommendationView(discord.ui.View):
 
                 embed.set_footer(
                     text=get_lan(
-                        self.user_id, "music_recommend_all_added_footer"
+                        interaction, "music_recommend_all_added_footer"
                     ).format(count=added_count)
                 )
             else:
                 embed = discord.Embed(
-                    title=get_lan(self.guild_id, "music_recommend_all_failed"),
+                    title=get_lan(interaction, "music_recommend_all_failed"),
                     description=get_lan(
-                        self.user_id, "music_recommend_all_failed_description"
+                        interaction, "music_recommend_all_failed_description"
                     ),
                     color=THEME_COLOR,
                 )
@@ -220,8 +220,8 @@ class RecommendationView(discord.ui.View):
         await interaction.response.defer()
 
         embed = discord.Embed(
-            title=get_lan(self.guild_id, "music_recommend_cancelled"),
-            description=get_lan(self.guild_id, "music_recommend_cancelled_description"),
+            title=get_lan(interaction, "music_recommend_cancelled"),
+            description=get_lan(interaction, "music_recommend_cancelled_description"),
             color=THEME_COLOR,
         )
 
@@ -285,30 +285,30 @@ class MusicControlView(discord.ui.View):
         """상태 정보 필드 추가"""
         # 셔플 상태
         embed.add_field(
-            name=get_lan(interaction.guild.id, "music_shuffle"),
+            name=get_lan(interaction, "music_shuffle"),
             value=(
-                get_lan(interaction.guild.id, "music_shuffle_already_on")
+                get_lan(interaction, "music_shuffle_already_on")
                 if player.shuffle
-                else get_lan(interaction.guild.id, "music_shuffle_already_off")
+                else get_lan(interaction, "music_shuffle_already_off")
             ),
             inline=True,
         )
 
         # 반복 상태
         repeat_values = [
-            get_lan(interaction.guild.id, "music_repeat_already_off"),
-            get_lan(interaction.guild.id, "music_repeat_already_one"),
-            get_lan(interaction.guild.id, "music_repeat_already_on"),
+            get_lan(interaction, "music_repeat_already_off"),
+            get_lan(interaction, "music_repeat_already_one"),
+            get_lan(interaction, "music_repeat_already_on"),
         ]
         embed.add_field(
-            name=get_lan(interaction.guild.id, "music_repeat"),
+            name=get_lan(interaction, "music_repeat"),
             value=repeat_values[player.loop],
             inline=True,
         )
 
         # 볼륨 상태
         embed.add_field(
-            name=get_lan(interaction.guild.id, "music_volume"),
+            name=get_lan(interaction, "music_volume"),
             value=f"{player.volume}%",
             inline=True,
         )
@@ -517,7 +517,7 @@ class MusicControlView(discord.ui.View):
         player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
         if not player or not player.current:
             return await interaction.followup.send(
-                get_lan(interaction.guild.id, "music_recommend_no_playing"),
+                get_lan(interaction, "music_recommend_no_playing"),
                 ephemeral=True,
             )
 
@@ -526,7 +526,7 @@ class MusicControlView(discord.ui.View):
         # 현재 곡이 YouTube 곡인지 확인
         if not current_track.identifier:
             return await interaction.followup.send(
-                get_lan(interaction.guild.id, "music_recommend_youtube_only"),
+                get_lan(interaction, "music_recommend_youtube_only"),
                 ephemeral=True,
             )
 
@@ -539,7 +539,7 @@ class MusicControlView(discord.ui.View):
 
             if not results or not results.tracks or len(results.tracks) <= 1:
                 return await interaction.followup.send(
-                    get_lan(interaction.guild.id, "music_recommend_not_found"),
+                    get_lan(interaction, "music_recommend_not_found"),
                     ephemeral=True,
                 )
 
@@ -548,7 +548,7 @@ class MusicControlView(discord.ui.View):
 
             if not recommended_tracks:
                 return await interaction.followup.send(
-                    get_lan(interaction.guild.id, "music_recommend_failed"),
+                    get_lan(interaction, "music_recommend_failed"),
                     ephemeral=True,
                 )
 
@@ -560,9 +560,9 @@ class MusicControlView(discord.ui.View):
 
             # 추천 곡 리스트 embed 생성
             embed = discord.Embed(
-                title=get_lan(interaction.guild.id, "music_recommend_title"),
+                title=get_lan(interaction, "music_recommend_title"),
                 description=get_lan(
-                    interaction.user.id, "music_recommend_description"
+                    interaction, "music_recommend_description"
                 ).format(track_title=current_track.title),
                 color=THEME_COLOR,
             )
@@ -576,7 +576,7 @@ class MusicControlView(discord.ui.View):
                 )
 
             embed.set_footer(
-                text=get_lan(interaction.guild.id, "music_recommend_footer")
+                text=get_lan(interaction, "music_recommend_footer")
             )
 
             # 현재 곡 썸네일 추가
@@ -593,6 +593,6 @@ class MusicControlView(discord.ui.View):
         except Exception as e:
             LOGGER.error(f"Error in recommend button: {e}")
             await interaction.followup.send(
-                f"{get_lan(interaction.guild.id, 'music_recommend_error')}: {str(e)}",
+                f"{get_lan(interaction, 'music_recommend_error')}: {str(e)}",
                 ephemeral=True,
             )

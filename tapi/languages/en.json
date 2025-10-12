@@ -11,8 +11,6 @@
 
     "welcome_title": "OMG! Hii guys ヾ(｡>﹏<｡)ﾉﾞ✧.",
     "welcome_description": "Thank you for inviting me to hang with yall ✧(≧◡≦) ♡\n\nType /help to view my slash commands ♡",
-    "help_language_title": "Language Settings",
-    "help_language_description": "`/language` - List available language packs\n`/language [language_code]` - Apply language pack",
 
     "music_connect_voice_channel": "Connected to voice channel!",
     "music_already_connected_voice_channel": "I'm already on the voice channel!",
@@ -75,11 +73,6 @@
 
     "other_invite_title": "**Invite me to the server you own!**",
     "other_invite_description": "Thank you very much! Click [here]({link}) to invite me to your server!",
-
-
-    "set_language_pack_list": "Please select one of the following language packs",
-    "set_language_pack_not_exist": "The language file does not exist!",
-    "set_language_complete": "Language setting complete!",
 
     "music_search_results": "Search Results",
     "music_search_select": "Select a song to play from the list below",

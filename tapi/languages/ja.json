@@ -12,8 +12,6 @@
 
     "welcome_title": "OMG! こんにちは！ ヾ(｡>﹏<｡)ﾉﾞ✧.",
     "welcome_description": "サーバーに招待してくれてありがとう！ ✧(≧◡≦) ♡\n\n/helpと入力してスラッシュコマンドを確認してね ♡",
-    "help_language_title": "言語設定",
-    "help_language_description": "`/language` - 利用可能な言語パックリスト\n`/language [言語コード]` - 言語パックを適用",
 
     "music_connect_voice_channel": "ボイスチャンネルに接続しました！",
     "music_already_connected_voice_channel": "すでにボイスチャンネルに接続しています！",
@@ -77,11 +75,6 @@
 
     "other_invite_title": "**私をあなたが管理するサーバーに招待してくれるなんて！**",
     "other_invite_description": "本当にありがとうございます！[ここ]({link})をクリックしてサーバーに招待してください！",
-
-
-    "set_language_pack_list": "以下の言語パックから1つを選んでください",
-    "set_language_pack_not_exist": "その言語パックは存在しません！",
-    "set_language_complete": "言語パック設定完了！",
         
     "music_search_results": "検索結果",
     "music_search_select": "下のリストから再生する曲を選択してください",

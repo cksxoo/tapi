@@ -20,7 +20,6 @@ from tapi import (
     PORT,
     PSW,
 )
-from tapi.utils.language import get_lan
 from tapi.utils.redis_manager import redis_manager
 
 
@@ -121,19 +120,11 @@ class TapiBot(commands.Bot):
                 channel = guild.system_channel
 
             if channel:
-                # 봇의 기본 언어 설정으로 환영 메시지 생성 (guild owner의 언어 설정 사용)
-                try:
-                    owner_id = guild.owner_id if guild.owner_id else self.user.id
-                    title = get_lan(owner_id, "welcome_title")
-                    description = get_lan(owner_id, "welcome_description")
-                except (KeyError, ValueError, TypeError):
-                    # 언어 설정 실패 시 기본 영어 메시지 사용
-                    title = "OMG! Hii guys ✧(≧◡≦) ♡"
-                    description = "Thank you for inviting me to hang with yall (*≧▽≦)\n\nType /help to view my slash commands ♡"
-
-                # 환영 메시지 embed 생성
+                # 환영 메시지 embed 생성 (영어 하드코딩)
                 embed = discord.Embed(
-                    title=title, description=description, color=0x7F8C8D
+                    title="OMG! Hii guys ✧(≧◡≦) ♡",
+                    description="Thank you for inviting me to hang with yall (*≧▽≦)\n\nType /help to view my slash commands ♡",
+                    color=0x7F8C8D
                 )
                 embed.set_image(url=APP_BANNER_URL)
 

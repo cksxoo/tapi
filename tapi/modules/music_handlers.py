@@ -7,14 +7,8 @@ import discord
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent, TrackExceptionEvent
 
-from tapi import (
-    LOGGER,
-    THEME_COLOR,
-    APP_NAME_TAG_VER,
-)
-from tapi.utils.language import get_lan
+from tapi import LOGGER
 from tapi.utils.database import Database
-from tapi.utils.embed import create_standard_embed
 from tapi.modules.music_views import MusicControlView
 
 
@@ -54,70 +48,13 @@ class MusicHandlers:
         except Exception as e:
             LOGGER.error(f"Error cleaning up player for guild {guild_id}: {e}")
 
-    async def _send_vote_message(
-        self, guild_id: int, channel_id: int, user_id: int = None
-    ):
-        """투표 안내 메시지 전송 (다국어 지원)"""
-        try:
-            guild = self.bot.get_guild(guild_id)
-            if not guild:
-                return
-
-            channel = guild.get_channel(channel_id)
-            if not channel:
-                return
-
-            # 길드 기반 언어 설정 사용
-            embed = discord.Embed(
-                title=get_lan(guild_id, "vote_title"),
-                description=get_lan(guild_id, "vote_description"),
-                color=THEME_COLOR,
-            )
-            embed.set_image(
-                url="https://github.com/user-attachments/assets/8a4b3cac-8f21-42dc-9ba8-7ee0a89ece95"
-            )
-
-            # 투표/리뷰 링크 버튼 생성
-            view = discord.ui.View()
-            view.add_item(
-                discord.ui.Button(
-                    emoji="<:koreanbots:1422912074819960833>",
-                    label="KoreanBots",
-                    url="https://koreanbots.dev/bots/1157593204682657933/vote",
-                    style=discord.ButtonStyle.link,
-                )
-            )
-            view.add_item(
-                discord.ui.Button(
-                    emoji="<:topgg:1422912056549441630>",
-                    label="Top.gg Vote",
-                    url="https://top.gg/bot/1157593204682657933/vote",
-                    style=discord.ButtonStyle.link,
-                )
-            )
-            view.add_item(
-                discord.ui.Button(
-                    emoji="<:topgg:1422912056549441630>",
-                    label="Top.gg Reviews",
-                    url="https://top.gg/bot/1157593204682657933#reviews",
-                    style=discord.ButtonStyle.link,
-                )
-            )
-
-            await channel.send(embed=embed, view=view)
-            LOGGER.debug(f"Vote message sent to guild {guild_id}")
-        except Exception as e:
-            LOGGER.error(f"Error sending vote message to guild {guild_id}: {e}")
 
     async def _full_disconnect_cleanup(
         self,
         guild_id: int,
         reason: str = "disconnect",
-        send_vote: bool = False,
-        channel_id: int = None,
-        user_id: int = None,
     ):
-        """완전한 연결 해제 정리 (메시지 + 플레이어 + 음성 연결 + 투표 안내)"""
+        """완전한 연결 해제 정리 (메시지 + 플레이어 + 음성 연결)"""
         # 1. 음악 메시지 정리
         await self._cleanup_music_message(guild_id, reason)
 
@@ -132,10 +69,6 @@ class MusicHandlers:
                 LOGGER.debug(f"Voice client disconnected for guild {guild_id}")
         except Exception as e:
             LOGGER.error(f"Error disconnecting voice client for guild {guild_id}: {e}")
-
-        # 4. 투표 안내 메시지 (필요시)
-        if send_vote and channel_id:
-            await self._send_vote_message(guild_id, channel_id, user_id)
 
     @lavalink.listener(TrackStartEvent)
     async def on_track_start(self, event: TrackStartEvent):
@@ -210,23 +143,16 @@ class MusicHandlers:
                     if not requester:
                         requester = await self.bot.fetch_user(requester_id)
                     if requester:
-                        # TAPI 스타일의 embed 생성
-                        embed = create_standard_embed(
-                            guild_id,
-                            "music_permission_dm_title",
-                            "music_permission_dm_description",
+                        embed = discord.Embed(
+                            title="⚠️ Permission Required",
+                            description=(
+                                f"I don't have permission to send messages in **{channel.name}** "
+                                f"(Server: {guild.name}).\n\n"
+                                f"Playing: **{track.title}**\n\n"
+                                f"Please ask a server admin to grant me 'Send Messages' permission in that channel."
+                            ),
+                            color=0xFF6600,
                         )
-
-                        # description에 실제 값 적용
-                        description = get_lan(
-                            guild_id, "music_permission_dm_description"
-                        ).format(
-                            track_title=track.title,
-                            guild_name=guild.name,
-                            channel_name=channel.name,
-                        )
-                        embed.description = description
-
                         await requester.send(embed=embed)
                 except (discord.Forbidden, discord.NotFound, discord.HTTPException):
                     pass
@@ -240,11 +166,22 @@ class MusicHandlers:
 
             # 일관된 embed 생성 (가짜 interaction 객체 생성)
             class FakeInteraction:
-                def __init__(self, user_id, guild_id):
+                def __init__(self, user_id, guild_id, bot):
                     self.user = type("obj", (object,), {"id": user_id})()
                     self.guild = type("obj", (object,), {"id": guild_id})()
+                    # 사용자의 locale 정보 가져오기
+                    try:
+                        user = bot.get_user(user_id)
+                        if user:
+                            # Discord에서 사용자 정보를 가져올 수 있으면 locale 사용
+                            self.locale = getattr(user, 'locale', 'en-US')
+                        else:
+                            # 기본값은 한국어 (봇이 한국 기반이므로)
+                            self.locale = 'ko'
+                    except:
+                        self.locale = 'ko'
 
-            fake_interaction = FakeInteraction(requester_id, guild_id)
+            fake_interaction = FakeInteraction(requester_id, guild_id, self.bot)
             embed = control_view.update_embed_and_buttons(fake_interaction, player)
 
             if embed:
@@ -264,7 +201,6 @@ class MusicHandlers:
     async def on_queue_end(self, event: QueueEndEvent):
         guild_id = event.player.guild_id
         guild = self.bot.get_guild(guild_id)
-        channel_id = event.player.fetch("channel")
 
         # 모듈화된 완전 정리 함수 사용 (큐 종료 시에는 플레이어 정리 생략)
         await self._cleanup_music_message(guild_id, "queue_end")
@@ -273,13 +209,6 @@ class MusicHandlers:
         if guild and guild.voice_client and event.player.is_connected:
             try:
                 await guild.voice_client.disconnect(force=True)
-
-                # 투표 안내 메시지 전송 (마지막 트랙의 요청자 언어 사용)
-                if channel_id:
-                    # 마지막 트랙 정보에서 요청자 ID 가져오기 (가능한 경우)
-                    last_requester = getattr(event.player, "current", None)
-                    user_id = last_requester.requester if last_requester else None
-                    await self._send_vote_message(guild_id, channel_id, user_id)
             except Exception as e:
                 LOGGER.error(f"Error disconnecting voice client: {e}")
 
@@ -287,53 +216,12 @@ class MusicHandlers:
     async def on_track_exception(self, event: TrackExceptionEvent):
         original_track_uri = event.track.uri
         original_track_title = event.track.title
-        player = event.player
-        requester = event.track.requester
 
-        # The existing conditional block, with corrections
-        if (
-            "youtube.com/watch" in original_track_uri
-            and event.severity
-            in [
-                "SUSPICIOUS",
-                "COMMON",
-                "FAULT",
-            ]
-            and (
-                "unavailable" in event.message.lower()
-                or "copyright" in event.message.lower()
-                or "playback on other websites has been disabled"
-                in event.message.lower()
-                or "requires payment" in event.message.lower()
-            )
-        ):
-
-            LOGGER.warning(f"Track failed: {original_track_title} - {event.message}")
-
-        # If fallback was not attempted or failed, send a message to the user
-        channel_id = player.fetch("channel")
-        if channel_id:
-            channel = self.bot.get_channel(int(channel_id))
-            if channel:
-                embed = discord.Embed(
-                    title=get_lan(
-                        requester or self.bot.user.id, "music_play_fail_title"
-                    ),
-                    description=get_lan(
-                        requester or self.bot.user.id, "music_play_fail_description"
-                    ).format(
-                        track_title=original_track_title,
-                        error_message=event.message,
-                    ),
-                    color=THEME_COLOR,
-                )
-                embed.set_footer(text=APP_NAME_TAG_VER)
-                try:
-                    await channel.send(embed=embed)
-                except discord.HTTPException as e:
-                    LOGGER.error(
-                        f"Failed to send track exception message to channel {channel_id}: {e}"
-                    )
+        # 로그만 남기고 사용자에게는 메시지를 보내지 않음
+        LOGGER.warning(
+            f"Track playback failed: '{original_track_title}' (URI: {original_track_uri}) - "
+            f"Severity: {event.severity}, Error: {event.message}"
+        )
 
     async def on_voice_state_update(self, member, before, after):
         """
@@ -364,26 +252,13 @@ class MusicHandlers:
             # 봇만 남아있다면 연결 해제
             if len(non_bot_members) == 0:
                 try:
-                    # 플레이어에서 채널 ID 가져오기
-                    player = self.bot.lavalink.player_manager.get(guild.id)
-                    channel_id = player.fetch("channel") if player else None
-
-                    # 모듈화된 완전 정리 함수 사용 (투표 안내 포함)
+                    # 모듈화된 완전 정리 함수 사용
                     await self._full_disconnect_cleanup(
                         guild.id,
                         "auto_disconnect",
-                        send_vote=True,
-                        channel_id=channel_id,
                     )
 
-                    # 다국어 지원 로그 메시지 (기본값으로 한국어 사용)
-                    log_message = get_lan(
-                        self.bot.user.id, "music_auto_disconnect_log"
-                    ).format(guild_name=guild.name)
-                    LOGGER.info(log_message)
+                    LOGGER.info(f"Auto-disconnected from voice channel in guild {guild.name}")
 
                 except Exception as e:
-                    error_message = get_lan(
-                        self.bot.user.id, "music_auto_disconnect_error"
-                    ).format(error=str(e))
-                    LOGGER.error(error_message)
+                    LOGGER.error(f"Error during auto-disconnect in guild {guild.name}: {e}")
