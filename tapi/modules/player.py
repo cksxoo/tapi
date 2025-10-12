@@ -298,16 +298,23 @@ class Music(commands.Cog):
         if is_search_query:
             return f"ytsearch:{original_query_stripped}", is_search_query
 
-        # URL인 경우 list 파라미터 제거 (단일 곡 재생을 위해)
+        # URL인 경우 동적 재생목록 파라미터만 제거
         if (
             "youtube.com" in original_query_stripped
             or "youtu.be" in original_query_stripped
         ):
+            # 라디오/믹스 등 동적 재생목록만 제거 (RD, RDMM 등)
+            # 일반 재생목록 (PL, UU 등)은 유지
             current_lavalink_query = re.sub(
-                r"[&?]list=[^&]*", "", original_query_stripped
+                r"[&?]list=RD[^&]*", "", original_query_stripped
             )
+            # index 파라미터는 제거 (재생목록의 특정 곡 순서)
             current_lavalink_query = re.sub(
                 r"[&?]index=[^&]*", "", current_lavalink_query
+            )
+            # start_radio 파라미터 제거
+            current_lavalink_query = re.sub(
+                r"[&?]start_radio=[^&]*", "", current_lavalink_query
             )
             current_lavalink_query = re.sub(
                 r"[&?]+",

@@ -8,7 +8,7 @@
 
     "help_music_title": "音楽コマンド",
 
-    "help_music_description": "<:play:1399719809469382779> **再生コントロール**\n`/connect` - ボイスチャンネルに接続\n`/play [曲名/リンク]` - 音楽を再生\n`/pause` - 一時停止/再開\n`/skip` - 次の曲へスキップ\n`/disconnect` - ボイスチャンネルから退出\n\n🔊 **音量＆プレイリスト**\n`/volume [1-100]` - 音量調節\n`/queue` - 再生待機リストを確認\n`/shuffle` - シャッフルモード切替\n`/repeat` - リピートモード切替\n\n⚙️**高度な機能**\n`/nowplaying` - 現在再生中の曲情報\n`/remove [番号]` - プレイリストから曲を削除\n`/clear` - プレイリストを全てクリア",
+    "help_music_description": "<:play:1399719809469382779> **再生コントロール**\n`/connect` - ボイスチャンネルに接続\n`/play [曲名/リンク/プレイリスト]` - 音楽を再生（プレイリスト対応）\n`/pause` - 一時停止/再開\n`/skip` - 次の曲へスキップ\n`/disconnect` - ボイスチャンネルから退出\n\n🔊 **音量＆プレイリスト**\n`/volume [1-100]` - 音量調節\n`/queue` - 再生待機リストを確認\n`/shuffle` - シャッフルモード切替\n`/repeat` - リピートモード切替\n\n⚙️**高度な機能**\n`/nowplaying` - 現在再生中の曲情報\n`/remove [番号]` - プレイリストから曲を削除\n`/clear` - プレイリストを全てクリア",
 
     "welcome_title": "OMG! こんにちは！ ヾ(｡>﹏<｡)ﾉﾞ✧.",
     "welcome_description": "サーバーに招待してくれてありがとう！ ✧(≧◡≦) ♡\n\n/helpと入力してスラッシュコマンドを確認してね ♡",

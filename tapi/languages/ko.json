@@ -8,7 +8,7 @@
 
     "help_music_title": "음악 명령어",
 
-    "help_music_description": "<:play:1399719809469382779> **재생 제어**\n`/connect` - 음성 채널에 접속\n`/play [곡명/링크]` - 음악 재생\n`/pause` - 일시정지/재개\n`/skip` - 다음 곡으로 건너뛰기\n`/disconnect` - 음성 채널에서 나가기\n\n🔊 **음량 & 재생목록**\n`/volume [1-100]` - 음량 조절\n`/queue` - 재생 대기목록 확인\n`/shuffle` - 셔플 모드 전환\n`/repeat` - 반복 모드 전환\n\n⚙️**고급 기능**\n`/nowplaying` - 현재 재생 중인 곡 정보\n`/remove [번호]` - 재생목록에서 곡 제거\n`/clear` - 재생목록 전체 비우기",
+    "help_music_description": "<:play:1399719809469382779> **재생 제어**\n`/connect` - 음성 채널에 접속\n`/play [곡명/링크/재생목록]` - 음악 재생 (재생목록 지원)\n`/pause` - 일시정지/재개\n`/skip` - 다음 곡으로 건너뛰기\n`/disconnect` - 음성 채널에서 나가기\n\n🔊 **음량 & 재생목록**\n`/volume [1-100]` - 음량 조절\n`/queue` - 재생 대기목록 확인\n`/shuffle` - 셔플 모드 전환\n`/repeat` - 반복 모드 전환\n\n⚙️**고급 기능**\n`/nowplaying` - 현재 재생 중인 곡 정보\n`/remove [번호]` - 재생목록에서 곡 제거\n`/clear` - 재생목록 전체 비우기",
 
     "welcome_title": "OMG! 안녕하세요! ヾ(｡>﹏<｡)ﾉﾞ✧.",
     "welcome_description": "저를 서버에 초대해주셔서 감사해요! ✧(≧◡≦) ♡\n\n/help를 입력해서 슬래시 명령어를 확인해보세요 ♡",

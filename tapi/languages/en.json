@@ -7,7 +7,7 @@
     "help_general_description": "`/invite` - Invite bot to other servers",
 
     "help_music_title": "Music Commands",
-    "help_music_description": "<:play:1399719809469382779> **Playback Control**\n`/connect` - Connect to voice channel\n`/play [song/link]` - Play music\n`/pause` - Pause/resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n🔊 **Volume & Queue**\n`/volume [1-100]` - Adjust volume\n`/queue` - Check queue\n`/shuffle` - Toggle shuffle mode\n`/repeat` - Toggle repeat mode\n\n⚙️ **Advanced Features**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue",
+    "help_music_description": "<:play:1399719809469382779> **Playback Control**\n`/connect` - Connect to voice channel\n`/play [song/link/playlist]` - Play music (supports playlists)\n`/pause` - Pause/resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n🔊 **Volume & Queue**\n`/volume [1-100]` - Adjust volume\n`/queue` - Check queue\n`/shuffle` - Toggle shuffle mode\n`/repeat` - Toggle repeat mode\n\n⚙️ **Advanced Features**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue",
 
     "welcome_title": "OMG! Hii guys ヾ(｡>﹏<｡)ﾉﾞ✧.",
     "welcome_description": "Thank you for inviting me to hang with yall ✧(≧◡≦) ♡\n\nType /help to view my slash commands ♡",
