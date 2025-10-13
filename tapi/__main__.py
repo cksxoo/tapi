@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import os
+import signal
 import time
 import datetime
 from datetime import timezone, timedelta
@@ -13,7 +14,6 @@ from tapi import (
     LOGGER,
     TOKEN,
     EXTENSIONS,
-    THEME_COLOR,
     APP_BANNER_URL,
     APP_NAME_TAG_VER,
     HOST,
@@ -236,6 +236,42 @@ class TapiBot(commands.Bot):
                 LOGGER.error(f"Error in redis_update_task: {e}")
                 await asyncio.sleep(60)
 
+    async def close(self):
+        """봇 종료 시 자동 공지 - 각 샤드가 자기 활성 플레이어에게 직접 전송"""
+        if not getattr(self, '_closing', False):
+            self._closing = True
+
+            shard_id = getattr(self, 'shard_id', 0)
+            LOGGER.info(f"Shard {shard_id} shutting down, sending announcements to active players...")
+
+            # 현재 샤드의 활성 플레이어에게 직접 전송
+            if self.lavalink:
+                sent_count = 0
+                for guild in self.guilds:
+                    player = self.lavalink.player_manager.get(guild.id)
+
+                    if player and player.is_connected:
+                        channel_id = player.fetch('channel')
+                        if channel_id:
+                            channel = self.get_channel(channel_id)
+                            if channel:
+                                try:
+                                    embed = discord.Embed(
+                                        title="🔄 Bot Restarting",
+                                        description="The bot is restarting for maintenance. Music playback will resume shortly.",
+                                        color=0x3b82f6
+                                    )
+                                    embed.set_footer(text=APP_NAME_TAG_VER)
+                                    await channel.send(embed=embed)
+                                    sent_count += 1
+                                except Exception as e:
+                                    LOGGER.warning(f"Failed to send shutdown notice to {guild.name}: {e}")
+
+                LOGGER.info(f"Shard {shard_id} sent shutdown announcement to {sent_count} channels")
+                await asyncio.sleep(2)  # 메시지 전송 완료 대기
+
+        await super().close()
+
 
 # ────── 실행부 ──────
 shard_id = os.getenv("SHARD_ID")
@@ -253,5 +289,17 @@ if shard_id is not None and shard_count is not None:
 else:
     LOGGER.info("Starting bot without sharding")
     bot = TapiBot()
+
+# Signal handler 설정 (Linux/Docker 환경)
+def handle_shutdown(signum, frame):
+    """SIGTERM/SIGINT 받았을 때 graceful shutdown"""
+    _ = frame  # unused parameter
+    LOGGER.info(f"Received signal {signum}, initiating graceful shutdown...")
+    asyncio.create_task(bot.close())
+
+# Docker에서는 Linux이므로 항상 등록
+signal.signal(signal.SIGTERM, handle_shutdown)
+signal.signal(signal.SIGINT, handle_shutdown)
+LOGGER.info("Signal handlers registered for graceful shutdown")
 
 bot.run(TOKEN)

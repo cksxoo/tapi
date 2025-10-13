@@ -11,6 +11,7 @@ x-bot-base: &bot-base
     context: .
     dockerfile: tapi/Dockerfile.bot
   restart: unless-stopped
+  stop_grace_period: 15s
   volumes:
     - ./tapi:/app/tapi
     - ./plugins:/app/plugins
