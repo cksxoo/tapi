@@ -67,7 +67,9 @@ class TapiBot(commands.Bot):
         )
         LOGGER.info(f"{APP_NAME_TAG_VER} - {shard_info}")
         LOGGER.info(f"Connected to {len(self.guilds)} guilds on {shard_info}")
-        LOGGER.info(f"Bot intents: guilds={self.intents.guilds}, voice_states={self.intents.voice_states}")
+        LOGGER.info(
+            f"Bot intents: guilds={self.intents.guilds}, voice_states={self.intents.voice_states}"
+        )
 
         await self.change_presence(
             activity=discord.Activity(
@@ -124,7 +126,7 @@ class TapiBot(commands.Bot):
                 embed = discord.Embed(
                     title="OMG! Hii guys ✧(≧◡≦) ♡",
                     description="Thank you for inviting me to hang with yall (*≧▽≦)\n\nType /help to view my slash commands ♡",
-                    color=0x7F8C8D
+                    color=0x7F8C8D,
                 )
                 embed.set_image(url=APP_BANNER_URL)
 
@@ -149,13 +151,56 @@ class TapiBot(commands.Bot):
             process = psutil.Process()
             memory_info = process.memory_info()
 
-            # 활성 플레이어 수 계산
+            # 활성 플레이어 수 계산 및 상세 정보 수집
             player_count = 0
+            active_players = []
+
             if self.lavalink:
                 for guild in self.guilds:
                     player = self.lavalink.player_manager.get(guild.id)
                     if player and player.is_connected:
                         player_count += 1
+
+                        # 활성 플레이어 상세 정보 수집
+                        voice_client = guild.voice_client
+                        channel_name = "Unknown"
+                        channel_id = None
+                        user_count = 0
+
+                        if voice_client and voice_client.channel:
+                            channel_name = voice_client.channel.name
+                            channel_id = voice_client.channel.id
+                            user_count = (
+                                len(voice_client.channel.members) - 1
+                            )  # 봇 제외
+
+                        # 현재 재생 중인 트랙 정보
+                        current_track = None
+                        if player.current:
+                            current_track = {
+                                "title": player.current.title,
+                                "author": player.current.author,
+                                "uri": player.current.uri,
+                                "duration": player.current.duration,
+                                "position": player.position,
+                            }
+
+                        active_players.append(
+                            {
+                                "guild_id": guild.id,
+                                "guild_name": guild.name,
+                                "channel_id": channel_id,
+                                "channel_name": channel_name,
+                                "user_count": user_count,
+                                "is_playing": player.is_playing,
+                                "is_paused": player.paused,
+                                "current_track": current_track,
+                                "queue_length": len(player.queue),
+                                "volume": player.volume,
+                                "loop": player.loop,
+                                "shuffle": player.shuffle,
+                            }
+                        )
 
             # 레이턴시 계산
             latency = self.latency
@@ -166,9 +211,15 @@ class TapiBot(commands.Bot):
                 "latency": latency_ms,
                 "memory_usage": memory_info.rss,  # Resident Set Size in bytes
                 "player_count": player_count,
-                "timestamp": datetime.datetime.now(timezone(timedelta(hours=9))).replace(microsecond=0).isoformat(),
+                "timestamp": datetime.datetime.now(timezone(timedelta(hours=9)))
+                .replace(microsecond=0)
+                .isoformat(),
             }
             redis_manager.update_shard_status(shard_id, shard_data)
+
+            # 활성 플레이어 상세 정보도 Redis에 업데이트
+            redis_manager.update_active_players(shard_id, active_players)
+
             LOGGER.debug(f"Updated shard {shard_id} status: {shard_data}")
         except Exception as e:
             LOGGER.error(f"Error updating shard status: {e}")

@@ -17,7 +17,9 @@ class RedisManager:
         self.redis_db = 0
         self.redis_client = None
         self.shard_stats_key_prefix = "shard_stats:"
+        self.active_players_key_prefix = "active_players:"
         self.shard_status_ttl = 60 * 10  # 10분
+        self.active_player_ttl = 60  # 1분 (자주 업데이트되므로 짧게)
         self.available = REDIS_AVAILABLE
 
     def connect(self):
@@ -100,6 +102,59 @@ class RedisManager:
                 return {}
             except Exception as e:
                 LOGGER.error(f"Unexpected error getting shard statuses: {e}")
+                return {}
+        return {}
+
+    def update_active_players(self, shard_id: int, active_players_data: list):
+        """활성 플레이어 정보를 Redis에 업데이트합니다."""
+        if not self.available:
+            LOGGER.debug("Redis not available, skipping active players update")
+            return
+
+        client = self.get_client()
+        if client:
+            try:
+                key = f"{self.active_players_key_prefix}{shard_id}"
+                client.set(key, json.dumps(active_players_data), ex=self.active_player_ttl)
+                LOGGER.debug(f"Updated {len(active_players_data)} active players for shard {shard_id}")
+            except redis.exceptions.RedisError as e:
+                LOGGER.error(f"Failed to update active players in Redis: {e}")
+            except Exception as e:
+                LOGGER.error(f"Unexpected error updating active players: {e}")
+
+    def get_all_active_players(self) -> dict:
+        """모든 샤드의 활성 플레이어 정보를 가져옵니다."""
+        if not self.available:
+            LOGGER.debug("Redis not available, returning empty active players")
+            return {}
+
+        client = self.get_client()
+        if client:
+            try:
+                player_keys = []
+                cursor = '0'
+                while cursor != 0:
+                    cursor, keys = client.scan(cursor=cursor, match=f"{self.active_players_key_prefix}*", count=100)
+                    player_keys.extend(keys)
+
+                if not player_keys:
+                    return {}
+
+                raw_data = client.mget(player_keys)
+                all_players = {}
+                for i, key in enumerate(player_keys):
+                    shard_id_str = key.split(':')[-1]
+                    if raw_data[i]:
+                        all_players[int(shard_id_str)] = json.loads(raw_data[i])
+                return all_players
+            except redis.exceptions.RedisError as e:
+                LOGGER.error(f"Failed to get active players from Redis: {e}")
+                return {}
+            except (ValueError, IndexError) as e:
+                LOGGER.error(f"Error parsing active players from Redis: {e}")
+                return {}
+            except Exception as e:
+                LOGGER.error(f"Unexpected error getting active players: {e}")
                 return {}
         return {}
 
