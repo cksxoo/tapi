@@ -19,8 +19,12 @@ from tapi import (
     HOST,
     PORT,
     PSW,
+    CLIENT_ID,
+    TOPGG_TOKEN,
+    KOREANBOT_TOKEN,
 )
 from tapi.utils.redis_manager import redis_manager
+from tapi.utils.stats_updater import BotStatsUpdater
 
 
 class TapiBot(commands.Bot):
@@ -41,6 +45,7 @@ class TapiBot(commands.Bot):
             super().__init__(command_prefix=lambda bot, msg: [], intents=intents)
 
         self.lavalink = None  # ✅ lavalink 속성 미리 정의
+        self.stats_updater = None  # 봇 통계 업데이터
 
     async def setup_hook(self):
         # Cog 로드
@@ -59,6 +64,15 @@ class TapiBot(commands.Bot):
             self.lavalink = lavalink.Client(self.user.id)
             self.lavalink.add_node(HOST, PORT, PSW, "eu", "default-node")
             LOGGER.info("Lavalink client initialized")
+
+        # 통계 업데이터 초기화 (config의 CLIENT_ID 사용)
+        if self.stats_updater is None:
+            self.stats_updater = BotStatsUpdater(
+                bot_id=CLIENT_ID,
+                topgg_token=TOPGG_TOKEN,
+                koreanbot_token=KOREANBOT_TOKEN
+            )
+            LOGGER.info(f"Bot stats updater initialized for bot ID: {CLIENT_ID}")
 
         shard_info = (
             f"Shard {getattr(self, 'shard_id', 'N/A')}/{getattr(self, 'shard_count', 'N/A')}"
@@ -84,6 +98,11 @@ class TapiBot(commands.Bot):
 
         self.loop.create_task(self.status_task())
         self.loop.create_task(self.redis_update_task())
+
+        # shard 0만 봇 통계 업데이트 담당
+        if getattr(self, "shard_id", 0) == 0 or not hasattr(self, "shard_id"):
+            self.loop.create_task(self.stats_update_task())
+            LOGGER.info("Bot stats update task started")
 
     async def status_task(self):
         await self.wait_until_ready()
@@ -236,6 +255,42 @@ class TapiBot(commands.Bot):
                 LOGGER.error(f"Error in redis_update_task: {e}")
                 await asyncio.sleep(60)
 
+    async def stats_update_task(self):
+        """봇 리스팅 사이트 통계 업데이트 주기적 작업 (shard 0만 실행)"""
+        await self.wait_until_ready()
+
+        # 첫 업데이트까지 잠시 대기 (모든 샤드가 준비될 시간 확보)
+        await asyncio.sleep(30)
+
+        while True:
+            try:
+                # 샤딩 사용 시 모든 샤드의 길드 수 합산
+                if hasattr(self, "shard_count") and self.shard_count:
+                    # Redis에서 모든 샤드의 길드 수 가져오기
+                    total_guilds = 0
+                    for shard_id in range(self.shard_count):
+                        shard_data = redis_manager.get_shard_status(shard_id)
+                        if shard_data:
+                            total_guilds += shard_data.get("guild_count", 0)
+
+                    shard_count = self.shard_count
+                else:
+                    # 샤딩 미사용 시 현재 봇의 길드 수
+                    total_guilds = len(self.guilds)
+                    shard_count = None
+
+                # 봇 리스팅 사이트 업데이트
+                if self.stats_updater and total_guilds > 0:
+                    await self.stats_updater.update_all(total_guilds, shard_count)
+                    LOGGER.info(f"📊 Bot stats updated: {total_guilds} guilds")
+
+                # 6시간마다 업데이트
+                await asyncio.sleep(21600)
+
+            except Exception as e:
+                LOGGER.error(f"Error in stats_update_task: {e}")
+                await asyncio.sleep(600)  # 에러 발생 시 10분 대기
+
     async def close(self):
         """봇 종료 시 자동 공지 - 각 샤드가 자기 활성 플레이어에게 직접 전송"""
         if not getattr(self, '_closing', False):
@@ -269,6 +324,10 @@ class TapiBot(commands.Bot):
 
                 LOGGER.info(f"Shard {shard_id} sent shutdown announcement to {sent_count} channels")
                 await asyncio.sleep(2)  # 메시지 전송 완료 대기
+
+            # stats_updater 세션 종료
+            if self.stats_updater:
+                await self.stats_updater.close()
 
         await super().close()
 
