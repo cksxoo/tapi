@@ -258,7 +258,7 @@ class TapiBot(commands.Bot):
                                 try:
                                     embed = discord.Embed(
                                         title="🔄 Bot Restarting",
-                                        description="The bot is restarting for maintenance. Music playback will resume shortly.",
+                                        description="The bot is restarting for maintenance. Please resume playback in a moment.",
                                         color=0x3b82f6
                                     )
                                     embed.set_footer(text=APP_NAME_TAG_VER)
