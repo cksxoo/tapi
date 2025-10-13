@@ -5,10 +5,12 @@ from tapi import LOGGER
 
 try:
     import redis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
     LOGGER.warning("Redis is not available. Some features may be disabled.")
+
 
 class RedisManager:
     def __init__(self):
@@ -27,13 +29,13 @@ class RedisManager:
         if not self.available:
             LOGGER.warning("Redis is not available. Skipping connection.")
             return False
-            
+
         try:
             self.redis_client = redis.Redis(
                 host=self.redis_host,
                 port=self.redis_port,
                 db=self.redis_db,
-                decode_responses=True  # 응답을 자동으로 UTF-8로 디코딩
+                decode_responses=True,  # 응답을 자동으로 UTF-8로 디코딩
             )
             self.redis_client.ping()
             LOGGER.info("Successfully connected to Redis.")
@@ -58,7 +60,7 @@ class RedisManager:
         if not self.available:
             LOGGER.debug("Redis not available, skipping shard status update")
             return
-            
+
         client = self.get_client()
         if client:
             try:
@@ -68,31 +70,6 @@ class RedisManager:
                 LOGGER.error(f"Failed to update shard status in Redis: {e}")
             except Exception as e:
                 LOGGER.error(f"Unexpected error updating shard status: {e}")
-
-    def get_shard_status(self, shard_id: int) -> dict:
-        """특정 샤드의 상태 정보를 가져옵니다."""
-        if not self.available:
-            LOGGER.debug("Redis not available, returning empty shard status")
-            return {}
-
-        client = self.get_client()
-        if client:
-            try:
-                key = f"{self.shard_stats_key_prefix}{shard_id}"
-                data = client.get(key)
-                if data:
-                    return json.loads(data)
-                return {}
-            except redis.exceptions.RedisError as e:
-                LOGGER.error(f"Failed to get shard status from Redis: {e}")
-                return {}
-            except json.JSONDecodeError as e:
-                LOGGER.error(f"Error parsing shard status JSON: {e}")
-                return {}
-            except Exception as e:
-                LOGGER.error(f"Unexpected error getting shard status: {e}")
-                return {}
-        return {}
 
     def get_all_shard_statuses(self) -> dict:
         """모든 샤드의 상태 정보를 가져옵니다."""
@@ -104,9 +81,13 @@ class RedisManager:
         if client:
             try:
                 shard_keys = []
-                cursor = '0'
+                cursor = "0"
                 while cursor != 0:
-                    cursor, keys = client.scan(cursor=cursor, match=f"{self.shard_stats_key_prefix}*", count=100)
+                    cursor, keys = client.scan(
+                        cursor=cursor,
+                        match=f"{self.shard_stats_key_prefix}*",
+                        count=100,
+                    )
                     shard_keys.extend(keys)
 
                 if not shard_keys:
@@ -115,7 +96,7 @@ class RedisManager:
                 raw_data = client.mget(shard_keys)
                 statuses = {}
                 for i, key in enumerate(shard_keys):
-                    shard_id_str = key.split(':')[-1]
+                    shard_id_str = key.split(":")[-1]
                     if raw_data[i]:
                         statuses[int(shard_id_str)] = json.loads(raw_data[i])
                 return statuses
@@ -140,8 +121,12 @@ class RedisManager:
         if client:
             try:
                 key = f"{self.active_players_key_prefix}{shard_id}"
-                client.set(key, json.dumps(active_players_data), ex=self.active_player_ttl)
-                LOGGER.debug(f"Updated {len(active_players_data)} active players for shard {shard_id}")
+                client.set(
+                    key, json.dumps(active_players_data), ex=self.active_player_ttl
+                )
+                LOGGER.debug(
+                    f"Updated {len(active_players_data)} active players for shard {shard_id}"
+                )
             except redis.exceptions.RedisError as e:
                 LOGGER.error(f"Failed to update active players in Redis: {e}")
             except Exception as e:
@@ -157,9 +142,13 @@ class RedisManager:
         if client:
             try:
                 player_keys = []
-                cursor = '0'
+                cursor = "0"
                 while cursor != 0:
-                    cursor, keys = client.scan(cursor=cursor, match=f"{self.active_players_key_prefix}*", count=100)
+                    cursor, keys = client.scan(
+                        cursor=cursor,
+                        match=f"{self.active_players_key_prefix}*",
+                        count=100,
+                    )
                     player_keys.extend(keys)
 
                 if not player_keys:
@@ -168,7 +157,7 @@ class RedisManager:
                 raw_data = client.mget(player_keys)
                 all_players = {}
                 for i, key in enumerate(player_keys):
-                    shard_id_str = key.split(':')[-1]
+                    shard_id_str = key.split(":")[-1]
                     if raw_data[i]:
                         all_players[int(shard_id_str)] = json.loads(raw_data[i])
                 return all_players
@@ -182,6 +171,7 @@ class RedisManager:
                 LOGGER.error(f"Unexpected error getting active players: {e}")
                 return {}
         return {}
+
 
 # 전역 Redis 매니저 인스턴스 생성
 redis_manager = RedisManager()

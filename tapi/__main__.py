@@ -70,7 +70,7 @@ class TapiBot(commands.Bot):
             self.stats_updater = BotStatsUpdater(
                 bot_id=CLIENT_ID,
                 topgg_token=TOPGG_TOKEN,
-                koreanbot_token=KOREANBOT_TOKEN
+                koreanbot_token=KOREANBOT_TOKEN,
             )
             LOGGER.info(f"Bot stats updater initialized for bot ID: {CLIENT_ID}")
 
@@ -266,13 +266,12 @@ class TapiBot(commands.Bot):
             try:
                 # 샤딩 사용 시 모든 샤드의 길드 수 합산
                 if hasattr(self, "shard_count") and self.shard_count:
-                    # Redis에서 모든 샤드의 길드 수 가져오기
-                    total_guilds = 0
-                    for shard_id in range(self.shard_count):
-                        shard_data = redis_manager.get_shard_status(shard_id)
-                        if shard_data:
-                            total_guilds += shard_data.get("guild_count", 0)
-
+                    # Redis에서 모든 샤드의 길드 수 한 번에 가져오기
+                    all_shards = redis_manager.get_all_shard_statuses()
+                    total_guilds = sum(
+                        shard_data.get("guild_count", 0)
+                        for shard_data in all_shards.values()
+                    )
                     shard_count = self.shard_count
                 else:
                     # 샤딩 미사용 시 현재 봇의 길드 수
@@ -293,11 +292,13 @@ class TapiBot(commands.Bot):
 
     async def close(self):
         """봇 종료 시 자동 공지 - 각 샤드가 자기 활성 플레이어에게 직접 전송"""
-        if not getattr(self, '_closing', False):
+        if not getattr(self, "_closing", False):
             self._closing = True
 
-            shard_id = getattr(self, 'shard_id', 0)
-            LOGGER.info(f"Shard {shard_id} shutting down, sending announcements to active players...")
+            shard_id = getattr(self, "shard_id", 0)
+            LOGGER.info(
+                f"Shard {shard_id} shutting down, sending announcements to active players..."
+            )
 
             # 현재 샤드의 활성 플레이어에게 직접 전송
             if self.lavalink:
@@ -306,7 +307,7 @@ class TapiBot(commands.Bot):
                     player = self.lavalink.player_manager.get(guild.id)
 
                     if player and player.is_connected:
-                        channel_id = player.fetch('channel')
+                        channel_id = player.fetch("channel")
                         if channel_id:
                             channel = self.get_channel(channel_id)
                             if channel:
@@ -314,15 +315,19 @@ class TapiBot(commands.Bot):
                                     embed = discord.Embed(
                                         title="🔄 Bot Restarting",
                                         description="The bot is restarting for maintenance. Please resume playback in a moment.",
-                                        color=0x3b82f6
+                                        color=0x3B82F6,
                                     )
                                     embed.set_footer(text=APP_NAME_TAG_VER)
                                     await channel.send(embed=embed)
                                     sent_count += 1
                                 except Exception as e:
-                                    LOGGER.warning(f"Failed to send shutdown notice to {guild.name}: {e}")
+                                    LOGGER.warning(
+                                        f"Failed to send shutdown notice to {guild.name}: {e}"
+                                    )
 
-                LOGGER.info(f"Shard {shard_id} sent shutdown announcement to {sent_count} channels")
+                LOGGER.info(
+                    f"Shard {shard_id} sent shutdown announcement to {sent_count} channels"
+                )
                 await asyncio.sleep(2)  # 메시지 전송 완료 대기
 
             # stats_updater 세션 종료
@@ -349,12 +354,14 @@ else:
     LOGGER.info("Starting bot without sharding")
     bot = TapiBot()
 
+
 # Signal handler 설정 (Linux/Docker 환경)
 def handle_shutdown(signum, frame):
     """SIGTERM/SIGINT 받았을 때 graceful shutdown"""
     _ = frame  # unused parameter
     LOGGER.info(f"Received signal {signum}, initiating graceful shutdown...")
     asyncio.create_task(bot.close())
+
 
 # Docker에서는 Linux이므로 항상 등록
 signal.signal(signal.SIGTERM, handle_shutdown)
