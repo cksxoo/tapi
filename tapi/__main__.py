@@ -87,7 +87,7 @@ class TapiBot(commands.Bot):
 
         await self.change_presence(
             activity=discord.Activity(
-                type=discord.ActivityType.listening, name="🎶 music! ヾ(｡>﹏<｡)ﾉﾞ✧"
+                type=discord.ActivityType.listening, name="🎶 ヾ(｡>﹏<｡)ﾉﾞ✧"
             ),
             status=discord.Status.online,
         )
@@ -112,7 +112,7 @@ class TapiBot(commands.Bot):
                 await self.change_presence(
                     activity=discord.Activity(
                         type=discord.ActivityType.listening,
-                        name="🎶 music! ヾ(｡>﹏<｡)ﾉﾞ✧",
+                        name="🎶 ヾ(｡>﹏<｡)ﾉﾞ✧",
                     ),
                     status=discord.Status.online,
                 )
