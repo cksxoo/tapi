@@ -10,7 +10,7 @@ from tapi import (
 )
 from tapi.utils.language import get_lan
 from tapi.utils.database import Database
-from tapi.utils.embed import send_temp_message, format_text_with_limit
+from tapi.utils.embed import send_temp_message, format_text_with_limit, get_track_thumbnail
 
 
 class SearchSelect(discord.ui.Select):
@@ -132,10 +132,9 @@ class RecommendationView(discord.ui.View):
             )
 
             # 추가된 곡 썸네일
-            if selected_track.identifier:
-                embed.set_thumbnail(
-                    url=f"http://img.youtube.com/vi/{selected_track.identifier}/0.jpg"
-                )
+            thumbnail_url = get_track_thumbnail(selected_track)
+            if thumbnail_url:
+                embed.set_thumbnail(url=thumbnail_url)
 
             embed.set_footer(text=get_lan(interaction, "music_recommend_added_footer"))
 
@@ -179,10 +178,9 @@ class RecommendationView(discord.ui.View):
                 )
 
                 # 현재 곡 썸네일
-                if self.current_track.identifier:
-                    embed.set_thumbnail(
-                        url=f"http://img.youtube.com/vi/{self.current_track.identifier}/0.jpg"
-                    )
+                thumbnail_url = get_track_thumbnail(self.current_track)
+                if thumbnail_url:
+                    embed.set_thumbnail(url=thumbnail_url)
 
                 embed.set_footer(
                     text=get_lan(
@@ -281,6 +279,10 @@ class MusicControlView(discord.ui.View):
 
         return f"> [{title}]({track.uri})\n> {artist_name}\n> {progress_bar}\n> {time}"
 
+    def _get_track_thumbnail(self, track) -> str:
+        """트랙의 썸네일 URL 가져오기 (Spotify, YouTube 등 모든 소스 지원)"""
+        return get_track_thumbnail(track)
+
     def _add_status_fields(self, embed, interaction, player):
         """상태 정보 필드 추가"""
         # 셔플 상태
@@ -356,11 +358,11 @@ class MusicControlView(discord.ui.View):
         # 상태 정보 추가
         self._add_status_fields(embed, interaction, player)
 
-        # 썸네일 및 배너 이미지 추가
-        if track.identifier:
-            embed.set_thumbnail(
-                url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
-            )
+        # 썸네일 설정 (Spotify, YouTube 등 모든 소스 지원)
+        thumbnail_url = self._get_track_thumbnail(track)
+        if thumbnail_url:
+            embed.set_thumbnail(url=thumbnail_url)
+
         embed.set_image(url=APP_BANNER_URL)
 
         # embed.set_footer(text=APP_NAME_TAG_VER)
@@ -580,10 +582,9 @@ class MusicControlView(discord.ui.View):
             )
 
             # 현재 곡 썸네일 추가
-            if current_track.identifier:
-                embed.set_thumbnail(
-                    url=f"http://img.youtube.com/vi/{current_track.identifier}/0.jpg"
-                )
+            thumbnail_url = get_track_thumbnail(current_track)
+            if thumbnail_url:
+                embed.set_thumbnail(url=thumbnail_url)
 
             message = await interaction.followup.send(
                 embed=embed, view=recommend_view, ephemeral=False

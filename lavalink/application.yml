@@ -40,15 +40,17 @@ plugins:
     # LavaSrc 플러그인을 통해 Spotify, Apple Music, Deezer 등의 음원을 검색하고 재생할 수 있습니다.
     # 사용하려면 'plugins' 폴더에 lavasrc.jar 파일이 있어야 합니다.
     sources:
-      spotify: false # Spotify 사용 여부
+      spotify: true # Spotify 사용 여부
       applemusic: false # Apple Music 사용 여부
       deezer: false # Deezer 사용 여부
       yandexmusic: false # Yandex Music 사용 여부
       youtube: true # LavaSrc를 통한 YouTube 검색 사용 여부
     spotify:
-      clientId: "" # Spotify 개발자 앱의 Client ID
-      clientSecret: "" # Spotify 개발자 앱의 Client Secret
-      countryCode: "KR" # 필터링에 사용할 국가 코드 (예: KR, US)
+      clientId: "${SPOTIFY_CLIENT_ID:}"
+      clientSecret: "${SPOTIFY_CLIENT_SECRET:}"
+      countryCode: "${SPOTIFY_COUNTRY_CODE:KR}"
+      playlistLoadLimit: 6 # 플레이리스트 로드 제한 (페이지당 100곡)
+      albumLoadLimit: 6 # 앨범 로드 제한 (페이지당 50곡)
     applemusic:
       countryCode: "KR"
 

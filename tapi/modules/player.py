@@ -221,6 +221,7 @@ class Music(commands.Cog):
         should_connect = interaction.command.name in (
             "play",
             "scplay",
+            "spplay",
             "search",
             "connect",
         )
@@ -288,11 +289,12 @@ class Music(commands.Cog):
         if is_search_query:
             return f"ytsearch:{original_query_stripped}", is_search_query
 
-        # URL인 경우 동적 재생목록 파라미터만 제거
+        # URL인 경우 처리
         if (
             "youtube.com" in original_query_stripped
             or "youtu.be" in original_query_stripped
         ):
+            # YouTube URL: 동적 재생목록 파라미터만 제거
             # 라디오/믹스 등 동적 재생목록만 제거 (RD, RDMM 등)
             # 일반 재생목록 (PL, UU 등)은 유지
             current_lavalink_query = re.sub(
@@ -315,6 +317,8 @@ class Music(commands.Cog):
             )
             return current_lavalink_query.rstrip("&?"), is_search_query
 
+        # Spotify, SoundCloud 등 다른 URL은 그대로 Lavalink에 전달
+        # Lavalink의 LavaSrc 플러그인이 자동으로 처리함
         return original_query_stripped, is_search_query
 
     async def _search_tracks(
@@ -483,6 +487,80 @@ class Music(commands.Cog):
                     embed.set_thumbnail(
                         url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
                     )
+
+        await send_temp_message(interaction, embed)
+
+        if not player.is_playing:
+            await player.play()
+
+    @app_commands.command(
+        name="spplay", description="Searches and plays a song from Spotify."
+    )
+    @app_commands.describe(
+        query="Spotify에서 찾고싶은 음악의 제목이나 링크를 입력하세요"
+    )
+    @app_commands.check(create_player)
+    async def spplay(self, interaction: discord.Interaction, query: str):
+        # 투표 확인
+        if not await check_vote(interaction):
+            return
+
+        await interaction.response.defer()
+
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+        query = query.strip("<>")
+
+        if not url_rx.match(query):
+            query = f"spsearch:{query}"
+
+        nofind = 0
+        while True:
+            results = await player.node.get_tracks(query)
+
+            if results.load_type == LoadType.EMPTY or not results or not results.tracks:
+                if nofind < 3:
+                    nofind += 1
+                elif nofind == 3:
+                    embed = discord.Embed(
+                        title=get_lan(
+                            interaction.guild.id, "music_can_not_find_anything"
+                        ),
+                        description="",
+                        color=THEME_COLOR,
+                    )
+                    embed.set_footer(text=APP_NAME_TAG_VER)
+                    return await send_temp_message(interaction, embed)
+            else:
+                break
+
+        if results.load_type == LoadType.PLAYLIST:
+            tracks = results.tracks
+            trackcount = 0
+
+            for track in tracks:
+                if trackcount != 1:
+                    trackcount = 1
+
+                player.add(requester=interaction.user.id, track=track)
+
+            embed = create_playlist_embed(
+                interaction, results.playlist_info.name, len(tracks)
+            )
+
+        else:
+            track = results.tracks[0]
+            player.add(requester=interaction.user.id, track=track)
+
+            # 디버깅: 트랙 속성 로깅
+            LOGGER.debug(f"Spotify Track - URI: {track.uri}")
+            LOGGER.debug(f"Spotify Track - Identifier: {track.identifier}")
+            LOGGER.debug(f"Spotify Track - Available attributes: {dir(track)}")
+            if hasattr(track, 'plugin_info'):
+                LOGGER.debug(f"Spotify Track - plugin_info: {track.plugin_info}")
+            if hasattr(track, 'extra'):
+                LOGGER.debug(f"Spotify Track - extra: {track.extra}")
+
+            embed = create_track_embed(track, interaction.user.display_name)
 
         await send_temp_message(interaction, embed)
 

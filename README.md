@@ -13,6 +13,7 @@ TAPI is a modern Discord music bot built with Python and discord.py. Designed wi
 ## 🌟 Features
 
 - 🎵 **High-quality music playback** with Lavalink integration
+- 🎧 **Multi-platform support** - YouTube, Spotify, SoundCloud, and more
 - 🔀 **Smart queue management** with shuffle and repeat modes
 - 📱 **Interactive slash commands** with button-based help system
 - 🌐 **Multi-language support** (Korean/English/Japanese) with cute messages
@@ -27,7 +28,9 @@ TAPI is a modern Discord music bot built with Python and discord.py. Designed wi
 ### 🎮 Playback Control
 
 - `/connect` - Connect to voice channel
-- `/play [song/link]` - Play music from various sources
+- `/play [song/link]` - Play music from YouTube, Spotify, and more
+- `/spplay [song/link]` - Search and play from Spotify
+- `/scplay [song/link]` - Search and play from SoundCloud
 - `/pause` - Pause/resume playback
 - `/skip` - Skip to next song
 - `/disconnect` - Leave voice channel

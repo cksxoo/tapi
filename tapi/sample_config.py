@@ -30,6 +30,12 @@ class Config(object):
         "dev.lavalink.youtube:youtube-plugin": "https://api.github.com/repos/lavalink-devs/youtube-source/releases",
     }
 
+    # Spotify API (LavaSrc Plugin)
+    # Get your credentials from: https://developer.spotify.com/dashboard
+    SPOTIFY_CLIENT_ID = ""  # Spotify Client ID
+    SPOTIFY_CLIENT_SECRET = ""  # Spotify Client Secret (KEEP SECRET!)
+    SPOTIFY_COUNTRY_CODE = "KR"  # Country code for filtering
+
     # Bot listing sites
     KOREANBOT_TOKEN = None
     TOPGG_TOKEN = None

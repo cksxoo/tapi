@@ -40,16 +40,47 @@ def format_text_with_limit(text: str, max_length: int) -> str:
     return text[:max_length] + "..." if len(text) > max_length else text
 
 
+def get_track_thumbnail(track) -> str:
+    """트랙의 썸네일 URL 가져오기 (Spotify, YouTube 등 모든 소스 지원)"""
+    thumbnail_url = None
+
+    # LavaSrc 플러그인이 제공하는 앨범 아트 (Spotify/Deezer/Apple Music 등)
+    if hasattr(track, 'plugin_info') and track.plugin_info:
+        if isinstance(track.plugin_info, dict):
+            # LavaSrc의 albumArtUrl 필드 사용 (앨범 아트만, 아티스트 사진 제외)
+            thumbnail_url = track.plugin_info.get('albumArtUrl') or track.plugin_info.get('artworkUrl')
+
+    # 없으면 artwork_url 시도 (일부 버전에서 사용)
+    if not thumbnail_url:
+        if hasattr(track, 'artwork_url') and track.artwork_url:
+            thumbnail_url = track.artwork_url
+        elif hasattr(track, 'artworkUrl') and track.artworkUrl:
+            thumbnail_url = track.artworkUrl
+
+    # extra 필드 확인 (Lavalink v4 대체 방식)
+    if not thumbnail_url and hasattr(track, 'extra') and track.extra:
+        if isinstance(track.extra, dict):
+            thumbnail_url = track.extra.get('albumArtUrl') or track.extra.get('artworkUrl')
+
+    # YouTube 트랙 썸네일 (identifier가 YouTube ID인 경우)
+    if not thumbnail_url and track.identifier:
+        # Spotify/Deezer URI가 아닌 경우 YouTube 썸네일 사용
+        if not any(x in track.uri for x in ['spotify.com', 'deezer.com', 'soundcloud.com', 'music.apple.com']):
+            thumbnail_url = f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
+
+    return thumbnail_url
+
+
 def create_track_embed(track, user_display_name: str) -> discord.Embed:
     """단일 트랙용 embed 생성"""
     embed = discord.Embed(color=THEME_COLOR)
     embed.description = f"**[{track.title}]({track.uri})** - {track.author}\nby {user_display_name}"
-    
-    if track.identifier:
-        embed.set_thumbnail(
-            url=f"http://img.youtube.com/vi/{track.identifier}/0.jpg"
-        )
-    
+
+    # 썸네일 설정
+    thumbnail_url = get_track_thumbnail(track)
+    if thumbnail_url:
+        embed.set_thumbnail(url=thumbnail_url)
+
     embed.set_footer(text=APP_NAME_TAG_VER)
     return embed
 
