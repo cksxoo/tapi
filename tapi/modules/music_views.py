@@ -241,14 +241,14 @@ class MusicControlView(discord.ui.View):
             if player:
                 # 일시정지 버튼 상태
                 if player.paused:
-                    self.pause_resume.emoji = "<:play:1399719809469382779>"
-                    self.pause_resume.label = "Play"
+                    self.pause_resume.emoji = "<:play2:1433343063337467994>"
+                    self.pause_resume.label = "Play "
                 else:
-                    self.pause_resume.emoji = "<:pause:1399721118473912390>"
+                    self.pause_resume.emoji = "<:pause2:1433343068194734200>"
                     self.pause_resume.label = "Pause"
 
                 # 반복 버튼 상태
-                self.repeat.emoji = "<:repeats:1399721836958449674>"
+                self.repeat.emoji = "<:repeat2:1433343061555150970>"
 
                 # 셔플 버튼 상태
                 self.shuffle.style = (
@@ -319,14 +319,14 @@ class MusicControlView(discord.ui.View):
         """모든 버튼 상태 업데이트"""
         # 일시정지/재생 버튼
         if player.paused:
-            self.pause_resume.emoji = "<:play:1399719809469382779>"
-            self.pause_resume.label = "Play"
+            self.pause_resume.emoji = "<:play2:1433343063337467994>"
+            self.pause_resume.label = "Play "
         else:
-            self.pause_resume.emoji = "<:pause:1399721118473912390>"
+            self.pause_resume.emoji = "<:pause2:1433343068194734200>"
             self.pause_resume.label = "Pause"
 
         # 반복 버튼
-        self.repeat.emoji = "<:repeats:1399721836958449674>"
+        self.repeat.emoji = "<:repeat2:1433343061555150970>"
 
         # 셔플 버튼
         self.shuffle.style = (
@@ -376,7 +376,7 @@ class MusicControlView(discord.ui.View):
         return embed
 
     @discord.ui.button(
-        emoji="<:pause:1399721118473912390>",
+        emoji="<:pause2:1433343068194734200>",
         label="Pause",
         style=discord.ButtonStyle.primary,
     )
@@ -403,7 +403,7 @@ class MusicControlView(discord.ui.View):
             await interaction.edit_original_response(embed=embed, view=self)
 
     @discord.ui.button(
-        emoji="<:skip:1399719807699521597>",
+        emoji="<:skip2:1433343066504433714>",
         label="Skip",
         style=discord.ButtonStyle.secondary,
     )
@@ -427,27 +427,54 @@ class MusicControlView(discord.ui.View):
         # 건너뛰기는 새 곡이 시작되면서 자동으로 새 컨트롤 패널이 나타남
 
     @discord.ui.button(
-        emoji="<:refresh:1399711357934374943>", style=discord.ButtonStyle.secondary
+        emoji="<:stop2:1433343069935370240>",
+        style=discord.ButtonStyle.danger,
     )
-    async def refresh(
+    async def disconnect(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        """현재 재생 정보 새로고침 버튼"""
+        """연결 종료 버튼"""
         await interaction.response.defer()
 
         player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
-        if not player or not player.current:
+        if not player:
             return await interaction.followup.send(
-                "현재 재생중인 곡이 없습니다!", ephemeral=True
+                get_lan(interaction, "music_dc_not_connect_voice_channel"),
+                ephemeral=True,
             )
 
-        # embed와 모든 버튼 상태 업데이트
-        embed = self.update_embed_and_buttons(interaction, player)
-        if embed:
-            await interaction.edit_original_response(embed=embed, view=self)
+        # 음성 채널 확인
+        if not interaction.guild.voice_client:
+            return await interaction.followup.send(
+                get_lan(interaction, "music_dc_not_connect_voice_channel"),
+                ephemeral=True,
+            )
+
+        # 사용자가 같은 음성 채널에 있는지 확인
+        if not interaction.user.voice or (
+            player.is_connected
+            and interaction.user.voice.channel.id != int(player.channel_id)
+        ):
+            return await interaction.followup.send(
+                get_lan(interaction, "music_dc_not_connect_my_voice_channel").format(
+                    name=interaction.user.name
+                ),
+                ephemeral=True,
+            )
+
+        # 연결 종료 처리
+        await self.cog._full_disconnect_cleanup(
+            self.guild_id,
+            "manual_disconnect_button",
+        )
+
+        await interaction.followup.send(
+            get_lan(interaction, "music_dc_disconnected"),
+            ephemeral=True,
+        )
 
     @discord.ui.button(
-        emoji="<:repeats:1399721836958449674>",
+        emoji="<:repeat2:1433343061555150970>",
         label="Repeat",
         style=discord.ButtonStyle.secondary,
     )
@@ -476,7 +503,7 @@ class MusicControlView(discord.ui.View):
         await interaction.edit_original_response(embed=embed, view=self)
 
     @discord.ui.button(
-        emoji="<:shuffle:1399720936068091964>",
+        emoji="<:shuffle2:1433343064902205480>",
         label="Shuffle",
         style=discord.ButtonStyle.secondary,
     )
