@@ -290,9 +290,20 @@ class QueueSelect(discord.ui.Select):
         queue_index = int(self.values[0])
 
         try:
+            # 한 곡 반복모드일 때는 임시로 해제
+            original_loop = self.player.loop
+            if original_loop == 1:
+                self.player.set_loop(0)
+
             # 선택한 곡까지 건너뛰기
             for _ in range(queue_index + 1):
                 await self.player.skip()
+
+            # 반복 모드 복원
+            if original_loop == 1:
+                self.player.set_loop(1)
+                from tapi.utils.database import Database
+                Database().set_loop(self.guild_id, 1)
 
             await interaction.followup.send(
                 get_lan(interaction, "music_queue_skip_to").format(index=queue_index + 1),
@@ -354,10 +365,21 @@ class MusicControlView(discord.ui.View):
 
     def _create_embed_description(self, track, progress_bar: str, time: str) -> str:
         """embed 설명 생성"""
-        title = format_text_with_limit(track.title, 25)
-        artist_name = format_text_with_limit(track.author, 25)
+        # 제목 길이를 더 짧게 (30 -> 20)
+        title = format_text_with_limit(track.title, 20)
+        artist_name = format_text_with_limit(track.author, 20)
 
-        return f"> [{title}]({track.uri})\n> {artist_name}\n> {progress_bar}\n> {time}"
+        # 플랫폼 이모지 선택
+        platform_emoji = "🎵"  # 기본
+        if track.uri:
+            if "spotify.com" in track.uri or "spotify:" in track.uri:
+                platform_emoji = "<:spotify:1433358080208404511>"
+            elif "soundcloud.com" in track.uri:
+                platform_emoji = "<:soundcloud:1433358078199201874>"
+            elif "youtube.com" in track.uri or "youtu.be" in track.uri:
+                platform_emoji = "<:youtube:1433358082028863519>"
+
+        return f"> {platform_emoji} [{title}]({track.uri})\n> {artist_name}\n> {progress_bar}\n> {time}"
 
     def _get_track_thumbnail(self, track) -> str:
         """트랙의 썸네일 URL 가져오기 (Spotify, YouTube 등 모든 소스 지원)"""
@@ -428,7 +450,7 @@ class MusicControlView(discord.ui.View):
         embed = discord.Embed(color=THEME_COLOR)
         embed.set_author(
             name="TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧",
-            icon_url="https://cdn.discordapp.com/emojis/1433353546778153014.gif"
+            # icon_url="https://cdn.discordapp.com/emojis/1433353546778153014.gif"
         )
 
         embed.description = self._create_embed_description(track, progress_bar, time)
