@@ -5,7 +5,6 @@ from tapi import (
     LOGGER,
     THEME_COLOR,
     IDLE_COLOR,
-    APP_NAME_TAG_VER,
     APP_BANNER_URL,
 )
 from tapi.utils.language import get_lan
@@ -426,17 +425,14 @@ class MusicControlView(discord.ui.View):
         progress_bar, time = self.create_progress_bar(player.position, track.duration)
 
         # embed 생성
-        # embed = discord.Embed(color=IDLE_COLOR)
-        # embed.title = f"<:audio:1399724398520434791> TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧"
-
-        embed = discord.Embed(color=0xFF6600)  # 할로윈 호박색
+        embed = discord.Embed(color=THEME_COLOR)
         embed.set_author(
-            name="TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧ 👻",
+            name="TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧",
             icon_url="https://cdn.discordapp.com/emojis/1433353546778153014.gif"
         )
 
         embed.description = self._create_embed_description(track, progress_bar, time)
-        
+
         # 상태 정보 추가
         self._add_status_fields(embed, interaction, player)
 
@@ -446,11 +442,6 @@ class MusicControlView(discord.ui.View):
             embed.set_thumbnail(url=thumbnail_url)
 
         embed.set_image(url=APP_BANNER_URL)
-
-        # embed.set_footer(text=APP_NAME_TAG_VER)
-        embed.set_footer(
-            text=f" {APP_NAME_TAG_VER} • Halloween Edition 🎃",
-        )
 
         # 버튼 상태 업데이트
         self._update_button_states(player)
