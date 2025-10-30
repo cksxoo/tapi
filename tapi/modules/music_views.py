@@ -229,6 +229,84 @@ class RecommendationView(discord.ui.View):
         await send_temp_message(interaction, embed)
 
 
+class QueueSelect(discord.ui.Select):
+    def __init__(self, player, guild_id):
+        self.player = player
+        self.guild_id = guild_id
+
+        # 재생목록에서 최대 25개 항목 가져오기 (Discord 제한)
+        options = []
+
+        for i, track in enumerate(player.queue[:25], start=1):
+            # 제목과 아티스트 길이 제한
+            title = track.title[:80] if len(track.title) <= 80 else track.title[:77] + "..."
+            author = track.author[:80] if len(track.author) <= 80 else track.author[:77] + "..."
+            duration = lavalink.utils.format_time(track.duration)
+
+            # 트랙 출처에 따른 이모지 선택
+            if track.uri:
+                if "spotify.com" in track.uri or "spotify:" in track.uri:
+                    emoji = "<:spotify:1433358080208404511>"
+                elif "soundcloud.com" in track.uri:
+                    emoji = "<:soundcloud:1433358078199201874>"
+                elif "youtube.com" in track.uri or "youtu.be" in track.uri:
+                    emoji = "<:youtube:1433358082028863519>"
+                else:
+                    emoji = "🎵"  # 기본 이모지
+            else:
+                emoji = "🎵"
+
+            options.append(
+                discord.SelectOption(
+                    label=f"{i}. {title}",
+                    description=f"♪ {author} • {duration}",
+                    value=str(i - 1),  # 큐 인덱스 (0부터 시작)
+                    emoji=emoji
+                )
+            )
+
+        # 옵션이 없으면 더미 옵션 추가 (Discord는 최소 1개 옵션 필요)
+        if not options:
+            options = [discord.SelectOption(label="Empty", value="empty")]
+            placeholder = "🎧 No tracks • Add music with /play"
+        else:
+            placeholder = f"🎧 {len(player.queue)} track{'s' if len(player.queue) > 1 else ''} in queue"
+
+        super().__init__(
+            placeholder=placeholder,
+            min_values=1,
+            max_values=1,
+            options=options,
+            row=1,  # 두 번째 줄에 배치
+            disabled=len(player.queue) == 0,  # 큐가 비어있으면 비활성화
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        """재생목록에서 곡 선택 시 해당 곡으로 건너뛰기"""
+        await interaction.response.defer()
+
+        if self.values[0] == "empty":
+            return
+
+        queue_index = int(self.values[0])
+
+        try:
+            # 선택한 곡까지 건너뛰기
+            for _ in range(queue_index + 1):
+                await self.player.skip()
+
+            await interaction.followup.send(
+                get_lan(interaction, "music_queue_skip_to").format(index=queue_index + 1),
+                ephemeral=True
+            )
+        except Exception as e:
+            LOGGER.error(f"Error skipping to queue position: {e}")
+            await interaction.followup.send(
+                get_lan(interaction, "music_queue_skip_failed"),
+                ephemeral=True
+            )
+
+
 class MusicControlView(discord.ui.View):
     def __init__(self, cog, guild_id):
         super().__init__(timeout=7200)  # 2시간 후 버튼 비활성화
@@ -256,6 +334,9 @@ class MusicControlView(discord.ui.View):
                     if player.shuffle
                     else discord.ButtonStyle.secondary
                 )
+
+                # 재생목록 Select 메뉴 추가 (항상 표시)
+                self.add_item(QueueSelect(player, guild_id))
         except (AttributeError, ValueError, KeyError):
             pass  # 오류 시 기본 상태 유지
 
@@ -350,7 +431,8 @@ class MusicControlView(discord.ui.View):
 
         embed = discord.Embed(color=0xFF6600)  # 할로윈 호박색
         embed.set_author(
-            name="👻 TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧",
+            name="TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧ 👻",
+            icon_url="https://cdn.discordapp.com/emojis/1433353546778153014.gif"
         )
 
         embed.description = self._create_embed_description(track, progress_bar, time)
@@ -532,95 +614,3 @@ class MusicControlView(discord.ui.View):
             
         await interaction.edit_original_response(embed=embed, view=self)
 
-    @discord.ui.button(
-        emoji="💗",
-        label="Recommend for You! (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
-        style=discord.ButtonStyle.danger,
-    )
-    async def recommend(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        """추천 곡 보기 버튼"""
-        await interaction.response.defer()
-
-        player = self.cog.bot.lavalink.player_manager.get(self.guild_id)
-        if not player or not player.current:
-            return await interaction.followup.send(
-                get_lan(interaction, "music_recommend_no_playing"),
-                ephemeral=True,
-            )
-
-        current_track = player.current
-
-        # 현재 곡이 YouTube 곡인지 확인
-        if not current_track.identifier:
-            return await interaction.followup.send(
-                get_lan(interaction, "music_recommend_youtube_only"),
-                ephemeral=True,
-            )
-
-        # RD 라디오 URL 생성
-        radio_url = f"https://www.youtube.com/watch?v={current_track.identifier}&list=RD{current_track.identifier}"
-
-        try:
-            # 라디오 추천 곡들 가져오기
-            results = await player.node.get_tracks(radio_url)
-
-            if not results or not results.tracks or len(results.tracks) <= 1:
-                return await interaction.followup.send(
-                    get_lan(interaction, "music_recommend_not_found"),
-                    ephemeral=True,
-                )
-
-            # 첫 번째 곡은 현재 곡이므로 제외하고 상위 5곡
-            recommended_tracks = results.tracks[1:6]
-
-            if not recommended_tracks:
-                return await interaction.followup.send(
-                    get_lan(interaction, "music_recommend_failed"),
-                    ephemeral=True,
-                )
-
-            # 추천 곡 리스트 View 생성
-            recommend_view = RecommendationView(
-                recommended_tracks, interaction.user.id, player, current_track, interaction.guild.id
-            )
-            await recommend_view.create_select_view()  # select 컴포넌트 동적 추가
-
-            # 추천 곡 리스트 embed 생성
-            embed = discord.Embed(
-                title=get_lan(interaction, "music_recommend_title"),
-                description=get_lan(
-                    interaction, "music_recommend_description"
-                ).format(track_title=current_track.title),
-                color=THEME_COLOR,
-            )
-
-            for i, track in enumerate(recommended_tracks, 1):
-                duration = lavalink.utils.format_time(track.duration)
-                embed.add_field(
-                    name=f"{i}. {track.title[:50]}{'...' if len(track.title) > 50 else ''}",
-                    value=f"{track.author[:30]}{'...' if len(track.author) > 30 else ''} - {duration}",
-                    inline=False,
-                )
-
-            embed.set_footer(
-                text=get_lan(interaction, "music_recommend_footer")
-            )
-
-            # 현재 곡 썸네일 추가
-            thumbnail_url = get_track_thumbnail(current_track)
-            if thumbnail_url:
-                embed.set_thumbnail(url=thumbnail_url)
-
-            message = await interaction.followup.send(
-                embed=embed, view=recommend_view, ephemeral=False
-            )
-            recommend_view.message = message
-
-        except Exception as e:
-            LOGGER.error(f"Error in recommend button: {e}")
-            await interaction.followup.send(
-                f"{get_lan(interaction, 'music_recommend_error')}: {str(e)}",
-                ephemeral=True,
-            )

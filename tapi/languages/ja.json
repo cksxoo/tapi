@@ -104,5 +104,11 @@
     "vote_required_description": "TAPIを使用するには、まず投票してください。\n一度投票すれば永久に使用できます！",
 
     "music_spotify_play": "Spotifyから再生！",
-    "music_spotify_search": "Spotify検索結果"
+    "music_spotify_search": "Spotify検索結果",
+
+    "music_queue_select_placeholder": "キュー ({count}曲)",
+    "music_queue_select_placeholder_empty": "キュー (空)",
+    "music_queue_select_empty": "キューに曲がありません",
+    "music_queue_skip_to": "#{index}番目の曲にスキップしました",
+    "music_queue_skip_failed": "選択した曲へのスキップに失敗しました"
 }

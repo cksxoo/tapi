@@ -102,5 +102,11 @@
     "vote_required_description": "To use TAPI, please vote for us first.\nJust vote once and you can use it forever!",
 
     "music_spotify_play": "Playing from Spotify!",
-    "music_spotify_search": "Spotify Search Results"
+    "music_spotify_search": "Spotify Search Results",
+
+    "music_queue_select_placeholder": "Queue ({count} tracks)",
+    "music_queue_select_placeholder_empty": "Queue (Empty)",
+    "music_queue_select_empty": "No tracks in queue",
+    "music_queue_skip_to": "Skipped to track #{index}",
+    "music_queue_skip_failed": "Failed to skip to selected track"
 }
