@@ -75,7 +75,7 @@ async def check_vote(interaction: discord.Interaction):
         )
         # 배너 이미지 추가
         embed.set_image(
-            url="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_halloween.png"
+            url="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_winter.png"
         )
 
         # 투표 링크 버튼 생성
