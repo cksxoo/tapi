@@ -107,6 +107,8 @@ class Music(commands.Cog):
         self.bot = bot
         # 길드별 마지막 음악 메시지를 저장하는 딕셔너리
         self.last_music_messages = {}
+        # 사용자별 언어 설정 캐시
+        self.user_locales = {}  # {user_id: locale}
         # 핸들러 초기화
         self.handlers = MusicHandlers(self)
 
@@ -193,6 +195,11 @@ class Music(commands.Cog):
                 raise app_commands.CheckFailure(
                     get_lan(interaction, "music_voice_channel_is_full")
                 )
+
+    def _save_user_locale(self, interaction: discord.Interaction):
+        """사용자의 언어 설정을 캐시에 저장"""
+        if hasattr(interaction, 'locale'):
+            self.user_locales[interaction.user.id] = str(interaction.locale)
 
     @staticmethod
     async def create_player(interaction: discord.Interaction):
@@ -370,6 +377,9 @@ class Music(commands.Cog):
         if not await check_vote(interaction):
             return
 
+        # 사용자 언어 설정 저장
+        self._save_user_locale(interaction)
+
         await interaction.response.defer()
 
         try:
@@ -430,6 +440,9 @@ class Music(commands.Cog):
         # 투표 확인
         if not await check_vote(interaction):
             return
+
+        # 사용자 언어 설정 저장
+        self._save_user_locale(interaction)
 
         await interaction.response.defer()
 
@@ -505,6 +518,9 @@ class Music(commands.Cog):
         if not await check_vote(interaction):
             return
 
+        # 사용자 언어 설정 저장
+        self._save_user_locale(interaction)
+
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
@@ -577,6 +593,9 @@ class Music(commands.Cog):
         if not await check_vote(interaction):
             return
 
+        # 사용자 언어 설정 저장
+        self._save_user_locale(interaction)
+
         await interaction.response.defer()
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
@@ -597,7 +616,7 @@ class Music(commands.Cog):
         tracks = results.tracks[:5]
 
         embed = create_standard_embed(
-            interaction.guild.id, "music_search_results", "music_search_select"
+            interaction, "music_search_results", "music_search_select"
         )
         for i, track in enumerate(tracks, start=1):
             embed.add_field(

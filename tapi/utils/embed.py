@@ -108,16 +108,19 @@ async def send_temp_message(interaction, embed, delete_after=3, refresh_control=
                         player = interaction.client.lavalink.player_manager.get(guild_id)
                         if player and player.current:
                             old_message = cog.last_music_messages[guild_id]
-                            
+
                             from tapi.modules.player import MusicControlView
                             control_view = MusicControlView(cog, guild_id)
 
                             class FakeInteraction:
-                                def __init__(self, user_id, guild_id):
+                                def __init__(self, user_id, guild_id, locale):
                                     self.user = type("obj", (object,), {"id": user_id})()
                                     self.guild = type("obj", (object,), {"id": guild_id})()
+                                    self.locale = locale
 
-                            fake_interaction = FakeInteraction(interaction.user.id, guild_id)
+                            # 현재 곡을 요청한 사람의 ID 사용, 명령어 실행한 사람의 언어로 표시
+                            requester_id = player.current.requester if player.current else interaction.user.id
+                            fake_interaction = FakeInteraction(requester_id, guild_id, interaction.locale)
                             updated_embed = control_view.update_embed_and_buttons(fake_interaction, player)
 
                             if updated_embed:

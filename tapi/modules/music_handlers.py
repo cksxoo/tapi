@@ -31,7 +31,9 @@ class MusicHandlers:
         except Exception as e:
             LOGGER.debug(f"Could not delete music message on {reason}: {e}")
         finally:
-            del self.music_cog.last_music_messages[guild_id]
+            # 딕셔너리에서 안전하게 제거
+            if guild_id in self.music_cog.last_music_messages:
+                del self.music_cog.last_music_messages[guild_id]
 
     async def _cleanup_player(
         self, guild_id: int, stop_current: bool = True, clear_queue: bool = True
@@ -166,22 +168,14 @@ class MusicHandlers:
 
             # 일관된 embed 생성 (가짜 interaction 객체 생성)
             class FakeInteraction:
-                def __init__(self, user_id, guild_id, bot):
+                def __init__(self, user_id, guild_id, locale):
                     self.user = type("obj", (object,), {"id": user_id})()
                     self.guild = type("obj", (object,), {"id": guild_id})()
-                    # 사용자의 locale 정보 가져오기
-                    try:
-                        user = bot.get_user(user_id)
-                        if user:
-                            # Discord에서 사용자 정보를 가져올 수 있으면 locale 사용
-                            self.locale = getattr(user, 'locale', 'en-US')
-                        else:
-                            # 기본값은 한국어 (봇이 한국 기반이므로)
-                            self.locale = 'ko'
-                    except:
-                        self.locale = 'ko'
+                    self.locale = locale
 
-            fake_interaction = FakeInteraction(requester_id, guild_id, self.bot)
+            # 사용자의 저장된 언어 설정 가져오기 (없으면 기본값 영어)
+            user_locale = self.music_cog.user_locales.get(requester_id, 'en')
+            fake_interaction = FakeInteraction(requester_id, guild_id, user_locale)
             embed = control_view.update_embed_and_buttons(fake_interaction, player)
 
             if embed:
@@ -189,6 +183,7 @@ class MusicHandlers:
                     # 새 음악 메시지를 보내고 저장
                     message = await channel.send(embed=embed, view=control_view)
                     self.music_cog.last_music_messages[guild_id] = message
+                    LOGGER.debug(f"Created new music message for guild {guild_id}")
                     return message
                 except discord.Forbidden:
                     LOGGER.warning(
