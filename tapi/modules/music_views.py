@@ -55,179 +55,6 @@ class SearchView(discord.ui.View):
                 pass
 
 
-class RecommendationView(discord.ui.View):
-    def __init__(self, recommended_tracks, user_id, player, current_track, guild_id):
-        super().__init__(timeout=120)  # 2분 후 만료
-        self.recommended_tracks = recommended_tracks
-        self.user_id = user_id
-        self.guild_id = guild_id
-        self.player = player
-        self.current_track = current_track
-        self.message = None
-
-    async def on_timeout(self):
-        if self.message:
-            try:
-                await self.message.delete()
-            except discord.NotFound:
-                pass
-            except discord.Forbidden:
-                pass
-
-    def create_select_options(self):
-        """동적으로 select 옵션 생성"""
-        options = []
-        for i, track in enumerate(self.recommended_tracks[:5]):  # 최대 5개
-            title = track.title[:45] + ("..." if len(track.title) > 45 else "")
-            author = track.author[:40] + ("..." if len(track.author) > 40 else "")
-            duration = lavalink.utils.format_time(track.duration)
-
-            options.append(
-                discord.SelectOption(
-                    label=f"{i+1}. {title}",
-                    description=f"{author} - {duration}",
-                    value=str(i),
-                    emoji="🎵",
-                )
-            )
-        return options
-
-    async def create_select_view(self):
-        """select 컴포넌트를 동적으로 추가"""
-        select = discord.ui.Select(
-            placeholder="Select a song...",  # 하드코딩 (interaction 없음)
-            min_values=1,
-            max_values=1,
-            options=self.create_select_options(),
-        )
-        select.callback = self.select_recommendation_callback
-        self.add_item(select)
-
-    async def select_recommendation_callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
-        # Select 컴포넌트에서 선택된 값 가져오기
-        select = None
-        for item in self.children:
-            if isinstance(item, discord.ui.Select):
-                select = item
-                break
-
-        if not select or not select.values:
-            return
-
-        selected_index = int(select.values[0])
-        selected_track = self.recommended_tracks[selected_index]
-
-        try:
-            # 선택된 곡을 큐에 추가
-            self.player.add(requester=self.user_id, track=selected_track)
-
-            # 성공 메시지
-            embed = discord.Embed(
-                title=get_lan(interaction, "music_recommend_added_title"),
-                description=f"**[{selected_track.title}]({selected_track.uri})**\n{selected_track.author}",
-                color=THEME_COLOR,
-            )
-
-            # 추가된 곡 썸네일
-            thumbnail_url = get_track_thumbnail(selected_track)
-            if thumbnail_url:
-                embed.set_thumbnail(url=thumbnail_url)
-
-            embed.set_footer(text=get_lan(interaction, "music_recommend_added_footer"))
-
-            # 원래 메시지는 그대로 두고, 새로운 공개 메시지로 성공 알림
-            await send_temp_message(interaction, embed)
-            # 원래 추천 메시지는 삭제
-            await interaction.delete_original_response()
-
-        except Exception as e:
-            LOGGER.error(f"Error adding recommended track: {e}")
-            await interaction.edit_original_response(
-                content=f"곡 추가 중 오류가 발생했습니다: {str(e)}",
-                embed=None,
-                view=None,
-            )
-
-    @discord.ui.button(
-        emoji="⭐", label="Add all!", style=discord.ButtonStyle.primary, row=1
-    )
-    async def add_all_recommendations(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        await interaction.response.defer()
-
-        added_count = 0
-        try:
-            for track in self.recommended_tracks:
-                try:
-                    self.player.add(requester=self.user_id, track=track)
-                    added_count += 1
-                except Exception as e:
-                    LOGGER.error(f"Error adding track: {e}")
-
-            if added_count > 0:
-                embed = discord.Embed(
-                    title=get_lan(interaction, "music_recommend_all_added_title"),
-                    description=get_lan(
-                        interaction, "music_recommend_all_added_description"
-                    ).format(track_title=self.current_track.title, count=added_count),
-                    color=THEME_COLOR,
-                )
-
-                # 현재 곡 썸네일
-                thumbnail_url = get_track_thumbnail(self.current_track)
-                if thumbnail_url:
-                    embed.set_thumbnail(url=thumbnail_url)
-
-                embed.set_footer(
-                    text=get_lan(
-                        interaction, "music_recommend_all_added_footer"
-                    ).format(count=added_count)
-                )
-            else:
-                embed = discord.Embed(
-                    title=get_lan(interaction, "music_recommend_all_failed"),
-                    description=get_lan(
-                        interaction, "music_recommend_all_failed_description"
-                    ),
-                    color=THEME_COLOR,
-                )
-
-            # 새로운 공개 메시지로 성공 알림
-            await send_temp_message(interaction, embed)
-            # 원래 추천 메시지는 삭제
-            await interaction.delete_original_response()
-
-        except Exception as e:
-            LOGGER.error(f"Error adding all recommendations: {e}")
-            await interaction.edit_original_response(
-                content=f"곡 추가 중 오류가 발생했습니다: {str(e)}",
-                embed=None,
-                view=None,
-            )
-
-    @discord.ui.button(
-        label="(´･ω･`) Nevermind", style=discord.ButtonStyle.danger, row=1
-    )
-    async def cancel_recommendations(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
-        await interaction.response.defer()
-
-        embed = discord.Embed(
-            title=get_lan(interaction, "music_recommend_cancelled"),
-            description=get_lan(interaction, "music_recommend_cancelled_description"),
-            color=THEME_COLOR,
-        )
-
-        # 원래 추천 메시지 완전 삭제
-        await interaction.delete_original_response()
-        # 취소 메시지를 임시로 표시
-        await send_temp_message(interaction, embed)
-
-
 class QueueSelect(discord.ui.Select):
     def __init__(self, player, guild_id):
         self.player = player
@@ -290,14 +117,36 @@ class QueueSelect(discord.ui.Select):
         queue_index = int(self.values[0])
 
         try:
+            # 사용자 locale 저장 (on_track_start에서 사용)
+            cog = interaction.client.get_cog("Music")
+            if cog:
+                cog._save_user_locale(interaction)
+
             # 한 곡 반복모드일 때는 임시로 해제
             original_loop = self.player.loop
             if original_loop == 1:
                 self.player.set_loop(0)
 
-            # 선택한 곡까지 건너뛰기
-            for _ in range(queue_index + 1):
-                await self.player.skip()
+            # 현재 재생 중인 곡 저장
+            current_track = self.player.current
+
+            # 현재 곡 stop
+            await self.player.stop()
+
+            # 전체 반복 모드면 현재 곡도 큐의 끝으로 이동
+            if self.player.loop == 2 and current_track:
+                self.player.queue.append(current_track)
+
+            # 선택한 곡 이전의 모든 곡 처리
+            for _ in range(queue_index):
+                if self.player.queue:
+                    track = self.player.queue.pop(0)
+                    # 전체 반복 모드면 큐의 끝으로 이동
+                    if self.player.loop == 2:
+                        self.player.queue.append(track)
+
+            # 이제 다음 곡(선택한 곡) 재생
+            await self.player.play()
 
             # 반복 모드 복원
             if original_loop == 1:
@@ -305,10 +154,6 @@ class QueueSelect(discord.ui.Select):
                 from tapi.utils.database import Database
                 Database().set_loop(self.guild_id, 1)
 
-            await interaction.followup.send(
-                get_lan(interaction, "music_queue_skip_to").format(index=queue_index + 1),
-                ephemeral=True
-            )
         except Exception as e:
             LOGGER.error(f"Error skipping to queue position: {e}")
             await interaction.followup.send(
@@ -518,8 +363,11 @@ class MusicControlView(discord.ui.View):
             from tapi.utils.database import Database
             Database().set_loop(self.guild_id, 2)  # 설정 저장
 
+        # 사용자 locale 저장 (on_track_start에서 사용)
+        self.cog._save_user_locale(interaction)
+
         await player.skip()
-        # 건너뛰기는 새 곡이 시작되면서 자동으로 새 컨트롤 패널이 나타남
+        # on_track_start 이벤트가 자동으로 사용자 언어로 embed를 업데이트함
 
     @discord.ui.button(
         emoji="<:stop2:1433343069935370240>",
