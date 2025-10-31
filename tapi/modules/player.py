@@ -212,6 +212,12 @@ class Music(commands.Cog):
         if interaction.guild is None:
             raise app_commands.NoPrivateMessage()
 
+        # Check if Lavalink is initialized
+        if interaction.client.lavalink is None:
+            raise app_commands.CheckFailure(
+                "Music system is still initializing. Please try again in a few seconds."
+            )
+
         try:
             player = interaction.client.lavalink.player_manager.create(
                 interaction.guild.id
