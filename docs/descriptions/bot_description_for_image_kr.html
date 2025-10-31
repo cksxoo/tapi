@@ -13,16 +13,17 @@
         body {
             width: 1200px;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
             padding: 40px;
         }
 
         .header {
             text-align: center;
             padding: 40px;
-            background: linear-gradient(135deg, rgba(255, 230, 234, 0.2) 0%, rgba(255, 230, 234, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(186, 230, 253, 0.3) 0%, rgba(224, 242, 254, 0.1) 100%);
             border-radius: 20px;
             margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(74, 144, 199, 0.1);
         }
 
         .logo {
@@ -35,7 +36,7 @@
         .title {
             font-size: 48px;
             font-weight: 800;
-            background: linear-gradient(135deg, #9B59B6 0%, #FFE6EA 100%);
+            background: linear-gradient(135deg, #4a90c7 0%, #bae6fd 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -57,7 +58,7 @@
         .badge {
             padding: 8px 16px;
             background: white;
-            border: 2px solid #FFE6EA;
+            border: 2px solid #bae6fd;
             border-radius: 20px;
             font-size: 14px;
             font-weight: 600;
@@ -77,7 +78,7 @@
             border-radius: 15px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             text-align: center;
-            border: 1px solid rgba(255, 230, 234, 0.3);
+            border: 1px solid rgba(186, 230, 253, 0.3);
         }
 
         .feature-icon {
@@ -99,7 +100,7 @@
         }
 
         .commands {
-            background: linear-gradient(135deg, rgba(155, 89, 182, 0.05) 0%, rgba(255, 230, 234, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(74, 144, 199, 0.08) 0%, rgba(186, 230, 253, 0.08) 100%);
             padding: 30px;
             border-radius: 15px;
             margin: 40px 0;
@@ -121,7 +122,7 @@
             background: white;
             padding: 12px;
             border-radius: 8px;
-            border-left: 3px solid #FFE6EA;
+            border-left: 3px solid #bae6fd;
         }
 
         .command-name {
@@ -154,7 +155,7 @@
         .stat-value {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #9B59B6 0%, #FFE6EA 100%);
+            background: linear-gradient(135deg, #4a90c7 0%, #bae6fd 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -187,15 +188,30 @@
             right: 0;
             bottom: 0;
             background: linear-gradient(135deg,
-                    rgba(255, 230, 234, 0.15) 0%,
-                    rgba(155, 89, 182, 0.15) 100%);
+                    rgba(74, 144, 199, 0.1) 0%,
+                    rgba(186, 230, 253, 0.15) 100%);
             pointer-events: none;
+        }
+
+        .banner-overlay::before {
+            content: "❄️";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 36px;
+            opacity: 0.4;
+            animation: snowflake-float 3s ease-in-out infinite;
+        }
+
+        @keyframes snowflake-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .footer {
             text-align: center;
             padding: 30px;
-            background: linear-gradient(135deg, rgba(255, 230, 234, 0.1) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(186, 230, 253, 0.15) 0%, transparent 100%);
             border-radius: 15px;
         }
 
@@ -209,7 +225,7 @@
 
 <body>
     <div class="header">
-        <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/halloween_logo.png" class="logo">
+        <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/winter_logo.png" class="logo">
         <h1 class="title">TAPI</h1>
         <p class="subtitle">모던 디스코드 음악 봇</p>
         <div class="badges">
@@ -242,9 +258,9 @@
             <div class="feature-desc">슬래시 명령어와 인터랙티브 버튼</div>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">🎯</div>
-            <div class="feature-title">스마트 추천</div>
-            <div class="feature-desc">나만을 위한 개인화된 음악 추천</div>
+            <div class="feature-icon">⚡</div>
+            <div class="feature-title">빠른 응답</div>
+            <div class="feature-desc">1초 미만의 초고속 명령어 처리</div>
         </div>
         <div class="feature-card">
             <div class="feature-icon">🚀</div>
@@ -322,7 +338,7 @@
             지금 바로 TAPI를 디스코드 서버에 추가하세요
         </div>
         <div class="banner-wrapper" style="margin-top: 30px;">
-            <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/halloween_banner.png" class="banner">
+            <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_winter.png" class="banner">
             <div class="banner-overlay"></div>
         </div>
         <div class="footer-text">Made with ❤️ by cksxoo</div>
