@@ -119,4 +119,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-<img alt="image" src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/banner_summer.png" />
+<img alt="image" src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/banner_winter.png" />
