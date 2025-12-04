@@ -295,8 +295,8 @@ class MusicControlView(discord.ui.View):
         # embed 생성
         embed = discord.Embed(color=THEME_COLOR)
         embed.set_author(
-            name="𝓣𝓐𝓟𝓘 𝓟𝓛𝓐𝓨𝓔𝓡 🎅",
-            icon_url="https://cdn.discordapp.com/emojis/1445952071512756455.png"
+            name="𝓣𝓐𝓟𝓘 𝓟𝓛𝓐𝓨𝓔𝓡",
+            icon_url="https://cdn.discordapp.com/emojis/1445968171969417388.gif"
             # name="TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧",  # Original
             # icon_url="https://cdn.discordapp.com/emojis/1433353546778153014.gif"  # Original
         )
@@ -312,7 +312,10 @@ class MusicControlView(discord.ui.View):
             embed.set_thumbnail(url=thumbnail_url)
 
         embed.set_image(url=APP_BANNER_URL)
-        embed.set_footer(text=f"{BOT_VER} ─ 𝓒𝓱𝓻𝓲𝓼𝓽𝓶𝓪𝓼 𝓔𝓭𝓲𝓽𝓲𝓸𝓷 🎁")
+        embed.set_footer(
+            text=f"𝓒𝓱𝓻𝓲𝓼𝓽𝓶𝓪𝓼 𝓔𝓭𝓲𝓽𝓲𝓸𝓷 | {BOT_VER}",
+            icon_url="https://cdn.discordapp.com/emojis/1445965233494691920.gif"
+        )
 
         # 버튼 상태 업데이트
         self._update_button_states(player)
