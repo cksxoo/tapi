@@ -290,10 +290,10 @@ class Database:
     # ===== 투표 관련 메서드 =====
 
     def has_voted(self, user_id):
-        """사용자가 한 번이라도 투표한 적이 있는지 확인"""
-        # 투표는 영구적이므로 True인 경우만 캐시 사용
+        """사용자가 3개월 이내에 투표한 적이 있는지 확인"""
+        # 캐시 확인 (캐시 TTL 동안만 유효)
         cached = self._get_from_cache("votes", user_id)
-        if cached is True:  # True인 경우에만 캐시 사용
+        if cached is True:
             return True
 
         client = self.get_client()
@@ -301,17 +301,21 @@ class Database:
             return False
 
         try:
+            # 3개월 전 날짜 계산
+            three_months_ago = datetime.now(timezone.utc) - timedelta(days=90)
+
             response = (
                 client.table("votes")
-                .select("id")
+                .select("id, voted_at")
                 .eq("user_id", str(user_id))
+                .gte("voted_at", three_months_ago.isoformat())
                 .limit(1)
                 .execute()
             )
 
             has_vote = bool(response.data) if response else False
 
-            # 투표 기록이 있으면 캐시에 저장 (영구적으로 True)
+            # 유효한 투표 기록이 있으면 캐시에 저장
             if has_vote:
                 self._set_cache("votes", user_id, True)
 
