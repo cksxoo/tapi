@@ -296,7 +296,7 @@ class MusicControlView(discord.ui.View):
         # embed 생성
         embed = discord.Embed(color=THEME_COLOR)
         embed.set_author(
-            name="𝓣𝓐𝓟𝓘 𝓟𝓛𝓐𝓨𝓔𝓡",
+            name="TAPI PLAYER",
             icon_url="https://cdn.discordapp.com/emojis/1445965233494691920.gif"
             # name="TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧",  # Original
             # icon_url="https://cdn.discordapp.com/emojis/1433353546778153014.gif"  # Original
