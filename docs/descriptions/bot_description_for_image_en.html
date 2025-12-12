@@ -10,6 +10,10 @@
             box-sizing: border-box;
         }
 
+        html {
+            background: #0f1923;
+        }
+
         body {
             width: 1200px;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -18,30 +22,21 @@
             position: relative;
         }
 
-        .snowflakes {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
         .snowflake {
             position: absolute;
             color: rgba(255, 255, 255, 0.15);
             font-size: 14px;
+            pointer-events: none;
         }
 
-        .snowflake:nth-child(1) { left: 5%; top: 8%; }
-        .snowflake:nth-child(2) { left: 15%; top: 25%; font-size: 10px; }
-        .snowflake:nth-child(3) { left: 85%; top: 12%; }
-        .snowflake:nth-child(4) { left: 92%; top: 35%; font-size: 12px; }
-        .snowflake:nth-child(5) { left: 8%; top: 55%; font-size: 10px; }
-        .snowflake:nth-child(6) { left: 90%; top: 65%; }
-        .snowflake:nth-child(7) { left: 12%; top: 85%; font-size: 12px; }
-        .snowflake:nth-child(8) { left: 88%; top: 88%; font-size: 10px; }
+        .sf1 { left: 30px; top: 100px; }
+        .sf2 { left: 60px; top: 400px; font-size: 10px; }
+        .sf3 { left: 1120px; top: 180px; }
+        .sf4 { left: 1140px; top: 500px; font-size: 12px; }
+        .sf5 { left: 40px; top: 750px; font-size: 10px; }
+        .sf6 { left: 1100px; top: 900px; }
+        .sf7 { left: 50px; top: 1150px; font-size: 12px; }
+        .sf8 { left: 1130px; top: 1300px; font-size: 10px; }
 
         .header {
             text-align: center;
@@ -282,16 +277,14 @@
 </head>
 
 <body>
-    <div class="snowflakes">
-        <span class="snowflake">❄</span>
-        <span class="snowflake">❄</span>
-        <span class="snowflake">❄</span>
-        <span class="snowflake">❄</span>
-        <span class="snowflake">❄</span>
-        <span class="snowflake">❄</span>
-        <span class="snowflake">❄</span>
-        <span class="snowflake">❄</span>
-    </div>
+    <span class="snowflake sf1">❄</span>
+    <span class="snowflake sf2">❄</span>
+    <span class="snowflake sf3">❄</span>
+    <span class="snowflake sf4">❄</span>
+    <span class="snowflake sf5">❄</span>
+    <span class="snowflake sf6">❄</span>
+    <span class="snowflake sf7">❄</span>
+    <span class="snowflake sf8">❄</span>
 
     <div class="header">
         <span class="header-decor left">🎄</span>
