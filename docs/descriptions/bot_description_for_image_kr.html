@@ -13,18 +13,56 @@
         body {
             width: 1200px;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            background: linear-gradient(135deg, #0f1923 0%, #1a2633 50%, #0f1923 100%);
             padding: 40px;
+            position: relative;
         }
+
+        .snowflakes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .snowflake {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 14px;
+        }
+
+        .snowflake:nth-child(1) { left: 5%; top: 8%; }
+        .snowflake:nth-child(2) { left: 15%; top: 25%; font-size: 10px; }
+        .snowflake:nth-child(3) { left: 85%; top: 12%; }
+        .snowflake:nth-child(4) { left: 92%; top: 35%; font-size: 12px; }
+        .snowflake:nth-child(5) { left: 8%; top: 55%; font-size: 10px; }
+        .snowflake:nth-child(6) { left: 90%; top: 65%; }
+        .snowflake:nth-child(7) { left: 12%; top: 85%; font-size: 12px; }
+        .snowflake:nth-child(8) { left: 88%; top: 88%; font-size: 10px; }
 
         .header {
             text-align: center;
             padding: 40px;
-            background: linear-gradient(135deg, rgba(186, 230, 253, 0.3) 0%, rgba(224, 242, 254, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(180, 50, 50, 0.15) 0%, rgba(30, 60, 40, 0.15) 100%);
             border-radius: 20px;
             margin-bottom: 40px;
-            box-shadow: 0 4px 20px rgba(74, 144, 199, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
         }
+
+        .header-decor {
+            position: absolute;
+            top: 15px;
+            font-size: 20px;
+            opacity: 0.7;
+        }
+
+        .header-decor.left { left: 20px; }
+        .header-decor.right { right: 20px; }
 
         .logo {
             width: 100px;
@@ -36,7 +74,7 @@
         .title {
             font-size: 48px;
             font-weight: 800;
-            background: linear-gradient(135deg, #4a90c7 0%, #bae6fd 100%);
+            background: linear-gradient(135deg, #e8b4b4 0%, #ffffff 50%, #b4d4c0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -45,7 +83,11 @@
 
         .subtitle {
             font-size: 18px;
-            color: #4a5568;
+            color: #a0aec0;
+        }
+
+        .subtitle .accent {
+            color: #d4a5a5;
         }
 
         .badges {
@@ -57,12 +99,12 @@
 
         .badge {
             padding: 8px 16px;
-            background: white;
-            border: 2px solid #bae6fd;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 20px;
             font-size: 14px;
             font-weight: 600;
-            color: #2d3748;
+            color: #e2e8f0;
         }
 
         .features {
@@ -73,12 +115,13 @@
         }
 
         .feature-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.04);
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             text-align: center;
-            border: 1px solid rgba(186, 230, 253, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.3s ease;
         }
 
         .feature-icon {
@@ -89,27 +132,28 @@
         .feature-title {
             font-size: 16px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #f7fafc;
             margin-bottom: 8px;
         }
 
         .feature-desc {
             font-size: 13px;
-            color: #4a5568;
+            color: #a0aec0;
             line-height: 1.5;
         }
 
         .commands {
-            background: linear-gradient(135deg, rgba(74, 144, 199, 0.08) 0%, rgba(186, 230, 253, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(180, 50, 50, 0.08) 0%, rgba(30, 60, 40, 0.08) 100%);
             padding: 30px;
             border-radius: 15px;
             margin: 40px 0;
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .commands h3 {
             text-align: center;
             margin-bottom: 20px;
-            color: #1a1a2e;
+            color: #f7fafc;
         }
 
         .command-grid {
@@ -119,22 +163,22 @@
         }
 
         .command {
-            background: white;
+            background: rgba(255, 255, 255, 0.05);
             padding: 12px;
             border-radius: 8px;
-            border-left: 3px solid #bae6fd;
+            border-left: 3px solid #c27070;
         }
 
         .command-name {
             font-family: monospace;
             font-size: 13px;
             font-weight: 600;
-            color: #1a1a2e;
+            color: #f7fafc;
         }
 
         .command-desc {
             font-size: 11px;
-            color: #4a5568;
+            color: #a0aec0;
             margin-top: 2px;
         }
 
@@ -142,10 +186,11 @@
             display: flex;
             justify-content: space-around;
             padding: 30px;
-            background: white;
+            background: rgba(255, 255, 255, 0.04);
             border-radius: 15px;
             margin: 40px 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .stat {
@@ -155,7 +200,7 @@
         .stat-value {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #4a90c7 0%, #bae6fd 100%);
+            background: linear-gradient(135deg, #e8b4b4 0%, #b4d4c0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -163,7 +208,7 @@
 
         .stat-label {
             font-size: 12px;
-            color: #4a5568;
+            color: #a0aec0;
             text-transform: uppercase;
             margin-top: 4px;
         }
@@ -172,7 +217,7 @@
             width: 100%;
             border-radius: 15px;
             margin: 30px 0;
-            box-shadow: 0 8px 24px rgba(155, 89, 182, 0.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
 
         .banner-wrapper {
@@ -188,46 +233,72 @@
             right: 0;
             bottom: 0;
             background: linear-gradient(135deg,
-                    rgba(74, 144, 199, 0.1) 0%,
-                    rgba(186, 230, 253, 0.15) 100%);
+                    rgba(180, 50, 50, 0.05) 0%,
+                    rgba(30, 60, 40, 0.08) 100%);
             pointer-events: none;
-        }
-
-        .banner-overlay::before {
-            content: "❄️";
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 36px;
-            opacity: 0.4;
-            animation: snowflake-float 3s ease-in-out infinite;
-        }
-
-        @keyframes snowflake-float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
         }
 
         .footer {
             text-align: center;
             padding: 30px;
-            background: linear-gradient(135deg, rgba(186, 230, 253, 0.15) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(180, 50, 50, 0.1) 0%, transparent 100%);
             border-radius: 15px;
+            position: relative;
+        }
+
+        .footer-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #f7fafc;
+            margin-bottom: 10px;
+        }
+
+        .footer-subtitle {
+            font-size: 16px;
+            color: #a0aec0;
+            margin-bottom: 30px;
         }
 
         .footer-text {
             font-size: 12px;
-            color: #4a5568;
+            color: #a0aec0;
             margin-top: 15px;
+        }
+
+        .holiday-msg {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 24px;
+            background: linear-gradient(135deg, rgba(180, 80, 80, 0.2) 0%, rgba(60, 100, 70, 0.2) 100%);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .holiday-msg span {
+            color: #e2e8f0;
+            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
+    <div class="snowflakes">
+        <span class="snowflake">❄</span>
+        <span class="snowflake">❄</span>
+        <span class="snowflake">❄</span>
+        <span class="snowflake">❄</span>
+        <span class="snowflake">❄</span>
+        <span class="snowflake">❄</span>
+        <span class="snowflake">❄</span>
+        <span class="snowflake">❄</span>
+    </div>
+
     <div class="header">
-        <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/winter_logo.png" class="logo">
+        <span class="header-decor left">🎄</span>
+        <span class="header-decor right">🎄</span>
+        <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/christmas_logo.png" class="logo">
         <h1 class="title">TAPI</h1>
-        <p class="subtitle">모던 디스코드 음악 봇</p>
+        <p class="subtitle">모던 디스코드 음악 봇 <span class="accent">· 홀리데이 에디션</span></p>
         <div class="badges">
             <span class="badge">High Quality Audio</span>
             <span class="badge">99.9% Uptime</span>
@@ -304,10 +375,6 @@
                 <div class="command-name">/disconnect</div>
                 <div class="command-desc">연결 종료</div>
             </div>
-            <div class="command">
-                <div class="command-name">/recommend</div>
-                <div class="command-desc">음악 추천</div>
-            </div>
         </div>
     </div>
 
@@ -331,15 +398,14 @@
     </div>
 
     <div class="footer">
-        <div style="font-size: 24px; font-weight: 700; color: #1a1a2e; margin-bottom: 10px;">
-            서버의 음악 경험을 한 단계 업그레이드하세요
-        </div>
-        <div style="font-size: 16px; color: #4a5568; margin-bottom: 30px;">
-            지금 바로 TAPI를 디스코드 서버에 추가하세요
-        </div>
-        <div class="banner-wrapper" style="margin-top: 30px;">
+        <div class="footer-title">서버의 음악 경험을 한 단계 업그레이드하세요</div>
+        <div class="footer-subtitle">지금 바로 TAPI를 디스코드 서버에 추가하세요</div>
+        <div class="banner-wrapper">
             <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_winter.png" class="banner">
             <div class="banner-overlay"></div>
+        </div>
+        <div class="holiday-msg">
+            <span>🎄 메리 크리스마스 & 새해 복 많이 받으세요 🎁</span>
         </div>
         <div class="footer-text">Made with ❤️ by cksxoo</div>
     </div>
