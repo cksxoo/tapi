@@ -20,8 +20,10 @@ class RedisManager:
         self.redis_client = None
         self.shard_stats_key_prefix = "shard_stats:"
         self.active_players_key_prefix = "active_players:"
+        self.playback_state_key_prefix = "playback_state:"  # 점검 시 재생 상태 저장용
         self.shard_status_ttl = 60 * 10  # 10분
         self.active_player_ttl = 60  # 1분 (자주 업데이트되므로 짧게)
+        self.playback_state_ttl = 60 * 10  # 10분 (점검 동안 유지)
         self.available = REDIS_AVAILABLE
 
     def connect(self):
@@ -171,6 +173,72 @@ class RedisManager:
                 LOGGER.error(f"Unexpected error getting active players: {e}")
                 return {}
         return {}
+
+    def save_playback_state(self, shard_id: int, playback_states: list):
+        """점검 전 재생 상태를 Redis에 저장합니다."""
+        if not self.available:
+            LOGGER.debug("Redis not available, skipping playback state save")
+            return
+
+        client = self.get_client()
+        if client:
+            try:
+                key = f"{self.playback_state_key_prefix}{shard_id}"
+                client.set(
+                    key, json.dumps(playback_states), ex=self.playback_state_ttl
+                )
+                LOGGER.info(
+                    f"Saved playback state for {len(playback_states)} players on shard {shard_id}"
+                )
+            except redis.exceptions.RedisError as e:
+                LOGGER.error(f"Failed to save playback state in Redis: {e}")
+            except Exception as e:
+                LOGGER.error(f"Unexpected error saving playback state: {e}")
+
+    def get_playback_states(self, shard_id: int) -> list:
+        """점검 후 저장된 재생 상태를 가져옵니다."""
+        if not self.available:
+            LOGGER.debug("Redis not available, returning empty playback states")
+            return []
+
+        client = self.get_client()
+        if client:
+            try:
+                key = f"{self.playback_state_key_prefix}{shard_id}"
+                data = client.get(key)
+                if data:
+                    states = json.loads(data)
+                    LOGGER.info(
+                        f"Retrieved playback state for {len(states)} players on shard {shard_id}"
+                    )
+                    return states
+                return []
+            except redis.exceptions.RedisError as e:
+                LOGGER.error(f"Failed to get playback state from Redis: {e}")
+                return []
+            except (ValueError, json.JSONDecodeError) as e:
+                LOGGER.error(f"Error parsing playback state from Redis: {e}")
+                return []
+            except Exception as e:
+                LOGGER.error(f"Unexpected error getting playback state: {e}")
+                return []
+        return []
+
+    def clear_playback_state(self, shard_id: int):
+        """복원 완료 후 재생 상태를 삭제합니다."""
+        if not self.available:
+            return
+
+        client = self.get_client()
+        if client:
+            try:
+                key = f"{self.playback_state_key_prefix}{shard_id}"
+                client.delete(key)
+                LOGGER.debug(f"Cleared playback state for shard {shard_id}")
+            except redis.exceptions.RedisError as e:
+                LOGGER.error(f"Failed to clear playback state in Redis: {e}")
+            except Exception as e:
+                LOGGER.error(f"Unexpected error clearing playback state: {e}")
 
 
 # 전역 Redis 매니저 인스턴스 생성

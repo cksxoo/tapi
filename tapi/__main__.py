@@ -22,9 +22,11 @@ from tapi import (
     CLIENT_ID,
     TOPGG_TOKEN,
     KOREANBOT_TOKEN,
+    THEME_COLOR,
 )
 from tapi.utils.redis_manager import redis_manager
 from tapi.utils.stats_updater import BotStatsUpdater
+from tapi.modules.audio_connection import AudioConnection
 
 
 class TapiBot(commands.Bot):
@@ -98,6 +100,9 @@ class TapiBot(commands.Bot):
 
         self.loop.create_task(self.status_task())
         self.loop.create_task(self.redis_update_task())
+
+        # 점검 후 재생 상태 복원 (잠시 대기 후 실행)
+        self.loop.create_task(self._delayed_restore_playback())
 
         # shard 0만 봇 통계 업데이트 담당
         if getattr(self, "shard_id", 0) == 0 or not hasattr(self, "shard_id"):
@@ -310,6 +315,9 @@ class TapiBot(commands.Bot):
                 f"Shard {shard_id} shutting down, sending announcements to active players..."
             )
 
+            # 재생 상태 저장 (점검 후 복원용)
+            await self._save_playback_states()
+
             # 현재 샤드의 활성 플레이어에게 직접 전송
             if self.lavalink:
                 sent_count = 0
@@ -323,9 +331,9 @@ class TapiBot(commands.Bot):
                             if channel:
                                 try:
                                     embed = discord.Embed(
-                                        title="🔄 Bot Restarting",
-                                        description="The bot is restarting for maintenance. Please resume playback in a moment.",
-                                        color=0x3B82F6,
+                                        title="<:reset:1448850253234311250> Bot Restarting",
+                                        description="The bot is restarting for maintenance.\nIf you stay in the voice channel, playback will resume automatically.",
+                                        color=THEME_COLOR,
                                     )
                                     embed.set_footer(text=APP_NAME_TAG_VER)
                                     await channel.send(embed=embed)
@@ -340,11 +348,228 @@ class TapiBot(commands.Bot):
                 )
                 await asyncio.sleep(2)  # 메시지 전송 완료 대기
 
+                # 음악 컨트롤 메시지 정리
+                music_cog = self.get_cog("Music")
+                if music_cog and hasattr(music_cog, "last_music_messages"):
+                    deleted_count = 0
+                    for guild_id, message in list(music_cog.last_music_messages.items()):
+                        try:
+                            await message.delete()
+                            deleted_count += 1
+                        except Exception as e:
+                            LOGGER.debug(f"Error deleting music message for guild {guild_id}: {e}")
+                    music_cog.last_music_messages.clear()
+                    LOGGER.info(f"Shard {shard_id} deleted {deleted_count} music control messages")
+
             # stats_updater 세션 종료
             if self.stats_updater:
                 await self.stats_updater.close()
 
         await super().close()
+
+    async def _save_playback_states(self):
+        """점검 전 활성 플레이어의 재생 상태를 Redis에 저장"""
+        if not self.lavalink:
+            return
+
+        shard_id = getattr(self, "shard_id", 0)
+        playback_states = []
+
+        for guild in self.guilds:
+            try:
+                player = self.lavalink.player_manager.get(guild.id)
+                if not player or not player.is_connected:
+                    continue
+
+                # 현재 재생 중이거나 큐에 곡이 있는 경우만 저장
+                if not player.current and not player.queue:
+                    continue
+
+                voice_client = guild.voice_client
+                if not voice_client or not voice_client.channel:
+                    continue
+
+                # 현재 트랙 정보
+                current_track = None
+                if player.current:
+                    current_track = {
+                        "uri": player.current.uri,
+                        "title": player.current.title,
+                        "author": player.current.author,
+                        "requester": player.current.requester,
+                    }
+
+                # 큐 정보 (최대 50곡)
+                queue_data = []
+                for i, track in enumerate(player.queue):
+                    if i >= 50:
+                        break
+                    queue_data.append({
+                        "uri": track.uri,
+                        "title": track.title,
+                        "author": track.author,
+                        "requester": track.requester,
+                    })
+
+                state = {
+                    "guild_id": guild.id,
+                    "voice_channel_id": voice_client.channel.id,
+                    "text_channel_id": player.fetch("channel"),
+                    "current_track": current_track,
+                    "queue": queue_data,
+                    "volume": player.volume,
+                    "loop": player.loop,
+                    "shuffle": player.shuffle,
+                }
+                playback_states.append(state)
+
+            except Exception as e:
+                LOGGER.error(f"Error saving playback state for guild {guild.id}: {e}")
+
+        if playback_states:
+            redis_manager.save_playback_state(shard_id, playback_states)
+            LOGGER.info(f"Saved {len(playback_states)} playback states for shard {shard_id}")
+
+    async def _delayed_restore_playback(self):
+        """Lavalink 노드 준비 후 재생 상태 복원"""
+        await self.wait_until_ready()
+
+        # Lavalink 노드가 준비될 시간을 줌
+        await asyncio.sleep(5)
+
+        # Lavalink 노드 연결 확인
+        if not self.lavalink or not self.lavalink.node_manager.available_nodes:
+            LOGGER.warning("No available Lavalink nodes, skipping playback restore")
+            return
+
+        await self.restore_playback_states()
+
+    async def restore_playback_states(self):
+        """점검 후 조건부 자동 재생 복원"""
+        shard_id = getattr(self, "shard_id", 0)
+        states = redis_manager.get_playback_states(shard_id)
+
+        if not states:
+            LOGGER.debug(f"No playback states to restore for shard {shard_id}")
+            return
+
+        LOGGER.info(f"Attempting to restore {len(states)} playback states for shard {shard_id}")
+        restored_count = 0
+
+        for state in states:
+            try:
+                guild = self.get_guild(state["guild_id"])
+                if not guild:
+                    LOGGER.debug(f"Guild {state['guild_id']} not found, skipping restore")
+                    continue
+
+                # 음성 채널 확인
+                voice_channel = guild.get_channel(state["voice_channel_id"])
+                if not voice_channel:
+                    LOGGER.debug(f"Voice channel {state['voice_channel_id']} not found in guild {guild.id}")
+                    continue
+
+                # 조건 확인: 음성 채널에 사용자가 있는지
+                non_bot_members = [m for m in voice_channel.members if not m.bot]
+                if len(non_bot_members) == 0:
+                    LOGGER.debug(f"No users in voice channel {voice_channel.id}, skipping restore for guild {guild.id}")
+                    continue
+
+                # 자동 재생 복원
+                success = await self._restore_player(guild, state)
+                if success:
+                    restored_count += 1
+
+            except Exception as e:
+                LOGGER.error(f"Error restoring playback for guild {state.get('guild_id')}: {e}")
+
+        # 복원 완료 후 Redis에서 상태 삭제
+        redis_manager.clear_playback_state(shard_id)
+        LOGGER.info(f"Restored {restored_count}/{len(states)} playback states for shard {shard_id}")
+
+    async def _restore_player(self, guild, state):
+        """개별 플레이어 상태 복원"""
+        try:
+            voice_channel = guild.get_channel(state["voice_channel_id"])
+            text_channel = guild.get_channel(state["text_channel_id"])
+
+            if not voice_channel:
+                return False
+
+            # 권한 확인
+            permissions = voice_channel.permissions_for(guild.me)
+            if not permissions.connect or not permissions.speak:
+                LOGGER.warning(f"Missing voice permissions in guild {guild.id}")
+                return False
+
+            # 음성 채널 연결
+            try:
+                await voice_channel.connect(cls=AudioConnection)
+            except Exception as e:
+                LOGGER.error(f"Failed to connect to voice channel in guild {guild.id}: {e}")
+                return False
+
+            # 플레이어 가져오기
+            player = self.lavalink.player_manager.get(guild.id)
+            if not player:
+                LOGGER.error(f"Player not created for guild {guild.id}")
+                return False
+
+            # 설정 복원
+            player.store("channel", state["text_channel_id"])
+            await player.set_volume(state.get("volume", 20))
+            player.set_loop(state.get("loop", 0))
+            player.set_shuffle(state.get("shuffle", False))
+
+            tracks_added = 0
+
+            # 현재 곡 복원
+            if state.get("current_track"):
+                try:
+                    results = await player.node.get_tracks(state["current_track"]["uri"])
+                    if results and results.tracks:
+                        track = results.tracks[0]
+                        track.requester = state["current_track"].get("requester", self.user.id)
+                        player.add(track=track, requester=track.requester)
+                        tracks_added += 1
+                except Exception as e:
+                    LOGGER.warning(f"Failed to restore current track: {e}")
+
+            # 큐 복원
+            for track_data in state.get("queue", []):
+                try:
+                    results = await player.node.get_tracks(track_data["uri"])
+                    if results and results.tracks:
+                        track = results.tracks[0]
+                        track.requester = track_data.get("requester", self.user.id)
+                        player.add(track=track, requester=track.requester)
+                        tracks_added += 1
+                except Exception as e:
+                    LOGGER.warning(f"Failed to restore queued track: {e}")
+
+            # 재생 시작
+            if tracks_added > 0 and not player.is_playing:
+                await player.play()
+
+            # 복원 알림
+            if text_channel and tracks_added > 0:
+                try:
+                    embed = discord.Embed(
+                        title="<:reset:1448850253234311250> Playback Resumed",
+                        description=f"Music playback has been automatically restored after maintenance.\n**{tracks_added}** track(s) restored.",
+                        color=THEME_COLOR,
+                    )
+                    embed.set_footer(text=APP_NAME_TAG_VER)
+                    await text_channel.send(embed=embed)
+                except Exception as e:
+                    LOGGER.warning(f"Failed to send restore notification: {e}")
+
+            LOGGER.info(f"Restored playback for guild {guild.id} with {tracks_added} tracks")
+            return tracks_added > 0
+
+        except Exception as e:
+            LOGGER.error(f"Failed to restore player for guild {guild.id}: {e}")
+            return False
 
 
 # ────── 실행부 ──────
