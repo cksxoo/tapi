@@ -114,8 +114,8 @@ class TapiBot(commands.Bot):
 
         # Christmas status messages (순차적으로 표시)
         christmas_statuses = [
-            "🎅 Ho Ho Ho!",
-            "Merry Christmas!🎄",
+            "New Year, New Music!",
+            "Happy New Year 2026!",
         ]
         # original_status = "🎶 ヾ(｡>﹏<｡)ﾉﾞ✧"
 

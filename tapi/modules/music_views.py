@@ -240,7 +240,8 @@ class MusicControlView(discord.ui.View):
             else get_lan(interaction, "music_shuffle_already_off")
         )
         embed.add_field(
-            name=f"{get_lan(interaction, 'music_shuffle')} <a:deco:1445971839661641749>",
+            # name=f"{get_lan(interaction, 'music_shuffle')} <a:deco:1445971839661641749>",
+            name=f"{get_lan(interaction, 'music_shuffle')}",
             value=shuffle_value,
             inline=True,
         )
@@ -252,14 +253,16 @@ class MusicControlView(discord.ui.View):
             get_lan(interaction, "music_repeat_already_on"),
         ]
         embed.add_field(
-            name=f"{get_lan(interaction, 'music_repeat')} <a:deco2:1445972175432581221>",
+            # name=f"{get_lan(interaction, 'music_repeat')} <a:deco2:1445972175432581221>",
+            name=f"{get_lan(interaction, 'music_repeat')}",
             value=repeat_values[player.loop],
             inline=True,
         )
 
         # 볼륨 상태
         embed.add_field(
-            name=f"{get_lan(interaction, 'music_volume')} <a:deco3:1445971923308908607>",
+            # name=f"{get_lan(interaction, 'music_volume')} <a:deco3:1445971923308908607>",
+            name=f"{get_lan(interaction, 'music_volume')}",
             value=f"{player.volume}%",
             inline=True,
         )
@@ -297,7 +300,7 @@ class MusicControlView(discord.ui.View):
         embed = discord.Embed(color=THEME_COLOR)
         embed.set_author(
             name="TAPI PLAYER",
-            icon_url="https://cdn.discordapp.com/emojis/1445965233494691920.gif"
+            # icon_url="https://cdn.discordapp.com/emojis/1445965233494691920.gif"
             # name="TAPI PLAYER ヾ(｡>﹏<｡)ﾉﾞ✧",  # Original
             # icon_url="https://cdn.discordapp.com/emojis/1433353546778153014.gif"  # Original
         )
@@ -313,10 +316,12 @@ class MusicControlView(discord.ui.View):
             embed.set_thumbnail(url=thumbnail_url)
 
         embed.set_image(url=APP_BANNER_URL)
-        embed.set_footer(
-            text=f"𝓒𝓱𝓻𝓲𝓼𝓽𝓶𝓪𝓼 𝓔𝓭𝓲𝓽𝓲𝓸𝓷 | {BOT_VER}",
-            icon_url="https://cdn.discordapp.com/emojis/1445968171969417388.gif"
-        )
+        
+        # Footer 설정 (주석 처리됨)
+        # embed.set_footer(
+        #     text=f"𝓒𝓱𝓻𝓲𝓼𝓽𝓶𝓪𝓼 𝓔𝓭𝓲𝓽𝓲𝓸𝓷 | {BOT_VER}",
+        #     icon_url="https://cdn.discordapp.com/emojis/1445968171969417388.gif"
+        # )
 
         # 버튼 상태 업데이트
         self._update_button_states(player)
