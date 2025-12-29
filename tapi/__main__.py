@@ -112,8 +112,8 @@ class TapiBot(commands.Bot):
     async def status_task(self):
         await self.wait_until_ready()
 
-        # Christmas status messages (순차적으로 표시)
-        christmas_statuses = [
+        # Status messages (순차적으로 표시)
+        status_messages = [
             "New Year, New Music!",
             "Happy New Year 2026!",
         ]
@@ -122,8 +122,8 @@ class TapiBot(commands.Bot):
         index = 0
         while True:
             try:
-                status = christmas_statuses[index]
-                index = (index + 1) % len(christmas_statuses)
+                status = status_messages[index]
+                index = (index + 1) % len(status_messages)
                 await self.change_presence(
                     activity=discord.Activity(
                         type=discord.ActivityType.listening,
