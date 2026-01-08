@@ -16,48 +16,38 @@
 
         body {
             width: 1200px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0f1923 0%, #1a2633 50%, #0f1923 100%);
             padding: 40px;
             position: relative;
         }
 
-        .snowflake {
+        .sparkle {
             position: absolute;
-            color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 215, 100, 0.2);
             font-size: 14px;
             pointer-events: none;
         }
 
-        .sf1 { left: 30px; top: 100px; }
-        .sf2 { left: 60px; top: 400px; font-size: 10px; }
-        .sf3 { left: 1120px; top: 180px; }
-        .sf4 { left: 1140px; top: 500px; font-size: 12px; }
-        .sf5 { left: 40px; top: 750px; font-size: 10px; }
-        .sf6 { left: 1100px; top: 900px; }
-        .sf7 { left: 50px; top: 1150px; font-size: 12px; }
-        .sf8 { left: 1130px; top: 1300px; font-size: 10px; }
+        .sp1 { left: 30px; top: 100px; }
+        .sp2 { left: 60px; top: 400px; font-size: 10px; }
+        .sp3 { left: 1120px; top: 180px; }
+        .sp4 { left: 1140px; top: 500px; font-size: 12px; }
+        .sp5 { left: 40px; top: 750px; font-size: 10px; }
+        .sp6 { left: 1100px; top: 900px; }
+        .sp7 { left: 50px; top: 1150px; font-size: 12px; }
+        .sp8 { left: 1130px; top: 1300px; font-size: 10px; }
 
         .header {
             text-align: center;
             padding: 40px;
-            background: linear-gradient(135deg, rgba(180, 50, 50, 0.15) 0%, rgba(30, 60, 40, 0.15) 100%);
+            background: linear-gradient(135deg, rgba(218, 165, 32, 0.12) 0%, rgba(255, 215, 0, 0.08) 100%);
             border-radius: 20px;
             margin-bottom: 40px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 215, 100, 0.15);
             position: relative;
         }
-
-        .header-decor {
-            position: absolute;
-            top: 15px;
-            font-size: 20px;
-            opacity: 0.7;
-        }
-
-        .header-decor.left { left: 20px; }
-        .header-decor.right { right: 20px; }
 
         .logo {
             width: 100px;
@@ -69,7 +59,7 @@
         .title {
             font-size: 48px;
             font-weight: 800;
-            background: linear-gradient(135deg, #e8b4b4 0%, #ffffff 50%, #b4d4c0 100%);
+            background: linear-gradient(135deg, #FFD700 0%, #ffffff 50%, #FFA500 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -82,7 +72,7 @@
         }
 
         .subtitle .accent {
-            color: #d4a5a5;
+            color: #FFD700;
         }
 
         .badges {
@@ -138,11 +128,11 @@
         }
 
         .commands {
-            background: linear-gradient(135deg, rgba(180, 50, 50, 0.08) 0%, rgba(30, 60, 40, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(218, 165, 32, 0.08) 0%, rgba(255, 215, 0, 0.05) 100%);
             padding: 30px;
             border-radius: 15px;
             margin: 40px 0;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 215, 100, 0.1);
         }
 
         .commands h3 {
@@ -161,7 +151,7 @@
             background: rgba(255, 255, 255, 0.05);
             padding: 12px;
             border-radius: 8px;
-            border-left: 3px solid #c27070;
+            border-left: 3px solid #FFD700;
         }
 
         .command-name {
@@ -195,7 +185,7 @@
         .stat-value {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #e8b4b4 0%, #b4d4c0 100%);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -228,15 +218,15 @@
             right: 0;
             bottom: 0;
             background: linear-gradient(135deg,
-                    rgba(180, 50, 50, 0.05) 0%,
-                    rgba(30, 60, 40, 0.08) 100%);
+                    rgba(218, 165, 32, 0.03) 0%,
+                    rgba(255, 215, 0, 0.05) 100%);
             pointer-events: none;
         }
 
         .footer {
             text-align: center;
             padding: 30px;
-            background: linear-gradient(135deg, rgba(180, 50, 50, 0.1) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(218, 165, 32, 0.08) 0%, transparent 100%);
             border-radius: 15px;
             position: relative;
         }
@@ -264,34 +254,32 @@
             display: inline-block;
             margin-top: 20px;
             padding: 10px 24px;
-            background: linear-gradient(135deg, rgba(180, 80, 80, 0.2) 0%, rgba(60, 100, 70, 0.2) 100%);
+            background: linear-gradient(135deg, rgba(218, 165, 32, 0.15) 0%, rgba(255, 215, 0, 0.15) 100%);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 215, 100, 0.2);
         }
 
         .holiday-msg span {
-            color: #e2e8f0;
+            color: #FFE082;
             font-size: 14px;
         }
     </style>
 </head>
 
 <body>
-    <span class="snowflake sf1">❄</span>
-    <span class="snowflake sf2">❄</span>
-    <span class="snowflake sf3">❄</span>
-    <span class="snowflake sf4">❄</span>
-    <span class="snowflake sf5">❄</span>
-    <span class="snowflake sf6">❄</span>
-    <span class="snowflake sf7">❄</span>
-    <span class="snowflake sf8">❄</span>
+    <span class="sparkle sp1">✨</span>
+    <span class="sparkle sp2">✨</span>
+    <span class="sparkle sp3">✨</span>
+    <span class="sparkle sp4">✨</span>
+    <span class="sparkle sp5">✨</span>
+    <span class="sparkle sp6">✨</span>
+    <span class="sparkle sp7">✨</span>
+    <span class="sparkle sp8">✨</span>
 
     <div class="header">
-        <span class="header-decor left">🎄</span>
-        <span class="header-decor right">🎄</span>
-        <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/christmas_logo.png" class="logo">
+        <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/2026_logo.png" class="logo">
         <h1 class="title">TAPI</h1>
-        <p class="subtitle">Modern Discord Music Bot <span class="accent">· Holiday Edition</span></p>
+        <p class="subtitle">Modern Discord Music Bot <span class="accent">· 2026 New Year Edition</span></p>
         <div class="badges">
             <span class="badge">High Quality Audio</span>
             <span class="badge">99.9% Uptime</span>
@@ -394,11 +382,11 @@
         <div class="footer-title">Ready to elevate your server's music experience?</div>
         <div class="footer-subtitle">Add TAPI to your Discord server today</div>
         <div class="banner-wrapper">
-            <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_winter.png" class="banner">
+            <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/2026_banner.png" class="banner">
             <div class="banner-overlay"></div>
         </div>
         <div class="holiday-msg">
-            <span>🎄 Merry Christmas & Happy New Year 🎁</span>
+            <span>🎉 Happy New Year 2026 ✨</span>
         </div>
         <div class="footer-text">Made with ❤️ by cksxoo</div>
     </div>
