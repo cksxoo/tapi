@@ -13,6 +13,7 @@ from tapi import (
     LOGGER,
     THEME_COLOR,
     APP_NAME_TAG_VER,
+    APP_BANNER_URL,
     HOST,
     PSW,
     REGION,
@@ -74,9 +75,7 @@ async def check_vote(interaction: discord.Interaction):
             color=THEME_COLOR,
         )
         # 배너 이미지 추가
-        embed.set_image(
-            url="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/discord_winter.png"
-        )
+        embed.set_image(url=APP_BANNER_URL)
 
         # 투표 링크 버튼 생성
         view = discord.ui.View()
