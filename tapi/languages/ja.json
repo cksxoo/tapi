@@ -4,7 +4,7 @@
     "help_main_description": "一緒に音楽を聴いてくれて本当にありがとう！ ✧(≧◡≦) ♡\n\n下のボタンを押して私についてもっと知ってね！ (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
 
     "help_general_title": "基本設定",
-    "help_general_description": "`/invite` - 他のサーバーにボットを招待する",
+    "help_general_description": "`/invite` - 他のサーバーにボットを招待する\n`/coffee` - TAPIを応援する ☕",
 
     "help_music_title": "音楽コマンド",
 
@@ -110,5 +110,9 @@
     "music_queue_select_placeholder_empty": "キュー (空)",
     "music_queue_select_empty": "キューに曲がありません",
     "music_queue_skip_to": "#{index}番目の曲にスキップしました",
-    "music_queue_skip_failed": "選択した曲へのスキップに失敗しました"
+    "music_queue_skip_failed": "選択した曲へのスキップに失敗しました",
+
+    "coffee_title": "<:BMC:1467139778242805811> TAPIを応援する",
+    "coffee_description": "TAPIをご利用いただきありがとうございます！\n\nご支援はサーバー維持費と開発に役立ちます。コーヒー1杯でTAPIの発展を応援してください！",
+    "coffee_button": "コーヒーをおごる"
 }

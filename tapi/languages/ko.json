@@ -4,7 +4,7 @@
     "help_main_description": "저와 함께 음악을 들어주셔서 정말 감사해요! ✧(≧◡≦) ♡\n\n아래 버튼을 눌러서 저에 대해 더 알아보세요! (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
 
     "help_general_title": "기본 설정",
-    "help_general_description": "`/invite` - 다른 서버에 봇 초대하기",
+    "help_general_description": "`/invite` - 다른 서버에 봇 초대하기\n`/coffee` - TAPI 후원하기 ☕",
 
     "help_music_title": "음악 명령어",
 
@@ -110,5 +110,9 @@
     "music_queue_select_placeholder_empty": "재생목록 (비어있음)",
     "music_queue_select_empty": "재생목록에 곡이 없습니다",
     "music_queue_skip_to": "#{index}번째 곡으로 건너뛰었습니다",
-    "music_queue_skip_failed": "선택한 곡으로 건너뛰기에 실패했습니다"
+    "music_queue_skip_failed": "선택한 곡으로 건너뛰기에 실패했습니다",
+
+    "coffee_title": "<:BMC:1467139778242805811> TAPI 후원하기",
+    "coffee_description": "TAPI를 사용해주셔서 감사합니다!\n\n후원은 서버 유지비와 개발에 큰 도움이 됩니다. 커피 한 잔의 가격으로 TAPI의 발전을 응원해주세요!",
+    "coffee_button": "커피 한 잔 사주기"
 }

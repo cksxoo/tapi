@@ -4,7 +4,7 @@
     "help_main_description": "Thank you so much for listening to music with me! ✧(≧◡≦) ♡\n\nClick the buttons below to learn more about me! (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
 
     "help_general_title": "General Settings",
-    "help_general_description": "`/invite` - Invite bot to other servers",
+    "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI ☕",
 
     "help_music_title": "Music Commands",
     "help_music_description": "<:play2:1433343063337467994> **Playback Control**\n`/connect` - Connect to voice channel\n`/play [song/link/playlist]` - Play music (YouTube, Spotify)\n`/spplay [song/link]` - Search and play from Spotify\n`/scplay [song/link]` - Search and play from SoundCloud\n`/pause` - Pause/resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n🔊 **Volume & Queue**\n`/volume [1-100]` - Adjust volume\n`/queue` - Check queue\n`/shuffle` - Toggle shuffle mode\n`/repeat` - Toggle repeat mode\n\n⚙️ **Advanced Features**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue",
@@ -108,5 +108,9 @@
     "music_queue_select_placeholder_empty": "Queue (Empty)",
     "music_queue_select_empty": "No tracks in queue",
     "music_queue_skip_to": "Skipped to track #{index}",
-    "music_queue_skip_failed": "Failed to skip to selected track"
+    "music_queue_skip_failed": "Failed to skip to selected track",
+
+    "coffee_title": "<:BMC:1467139778242805811> Support TAPI",
+    "coffee_description": "Thank you for using TAPI!\n\nYour support helps cover server costs and development. Buy me a coffee to support TAPI's growth!",
+    "coffee_button": "Buy Me a Coffee"
 }

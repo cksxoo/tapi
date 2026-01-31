@@ -196,6 +196,7 @@ class MusicControlView(discord.ui.View):
         except (AttributeError, ValueError, KeyError):
             pass  # 오류 시 기본 상태 유지
 
+
     def create_progress_bar(self, current, total, length=20):
         """유니코드 문자로 진행률 바 생성"""
         if total == 0:
