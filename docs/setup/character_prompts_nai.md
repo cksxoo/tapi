@@ -41,7 +41,7 @@
 
 ## 🔒 고정 캐릭터 태그 (품질 태그 뒤에 포함)
 ```
-1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, smile, blush, fair skin
+1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, smile, blush, fair skin
 ```
 
 ## 🚫 기본 네거티브 프롬프트
@@ -56,7 +56,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 1: 🌃 Urban Night Portrait
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, smile, blush, fair skin, upper body, white off-shoulder top, holding headphones, confident smile, neon lights, city background, night, vivid colors, eye level
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, smile, blush, fair skin, upper body, white off-shoulder top, confident smile, neon lights, city background, night, vivid colors, eye level
 ```
 
 ---
@@ -64,7 +64,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 2: 🎆 Summer Festival
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, {cheerful smile}, blush, fair skin, upper body, white sleeveless top, arm up, dancing, dynamic pose, fireworks, summer night, festival lights, music notes, vivid colors
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {cheerful smile}, blush, fair skin, upper body, white sleeveless top, arm up, dancing, dynamic pose, fireworks, summer night, festival lights, music notes, vivid colors
 ```
 
 ---
@@ -72,7 +72,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 3: 🎨 Clean Banner
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, smile, blush, fair skin, upper body, white sleeveless top, looking at viewer, character on left, empty space on right, pastel background, gradient background, simple background, soft lighting
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, smile, blush, fair skin, upper body, white sleeveless top, looking at viewer, character on left, empty space on right, gradient background, simple background, soft lighting
 ```
 
 ---
@@ -82,14 +82,14 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ```
 {best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {red hair ribbon}, smile, blush, fair skin, upper body, hanbok, modern hanbok, pastel colors, red accents, character on left, full moon, night sky, lanterns, autumn leaves, traditional korean, warm colors
 ```
-**추가 Negative:** `headphones, oversized clothing, busy background`
+**추가 Negative:** `oversized clothing, busy background`
 
 ---
 
 ### Template 5: 🎃 Halloween Festival
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, {cheerful smile}, blush, fair skin, knees up, black dress, orange dress, halloween costume, frills, peace sign, jack-o'-lantern, bats, ghosts, music notes, orange background, halloween, purple accents
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {cheerful smile}, blush, fair skin, knees up, black dress, orange dress, halloween costume, frills, peace sign, jack-o'-lantern, bats, ghosts, music notes, orange background, halloween, purple accents
 ```
 **추가 Negative:** `scary, horror, gore`
 
@@ -98,7 +98,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 6: 🎃 Pumpkin Carving
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, focused expression, slight smile, blush, fair skin, upper body, black t-shirt, orange graphic, carving pumpkin, holding tool, crafting, cozy room, halloween decorations, warm lighting, indoor
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, focused expression, slight smile, blush, fair skin, upper body, black t-shirt, orange graphic, carving pumpkin, holding tool, crafting, cozy room, halloween decorations, warm lighting, indoor
 ```
 **추가 Negative:** `witch costume, clean hands`
 
@@ -107,7 +107,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 7: 🎃 Decoration Setup
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, {determined expression}, smile, blush, fair skin, full body, tracksuit, black and orange outfit, hanging decorations, reaching up, dynamic pose, standing on tiptoes, halloween decorations, autumn leaves, daytime
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {determined expression}, smile, blush, fair skin, full body, tracksuit, black and orange outfit, hanging decorations, reaching up, dynamic pose, standing on tiptoes, halloween decorations, autumn leaves, daytime
 ```
 **추가 Negative:** `witch costume`
 
@@ -116,7 +116,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 8: 🎯 Logo - Dynamic Angle
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, {bright eyes}, red headphones, large over-ear headphones, gentle smile, slight blush, fair skin, {close-up}, face focus, three-quarter view, head tilt, confident expression, looking away, pastel background, simple background, sharp lines, high contrast
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, {bright eyes}, gentle smile, slight blush, fair skin, {close-up}, face focus, three-quarter view, head tilt, confident expression, looking away, simple background, sharp lines, high contrast
 ```
 **추가 Negative:** `body, shoulders, torso, stiff pose`
 
@@ -125,7 +125,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 9: 🎯 Logo - Side Profile
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, gentle smile, slight blush, fair skin, {close-up}, face focus, {profile}, from side, looking away, peaceful expression, white top, pastel background, simple background, sharp lines, high contrast
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, gentle smile, slight blush, fair skin, {close-up}, face focus, {profile}, from side, looking away, peaceful expression, white top, simple background, sharp lines, high contrast
 ```
 **추가 Negative:** `body, shoulders, torso, awkward angle`
 
@@ -134,7 +134,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 10: 🎯 Logo - Playful Wink
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, {wink}, one eye closed, cheerful smile, blush, fair skin, {close-up}, face focus, head tilt, playful expression, hair movement, pastel background, simple background, sharp lines, high contrast
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {wink}, one eye closed, cheerful smile, blush, fair skin, {close-up}, face focus, hair movement, simple background, sharp lines, high contrast
 ```
 **추가 Negative:** `body, shoulders, torso, forced expression`
 
@@ -143,7 +143,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 11: 🔥 Extreme Close-up
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, blue eyes, {detailed eyes}, eye focus, red headphones, gentle smile, fair skin, {extreme close-up}, partial face, artistic crop, one eye visible, hair strands, headphone detail, confident gaze, pastel background, simple background, sharp lines, high contrast
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, blue eyes, {detailed eyes}, eye focus, gentle smile, fair skin, {extreme close-up}, partial face, artistic crop, one eye visible, hair strands, confident gaze, simple background, sharp lines, high contrast
 ```
 **추가 Negative:** `full face, neck visible, body visible, multiple eyes`
 
@@ -152,7 +152,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 12: 📸 Low Angle
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, {cheerful smile}, blush, fair skin, upper body, white sleeveless top, {from below}, looking down, confident expression, friendly expression, dynamic perspective, sky background, gradient background
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {cheerful smile}, blush, fair skin, upper body, white sleeveless top, {from below}, looking down, confident expression, friendly expression, dynamic perspective, sky background, gradient background
 ```
 **추가 Negative:** `distorted proportions, intimidating expression`
 
@@ -161,7 +161,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 13: 🎭 High Angle
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, hair spread out, blue eyes, {bright eyes}, red headphones, large over-ear headphones, {sweet smile}, blush, fair skin, upper body, white sleeveless top, {from above}, looking up, adorable expression, upward gaze, cute, pastel background, gradient background
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, hair spread out, blue eyes, {bright eyes}, {sweet smile}, blush, fair skin, upper body, white sleeveless top, {from above}, looking up, adorable expression, upward gaze, cute, gradient background
 ```
 **추가 Negative:** `distorted proportions, sad expression`
 
@@ -170,7 +170,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 14: 🎭 Face Fill Portrait
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, {large eyes}, {detailed eyes}, red headphones, large over-ear headphones, {gentle smile}, blush, fair skin, {portrait}, face focus, face filling frame, looking up slightly, sparkling eyes, soft expression, minimal background, pastel background
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, {large eyes}, {detailed eyes}, {gentle smile}, blush, fair skin, {portrait}, face focus, face filling frame, looking up slightly, sparkling eyes, soft expression, minimal background
 ```
 **추가 Negative:** `body visible, neck visible, extreme perspective, sad expression`
 
@@ -179,7 +179,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 15: 🎖️ Salute Pose - School Uniform
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, {wink}, one eye closed, cheerful smile, blush, fair skin, upper body, {school uniform}, white shirt, navy collar, navy plaid skirt, {salute}, hand raised to forehead, playful expression, slight body tilt, pastel background, warm colors
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {wink}, one eye closed, cheerful smile, blush, fair skin, upper body, {school uniform}, white shirt, navy collar, navy plaid skirt, {salute}, hand raised to forehead, playful expression, slight body tilt, warm colors
 ```
 **추가 Negative:** `military uniform, serious expression`
 
@@ -188,7 +188,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 16: 🌞 Salute Pose - Summer Casual
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, {wink}, one eye closed, cheerful smile, blush, fair skin, upper body, {casual outfit}, white tank top, denim shorts, {salute}, hand raised to forehead, playful expression, summer, sky background, clouds, sunlight
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {wink}, one eye closed, cheerful smile, blush, fair skin, upper body, {casual outfit}, white tank top, denim shorts, {salute}, hand raised to forehead, playful expression, summer, sky background, clouds, sunlight
 ```
 **추가 Negative:** `serious expression, tight clothing`
 
@@ -197,7 +197,7 @@ worst quality, bad quality, displeasing, very displeasing, lowres, bad anatomy, 
 ### Template 17: 💫 Hair Touch Portrait
 **Positive:**
 ```
-{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, red headphones, large over-ear headphones, {gentle smile}, soft expression, blush, fair skin, {portrait}, face focus, three-quarter view, {hand in hair}, touching hair, peaceful expression, looking away, pastel background, gradient background
+{best quality, amazing quality, very aesthetic, highres, incredibly absurdres}, 1girl, solo, blonde hair, long hair, flowing hair, blue eyes, bright eyes, {gentle smile}, soft expression, blush, fair skin, {portrait}, face focus, three-quarter view, {hand in hair}, touching hair, peaceful expression, looking away, gradient background
 ```
 **추가 Negative:** `body visible, stiff pose, sad expression`
 
@@ -217,7 +217,7 @@ smile, gentle smile, cheerful, wink, one eye closed, blush, happy, confident
 
 ### 배경 태그
 ```
-simple background, gradient background, white background, pastel background, outdoors, indoors, night, day
+simple background, gradient background, white background, outdoors, indoors, night, day
 ```
 
 ### 의상 태그
