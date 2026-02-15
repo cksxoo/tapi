@@ -14,7 +14,6 @@ from tapi import (
     LOGGER,
     TOKEN,
     EXTENSIONS,
-    APP_BANNER_URL,
     APP_NAME_TAG_VER,
     HOST,
     PORT,
@@ -22,11 +21,15 @@ from tapi import (
     CLIENT_ID,
     TOPGG_TOKEN,
     KOREANBOT_TOKEN,
-    THEME_COLOR,
 )
 from tapi.utils.redis_manager import redis_manager
 from tapi.utils.stats_updater import BotStatsUpdater
 from tapi.modules.audio_connection import AudioConnection
+from discord import ui
+from tapi import SUCCESS_COLOR, WARNING_COLOR
+from tapi.utils.v2_components import (
+    make_themed_container, make_separator, make_banner_gallery,
+)
 
 
 class TapiBot(commands.Bot):
@@ -156,15 +159,17 @@ class TapiBot(commands.Bot):
                 channel = guild.system_channel
 
             if channel:
-                # 환영 메시지 embed 생성 (영어 하드코딩)
-                embed = discord.Embed(
-                    title="OMG! Hii guys ✧(≧◡≦) ♡",
-                    description="Thank you for inviting me to hang with yall (*≧▽≦)\n\nType /help to view my slash commands ♡",
-                    color=0x7F8C8D,
-                )
-                embed.set_image(url=APP_BANNER_URL)
+                # 환영 메시지 V2 레이아웃
+                welcome_view = ui.LayoutView(timeout=None)
+                welcome_view.add_item(make_themed_container(
+                    ui.TextDisplay("## OMG! Hii guys ✧(≧◡≦) ♡"),
+                    ui.TextDisplay("Thank you for inviting me to hang with yall (*≧▽≦)\n\nType `/help` to view my slash commands ♡"),
+                    make_separator(),
+                    make_banner_gallery(),
+                    accent_color=SUCCESS_COLOR,
+                ))
 
-                await channel.send(embed=embed)
+                await channel.send(view=welcome_view)
                 LOGGER.info(
                     f"Welcome message sent to guild: {guild.name} (ID: {guild.id})"
                 )
@@ -330,13 +335,15 @@ class TapiBot(commands.Bot):
                             channel = self.get_channel(channel_id)
                             if channel:
                                 try:
-                                    embed = discord.Embed(
-                                        title="<:reset:1448850253234311250> Bot Restarting",
-                                        description="The bot is restarting for maintenance.\nIf you stay in the voice channel, playback will resume automatically.",
-                                        color=THEME_COLOR,
-                                    )
-                                    embed.set_footer(text=APP_NAME_TAG_VER)
-                                    await channel.send(embed=embed)
+                                    shutdown_view = ui.LayoutView(timeout=None)
+                                    shutdown_view.add_item(make_themed_container(
+                                        ui.TextDisplay("**<:reset:1448850253234311250> Bot Restarting**"),
+                                        ui.TextDisplay("The bot is restarting for maintenance.\nIf you stay in the voice channel, playback will resume automatically."),
+                                        make_separator(),
+                                        make_banner_gallery(),
+                                        accent_color=WARNING_COLOR,
+                                    ))
+                                    await channel.send(view=shutdown_view)
                                     sent_count += 1
                                 except Exception as e:
                                     LOGGER.warning(
@@ -554,13 +561,15 @@ class TapiBot(commands.Bot):
             # 복원 알림
             if text_channel and tracks_added > 0:
                 try:
-                    embed = discord.Embed(
-                        title="<:reset:1448850253234311250> Playback Resumed",
-                        description=f"Music playback has been automatically restored after maintenance.\n**{tracks_added}** track(s) restored.",
-                        color=THEME_COLOR,
-                    )
-                    embed.set_footer(text=APP_NAME_TAG_VER)
-                    await text_channel.send(embed=embed)
+                    restore_view = ui.LayoutView(timeout=None)
+                    restore_view.add_item(make_themed_container(
+                        ui.TextDisplay("**<:reset:1448850253234311250> Playback Resumed**"),
+                        ui.TextDisplay(f"Music playback has been automatically restored after maintenance.\n**{tracks_added}** track(s) restored."),
+                        make_separator(),
+                        make_banner_gallery(),
+                        accent_color=SUCCESS_COLOR,
+                    ))
+                    await text_channel.send(view=restore_view)
                 except Exception as e:
                     LOGGER.warning(f"Failed to send restore notification: {e}")
 

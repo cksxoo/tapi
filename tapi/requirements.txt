@@ -1,4 +1,4 @@
-py-cord
+py-cord>=2.7.1
 lavalink
 psutil
 requests

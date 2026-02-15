@@ -4,12 +4,16 @@ from datetime import datetime
 import pytz
 
 import discord
+from discord import ui
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent, TrackExceptionEvent
 
-from tapi import LOGGER
+from tapi import LOGGER, THEME_COLOR
 from tapi.utils.database import Database
-from tapi.modules.music_views import MusicControlView
+from tapi.modules.music_views import MusicControlLayout
+from tapi.utils.v2_components import (
+    make_themed_container, make_separator, make_banner_gallery, FakeInteraction,
+)
 
 
 class MusicHandlers:
@@ -145,17 +149,18 @@ class MusicHandlers:
                     if not requester:
                         requester = await self.bot.fetch_user(requester_id)
                     if requester:
-                        embed = discord.Embed(
-                            title="⚠️ Permission Required",
-                            description=(
+                        dm_view = ui.LayoutView(timeout=None)
+                        dm_view.add_item(make_themed_container(
+                            ui.TextDisplay("## ⚠️ Permission Required"),
+                            ui.TextDisplay(
                                 f"I don't have permission to send messages in **{channel.name}** "
                                 f"(Server: {guild.name}).\n\n"
                                 f"Playing: **{track.title}**\n\n"
                                 f"Please ask a server admin to grant me 'Send Messages' permission in that channel."
                             ),
-                            color=0xFF6600,
-                        )
-                        await requester.send(embed=embed)
+                            accent_color=0xFF6600,
+                        ))
+                        await requester.send(view=dm_view)
                 except (discord.Forbidden, discord.NotFound, discord.HTTPException):
                     pass
                 return
@@ -163,34 +168,26 @@ class MusicHandlers:
             # 이전 음악 메시지 정리
             await self._cleanup_music_message(guild_id, "new_track")
 
-            # 음악 컨트롤 버튼 생성
-            control_view = MusicControlView(self.music_cog, guild_id)
-
-            # 일관된 embed 생성 (가짜 interaction 객체 생성)
-            class FakeInteraction:
-                def __init__(self, user_id, guild_id, locale):
-                    self.user = type("obj", (object,), {"id": user_id})()
-                    self.guild = type("obj", (object,), {"id": guild_id})()
-                    self.locale = locale
+            # 음악 컨트롤 V2 레이아웃 생성
+            control_layout = MusicControlLayout(self.music_cog, guild_id)
 
             # 사용자의 저장된 언어 설정 가져오기 (없으면 기본값 영어)
             user_locale = self.music_cog.user_locales.get(requester_id, 'en')
             fake_interaction = FakeInteraction(requester_id, guild_id, user_locale)
-            embed = control_view.update_embed_and_buttons(fake_interaction, player)
+            control_layout.build_layout(fake_interaction, player)
 
-            if embed:
-                try:
-                    # 새 음악 메시지를 보내고 저장
-                    message = await channel.send(embed=embed, view=control_view)
-                    self.music_cog.last_music_messages[guild_id] = message
-                    LOGGER.debug(f"Created new music message for guild {guild_id}")
-                    return message
-                except discord.Forbidden:
-                    LOGGER.warning(
-                        f"Failed to send music message in channel {channel.id} due to insufficient permissions"
-                    )
-                except Exception as e:
-                    LOGGER.error(f"Error sending music message: {e}")
+            try:
+                # 새 음악 메시지를 보내고 저장
+                message = await channel.send(view=control_layout)
+                self.music_cog.last_music_messages[guild_id] = message
+                LOGGER.debug(f"Created new music message for guild {guild_id}")
+                return message
+            except discord.Forbidden:
+                LOGGER.warning(
+                    f"Failed to send music message in channel {channel.id} due to insufficient permissions"
+                )
+            except Exception as e:
+                LOGGER.error(f"Error sending music message: {e}")
 
     @lavalink.listener(QueueEndEvent)
     async def on_queue_end(self, event: QueueEndEvent):
