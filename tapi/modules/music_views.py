@@ -370,10 +370,15 @@ class MusicControlLayout(ui.LayoutView):
         thumbnail_url = get_track_thumbnail(track)
 
         # 재생 시간 + 볼륨 (한 줄)
-        position_str = lavalink.format_time(player.position)
-        duration_str = lavalink.format_time(track.duration)
+        def short_time(ms):
+            s = int(ms // 1000)
+            m, s = divmod(s, 60)
+            h, m = divmod(m, 60)
+            return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
+        position_str = short_time(player.position)
+        duration_str = short_time(track.duration)
         volume_label = get_lan(interaction, "music_volume")
-        status_text = f"{position_str} / {duration_str}  ·  {volume_label}: {player.volume}%"
+        status_text = f"`{position_str} / {duration_str}  ·  {volume_label}: {player.volume}%`"
 
         # 트랙 정보 텍스트
         track_info = f"> {platform_emoji} **[{title}]({track.uri})**\n> *{artist}*"
@@ -418,10 +423,16 @@ class MusicControlLayout(ui.LayoutView):
 
         self.add_item(ui.Container(
             *header_items,
-            make_banner_gallery(),
             ui.ActionRow(pause_btn, skip_btn, stop_btn, repeat_btn, shuffle_btn),
             ui.ActionRow(queue_select),
             accent_colour=THEME_COLOR,
+        ))
+        dashboard_url = f"http://localhost:3000/dashboard/{self.guild_id}"
+        dashboard_btn = ui.Button(label="Web Dashboard", url=dashboard_url, emoji="<:favicon:1473006095881605120>")
+        coffee_btn = ui.Button(label="Buy Me a Coffee", url="https://buymeacoffee.com/cksxoo", emoji="<:BMC:1467139778242805811>")
+        self.add_item(ui.Container(
+            make_banner_gallery(),
+            ui.ActionRow(dashboard_btn, coffee_btn),
         ))
 
         return self
