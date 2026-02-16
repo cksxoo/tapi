@@ -369,34 +369,27 @@ class MusicControlLayout(ui.LayoutView):
         platform_emoji = get_platform_emoji(track)
         thumbnail_url = get_track_thumbnail(track)
 
-        # 상태 배지
-        shuffle_label = get_lan(interaction, "music_shuffle")
-        shuffle_value = get_lan(interaction, "music_shuffle_already_on" if player.shuffle else "music_shuffle_already_off")
-        repeat_label = get_lan(interaction, "music_repeat")
-        repeat_values = [
-            get_lan(interaction, "music_repeat_already_off"),
-            get_lan(interaction, "music_repeat_already_one"),
-            get_lan(interaction, "music_repeat_already_on"),
-        ]
-        repeat_value = repeat_values[player.loop]
+        # 재생 시간 + 볼륨 (한 줄)
+        position_str = lavalink.format_time(player.position)
+        duration_str = lavalink.format_time(track.duration)
         volume_label = get_lan(interaction, "music_volume")
-        status_text = f"**{shuffle_label}:** {shuffle_value}  ·  **{repeat_label}:** {repeat_value}  ·  **{volume_label}:** {player.volume}%"
+        status_text = f"{position_str} / {duration_str}  ·  {volume_label}: {player.volume}%"
 
         # 트랙 정보 텍스트
         track_info = f"> {platform_emoji} **[{title}]({track.uri})**\n> *{artist}*"
 
         # 버튼 생성
-        pause_emoji = "<:play2:1433343063337467994>" if player.paused else "<:pause2:1433343068194734200>"
-        pause_label = "Play " if player.paused else "Pause"
+        pause_emoji = "<:lucideplay:1472962445633912833>" if player.paused else "<:lucidepause:1472962430643605514>"
 
-        pause_btn = MusicButton(action="pause_resume", emoji=pause_emoji, label=pause_label, style=discord.ButtonStyle.primary)
-        skip_btn = MusicButton(action="skip", emoji="<:skip2:1433343066504433714>", label="Skip", style=discord.ButtonStyle.secondary)
-        stop_btn = MusicButton(action="stop", emoji="<:stop2:1433343069935370240>", style=discord.ButtonStyle.danger)
-        repeat_btn = MusicButton(action="repeat", emoji="<:repeat2:1433343061555150970>", label="Repeat", style=discord.ButtonStyle.secondary)
+        pause_btn = MusicButton(action="pause_resume", emoji=pause_emoji, style=discord.ButtonStyle.primary)
+        skip_btn = MusicButton(action="skip", emoji="<:lucideskip:1472962392853053606>", style=discord.ButtonStyle.secondary)
+        stop_btn = MusicButton(action="stop", emoji="<:lucidestop:1472962376356593785>", style=discord.ButtonStyle.danger)
+        repeat_emoji = "<:luciderepeat1:1472962355024498809>" if player.loop == 1 else "<:luciderepeat:1472962333666967637>"
+        repeat_style = discord.ButtonStyle.success if player.loop > 0 else discord.ButtonStyle.secondary
+        repeat_btn = MusicButton(action="repeat", emoji=repeat_emoji, style=repeat_style)
         shuffle_btn = MusicButton(
             action="shuffle",
-            emoji="<:shuffle2:1433343064902205480>",
-            label="Shuffle",
+            emoji="<:lucideshuffle:1472962301664432190>",
             style=discord.ButtonStyle.success if player.shuffle else discord.ButtonStyle.secondary,
         )
 
