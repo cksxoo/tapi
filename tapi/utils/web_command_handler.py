@@ -254,6 +254,20 @@ async def handle_move(bot, guild_id: int, user_id: int, from_index: int = 0, to_
     return {"success": True}
 
 
+async def handle_seek(bot, guild_id: int, user_id: int, position: int = 0, **_params):
+    valid, msg = validate_user_in_voice(bot, guild_id, user_id)
+    if not valid:
+        return {"success": False, "error": msg}
+
+    player = bot.lavalink.player_manager.get(guild_id)
+    if not player.current:
+        return {"success": False, "error": "No track playing"}
+
+    position = max(0, min(int(position), player.current.duration))
+    await player.seek(position)
+    return {"success": True, "data": {"position": position}}
+
+
 async def handle_get_state(bot, guild_id: int, user_id: int, **_params):
     """플레이어 상태를 반환합니다 (voice 검증 불필요)."""
     state = get_player_state(bot, guild_id)
@@ -273,6 +287,7 @@ COMMAND_HANDLERS = {
     "play": handle_play,
     "remove": handle_remove,
     "move": handle_move,
+    "seek": handle_seek,
 }
 
 
