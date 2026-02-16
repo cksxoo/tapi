@@ -24,6 +24,7 @@ from tapi import (
 )
 from tapi.utils.redis_manager import redis_manager
 from tapi.utils.stats_updater import BotStatsUpdater
+from tapi.utils.embed import get_track_thumbnail
 from tapi.modules.audio_connection import AudioConnection
 from discord import ui
 from tapi import SUCCESS_COLOR, WARNING_COLOR
@@ -226,6 +227,7 @@ class TapiBot(commands.Bot):
                                 "uri": player.current.uri,
                                 "duration": player.current.duration,
                                 "position": player.position,
+                                "thumbnail": get_track_thumbnail(player.current),
                             }
 
                         # 큐 상세 정보
@@ -236,6 +238,7 @@ class TapiBot(commands.Bot):
                                 "author": track.author,
                                 "uri": track.uri,
                                 "duration": track.duration,
+                                "thumbnail": get_track_thumbnail(track),
                             })
 
                         active_players.append(
