@@ -176,6 +176,15 @@ class MusicHandlers:
             fake_interaction = FakeInteraction(requester_id, guild_id, user_locale)
             control_layout.build_layout(fake_interaction, player)
 
+            # 웹 대시보드에 실시간 상태 발행
+            try:
+                from tapi.utils.redis_manager import redis_manager
+                from tapi.utils.web_command_handler import get_player_state
+                state = get_player_state(self.bot, guild_id)
+                await redis_manager.publish_player_update(guild_id, "track_start", state)
+            except Exception as e:
+                LOGGER.debug(f"Failed to publish player update: {e}")
+
             try:
                 # 새 음악 메시지를 보내고 저장
                 message = await channel.send(view=control_layout)
@@ -196,6 +205,15 @@ class MusicHandlers:
 
         # 모듈화된 완전 정리 함수 사용 (큐 종료 시에는 플레이어 정리 생략)
         await self._cleanup_music_message(guild_id, "queue_end")
+
+        # 웹 대시보드에 큐 종료 발행
+        try:
+            from tapi.utils.redis_manager import redis_manager
+            from tapi.utils.web_command_handler import get_player_state
+            state = get_player_state(self.bot, guild_id)
+            await redis_manager.publish_player_update(guild_id, "queue_end", state)
+        except Exception as e:
+            LOGGER.debug(f"Failed to publish queue end update: {e}")
 
         # Check if the voice client exists and if the player is connected
         if guild and guild.voice_client and event.player.is_connected:

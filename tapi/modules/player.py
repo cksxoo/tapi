@@ -115,6 +115,17 @@ class Music(commands.Cog):
         if self.bot.lavalink:
             self.bot.lavalink._event_hooks.clear()
 
+    async def _publish_web_state(self, guild_id: int, command: str):
+        """웹 대시보드에 상태 변경 전파"""
+        try:
+            from tapi.utils.redis_manager import redis_manager
+            from tapi.utils.web_command_handler import get_player_state
+            if redis_manager.available:
+                state = get_player_state(self.bot, guild_id)
+                await redis_manager.publish_player_update(guild_id, command, state)
+        except Exception:
+            pass
+
     # 핸들러 메서드들을 위임
     async def _cleanup_music_message(self, guild_id: int, reason: str = "cleanup"):
         return await self.handlers._cleanup_music_message(guild_id, reason)
@@ -211,10 +222,15 @@ class Music(commands.Cog):
             )
 
         try:
+            existing = interaction.client.lavalink.player_manager.get(
+                interaction.guild.id
+            )
             player = interaction.client.lavalink.player_manager.create(
                 interaction.guild.id
             )
-            await Music._setup_player_settings(player, interaction.guild.id)
+            # 새로 생성된 플레이어만 DB 설정 적용 (기존 플레이어 볼륨 덮어쓰기 방지)
+            if existing is None:
+                await Music._setup_player_settings(player, interaction.guild.id)
         except Exception as e:
             LOGGER.error(f"Failed to create player: {e}")
             LOGGER.error(
@@ -404,6 +420,18 @@ class Music(commands.Cog):
 
             if not player.is_playing:
                 await player.play()
+            else:
+                # 이미 재생 중이면 큐만 변경 → 웹 대시보드에 상태 전파
+                try:
+                    from tapi.utils.redis_manager import redis_manager
+                    from tapi.utils.web_command_handler import get_player_state
+                    if redis_manager.available:
+                        state = get_player_state(self.bot, interaction.guild.id)
+                        await redis_manager.publish_player_update(
+                            interaction.guild.id, "queue_add", state
+                        )
+                except Exception:
+                    pass
 
         except Exception as e:
             LOGGER.error(f"Error in play command: {e}")
@@ -476,6 +504,17 @@ class Music(commands.Cog):
 
         if not player.is_playing:
             await player.play()
+        else:
+            try:
+                from tapi.utils.redis_manager import redis_manager
+                from tapi.utils.web_command_handler import get_player_state
+                if redis_manager.available:
+                    state = get_player_state(self.bot, interaction.guild.id)
+                    await redis_manager.publish_player_update(
+                        interaction.guild.id, "queue_add", state
+                    )
+            except Exception:
+                pass
 
     @app_commands.command(
         name="spplay", description="Searches and plays a song from Spotify."
@@ -529,6 +568,17 @@ class Music(commands.Cog):
 
         if not player.is_playing:
             await player.play()
+        else:
+            try:
+                from tapi.utils.redis_manager import redis_manager
+                from tapi.utils.web_command_handler import get_player_state
+                if redis_manager.available:
+                    state = get_player_state(self.bot, interaction.guild.id)
+                    await redis_manager.publish_player_update(
+                        interaction.guild.id, "queue_add", state
+                    )
+            except Exception:
+                pass
 
     @app_commands.command(
         name="search", description="Search for songs with a given keyword"
@@ -693,6 +743,7 @@ class Music(commands.Cog):
             await send_temp_status(interaction, "music_repeat_one", style="music")
         elif player.loop == 2:
             await send_temp_status(interaction, "music_repeat_all", style="music")
+        await self._publish_web_state(interaction.guild.id, "repeat")
 
     @app_commands.command(name="remove", description="Remove music from the playlist!")
     @app_commands.describe(
@@ -719,6 +770,7 @@ class Music(commands.Cog):
         )
         layout = StatusLayout(title_text=text, style="success")
         await send_temp_v2(interaction, layout)
+        await self._publish_web_state(interaction.guild.id, "remove")
 
     @app_commands.command(
         name="shuffle",
@@ -737,6 +789,7 @@ class Music(commands.Cog):
             await send_temp_status(interaction, "music_shuffle_on", style="music")
         else:
             await send_temp_status(interaction, "music_shuffle_off", style="music")
+        await self._publish_web_state(interaction.guild.id, "shuffle")
 
     @app_commands.command(name="clear", description="Clear the music queue")
     @app_commands.check(create_player)
@@ -756,6 +809,7 @@ class Music(commands.Cog):
         desc = get_lan(interaction, "music_queue_cleared_desc").format(count=queue_length)
         layout = StatusLayout(title_text=title, description_text=desc, style="success")
         await send_temp_v2(interaction, layout)
+        await self._publish_web_state(interaction.guild.id, "clear")
 
     @app_commands.command(name="volume", description="Changes or display the volume")
     @app_commands.describe(volume="볼륨값을 입력하세요")
@@ -789,6 +843,7 @@ class Music(commands.Cog):
         )
         layout = StatusLayout(title_text=text, style="info")
         await send_temp_v2(interaction, layout)
+        await self._publish_web_state(interaction.guild.id, "volume")
 
     @app_commands.command(name="pause", description="Pause or resume music!")
     @app_commands.check(require_playing)
@@ -803,6 +858,7 @@ class Music(commands.Cog):
         else:
             await player.set_pause(True)
             await send_temp_status(interaction, "music_pause", style="music")
+        await self._publish_web_state(interaction.guild.id, "pause")
 
     async def cog_app_command_error(
         self, interaction: discord.Interaction, error: app_commands.AppCommandError

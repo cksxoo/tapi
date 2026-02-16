@@ -104,6 +104,10 @@ class TapiBot(commands.Bot):
         self.loop.create_task(self.status_task())
         self.loop.create_task(self.redis_update_task())
 
+        # 웹 대시보드 명령 리스너 시작
+        from tapi.utils.redis_command_listener import start_command_listener
+        self.loop.create_task(start_command_listener(self))
+
         # 점검 후 재생 상태 복원 (잠시 대기 후 실행)
         self.loop.create_task(self._delayed_restore_playback())
 
@@ -224,16 +228,27 @@ class TapiBot(commands.Bot):
                                 "position": player.position,
                             }
 
+                        # 큐 상세 정보
+                        queue = []
+                        for track in player.queue:
+                            queue.append({
+                                "title": track.title,
+                                "author": track.author,
+                                "uri": track.uri,
+                                "duration": track.duration,
+                            })
+
                         active_players.append(
                             {
-                                "guild_id": guild.id,
+                                "guild_id": str(guild.id),
                                 "guild_name": guild.name,
-                                "channel_id": channel_id,
+                                "channel_id": str(channel_id) if channel_id else None,
                                 "channel_name": channel_name,
                                 "user_count": user_count,
                                 "is_playing": player.is_playing,
                                 "is_paused": player.paused,
                                 "current_track": current_track,
+                                "queue": queue,
                                 "queue_length": len(player.queue),
                                 "volume": player.volume,
                                 "loop": player.loop,

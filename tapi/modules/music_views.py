@@ -339,6 +339,16 @@ class MusicButton(ui.Button):
         new_layout.build_layout(interaction, player)
         await interaction.edit_original_response(view=new_layout)
 
+        # 웹 대시보드에 상태 변경 전파
+        try:
+            from tapi.utils.redis_manager import redis_manager
+            from tapi.utils.web_command_handler import get_player_state
+            if redis_manager.available:
+                state = get_player_state(view.cog.bot, view.guild_id)
+                await redis_manager.publish_player_update(view.guild_id, self.action, state)
+        except Exception:
+            pass
+
 
 class MusicControlLayout(ui.LayoutView):
     """V2 Now Playing 컨트롤 패널"""

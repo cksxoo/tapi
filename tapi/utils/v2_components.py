@@ -217,3 +217,62 @@ async def _refresh_now_playing(interaction):
         pass
     except Exception as e:
         LOGGER.debug(f"Error refreshing now playing panel: {e}")
+
+
+async def sync_discord_message(bot, guild_id: int, command: str, user_id: int = 0):
+    """웹 대시보드 명령 후 Discord Now Playing 메시지를 동기화합니다.
+
+    - stop: 메시지 삭제
+    - skip: on_track_start가 새 메시지를 보내므로 no-op
+    - 나머지: 메시지 편집으로 상태 갱신
+    """
+    try:
+        cog = bot.get_cog("Music")
+        if not cog or not hasattr(cog, "last_music_messages"):
+            return
+
+        # stop: 메시지 삭제 + 참조 제거
+        if command == "stop":
+            if guild_id in cog.last_music_messages:
+                try:
+                    await cog.last_music_messages[guild_id].delete()
+                except Exception:
+                    pass
+                finally:
+                    cog.last_music_messages.pop(guild_id, None)
+            return
+
+        # skip: on_track_start가 새 메시지를 보내므로 여기서는 skip
+        if command == "skip":
+            return
+
+        # 메시지가 없으면 할 일 없음
+        if guild_id not in cog.last_music_messages:
+            return
+
+        player = bot.lavalink.player_manager.get(guild_id)
+        if not player or not player.current:
+            return
+
+        # _refresh_now_playing과 동일한 패턴
+        old_message = cog.last_music_messages[guild_id]
+
+        from tapi.modules.music_views import MusicControlLayout
+        control_layout = MusicControlLayout(cog, guild_id)
+
+        requester_id = player.current.requester if player.current else user_id
+        user_locale = cog.user_locales.get(requester_id, 'en')
+        fake_interaction = FakeInteraction(requester_id, guild_id, user_locale)
+        control_layout.build_layout(fake_interaction, player)
+
+        await old_message.edit(view=control_layout)
+
+    except (discord.NotFound, discord.Forbidden):
+        # 메시지가 삭제되었거나 권한 없음 → stale 참조 제거
+        cog = bot.get_cog("Music")
+        if cog and hasattr(cog, "last_music_messages"):
+            cog.last_music_messages.pop(guild_id, None)
+    except discord.HTTPException:
+        pass
+    except Exception as e:
+        LOGGER.debug(f"Error syncing discord message for web command '{command}': {e}")
