@@ -76,6 +76,9 @@ async def _process_command(bot, data: dict):
     response_channel = f"bot:response:{request_id}"
     await redis_manager.publish(response_channel, json.dumps(result))
 
+    if not result.get("success"):
+        LOGGER.info(f"Web command failed: {command} - {result.get('error', 'unknown')}")
+
     # 상태 변경 시 player_update 발행 (search 제외)
     if result.get("success") and command != "search":
         state = get_player_state(bot, guild_id)
