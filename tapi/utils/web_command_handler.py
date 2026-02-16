@@ -3,6 +3,7 @@
 import json
 from tapi import LOGGER
 from tapi.utils.database import Database
+from tapi.utils.embed import get_track_thumbnail
 
 
 def validate_user_in_voice(bot, guild_id: int, user_id: int):
@@ -42,6 +43,7 @@ def get_player_state(bot, guild_id: int) -> dict:
             "uri": player.current.uri,
             "duration": player.current.duration,
             "position": player.position,
+            "thumbnail": get_track_thumbnail(player.current),
         }
 
     queue = []
@@ -51,6 +53,7 @@ def get_player_state(bot, guild_id: int) -> dict:
             "author": track.author,
             "uri": track.uri,
             "duration": track.duration,
+            "thumbnail": get_track_thumbnail(track),
         })
 
     channel_name = "Unknown"
