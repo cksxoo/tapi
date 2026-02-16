@@ -18,8 +18,7 @@ class AudioConnection(discord.VoiceClient):
     """
 
     def __init__(self, client: discord.Client, channel: discord.abc.Connectable):
-        self.client = client
-        self.channel = channel
+        discord.VoiceProtocol.__init__(self, client, channel)
         self.guild_id = channel.guild.id
         self._destroyed = False
 
@@ -34,6 +33,11 @@ class AudioConnection(discord.VoiceClient):
 
         # Create a shortcut to the Lavalink client here.
         self.lavalink = self.client.lavalink
+
+    def is_connected(self) -> bool:
+        """Lavalink player 상태로 연결 여부 확인 (_connection 우회)."""
+        player = self.lavalink.player_manager.get(self.guild_id)
+        return player is not None and player.is_connected
 
     async def on_voice_server_update(self, data):
         # the data needs to be transformed before being handed down to
@@ -104,6 +108,25 @@ class AudioConnection(discord.VoiceClient):
             return
 
         self._destroyed = True
+
+        # 웹 대시보드에 disconnect 상태 전파
+        try:
+            from tapi.utils.redis_manager import redis_manager
+            await redis_manager.publish_player_update(self.guild_id, "disconnect", {
+                "guild_id": str(self.guild_id),
+                "is_connected": False,
+                "is_playing": False,
+                "is_paused": False,
+                "current_track": None,
+                "queue": [],
+                "queue_length": 0,
+                "volume": 100,
+                "loop": 0,
+                "shuffle": False,
+                "channel_name": "",
+            })
+        except Exception as e:
+            LOGGER.debug(f"Failed to publish disconnect state: {e}")
 
         # 음악 메시지 정리 (Music Cog에서 접근)
         try:

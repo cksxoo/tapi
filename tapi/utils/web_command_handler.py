@@ -1,6 +1,5 @@
 """웹 대시보드에서 전달된 명령을 처리합니다."""
 
-import json
 from tapi import LOGGER
 from tapi.utils.database import Database
 from tapi.utils.embed import get_track_thumbnail
@@ -33,7 +32,8 @@ def get_player_state(bot, guild_id: int) -> dict:
     player = bot.lavalink.player_manager.get(guild_id)
 
     if not player:
-        return {"guild_id": str(guild_id), "is_playing": False, "current_track": None, "queue": [], "queue_length": 0}
+        LOGGER.debug(f"get_player_state({guild_id}): no player found")
+        return {"guild_id": str(guild_id), "is_connected": False, "is_playing": False, "current_track": None, "queue": [], "queue_length": 0}
 
     current_track = None
     if player.current:
@@ -62,6 +62,7 @@ def get_player_state(bot, guild_id: int) -> dict:
 
     return {
         "guild_id": str(guild_id),
+        "is_connected": player.is_connected,
         "is_playing": player.is_playing,
         "is_paused": player.paused,
         "current_track": current_track,
@@ -180,6 +181,26 @@ async def handle_play(bot, guild_id: int, user_id: int, query: str = "", **_para
     player = bot.lavalink.player_manager.get(guild_id)
     if not query:
         return {"success": False, "error": "No query provided"}
+
+    # 텍스트 채널이 설정되지 않은 경우 (웹에서 첫 재생 시) 자동 설정
+    if not player.fetch("channel"):
+        guild = bot.get_guild(guild_id)
+        if guild:
+            text_channel = None
+            # 시스템 채널 (권한 있을 때만)
+            if guild.system_channel:
+                perms = guild.system_channel.permissions_for(guild.me)
+                if perms.send_messages:
+                    text_channel = guild.system_channel
+            # 없으면 권한 있는 첫 번째 텍스트 채널
+            if not text_channel:
+                for ch in guild.text_channels:
+                    perms = ch.permissions_for(guild.me)
+                    if perms.send_messages:
+                        text_channel = ch
+                        break
+            if text_channel:
+                player.store("channel", text_channel.id)
 
     # URL이면 직접 검색, 아니면 ytsearch 추가
     if not query.startswith("http"):

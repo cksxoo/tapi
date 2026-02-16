@@ -23,6 +23,7 @@ class RedisManager:
         self._async_client = None
         self.shard_stats_key_prefix = "shard_stats:"
         self.active_players_key_prefix = "active_players:"
+        self.bot_guilds_key_prefix = "bot_guilds:"
         self.playback_state_key_prefix = "playback_state:"  # 점검 시 재생 상태 저장용
         self.shard_status_ttl = 60 * 10  # 10분
         self.active_player_ttl = 60  # 1분 (자주 업데이트되므로 짧게)
@@ -136,6 +137,19 @@ class RedisManager:
                 LOGGER.error(f"Failed to update active players in Redis: {e}")
             except Exception as e:
                 LOGGER.error(f"Unexpected error updating active players: {e}")
+
+    def update_bot_guilds(self, shard_id: int, guild_ids: list):
+        """봇이 속한 길드 ID 목록을 Redis에 저장합니다."""
+        if not self.available:
+            return
+
+        client = self.get_client()
+        if client:
+            try:
+                key = f"{self.bot_guilds_key_prefix}{shard_id}"
+                client.set(key, json.dumps(guild_ids), ex=self.active_player_ttl)
+            except Exception as e:
+                LOGGER.error(f"Failed to update bot guilds in Redis: {e}")
 
     def get_all_active_players(self) -> dict:
         """모든 샤드의 활성 플레이어 정보를 가져옵니다."""

@@ -245,6 +245,7 @@ class TapiBot(commands.Bot):
                                 "channel_id": str(channel_id) if channel_id else None,
                                 "channel_name": channel_name,
                                 "user_count": user_count,
+                                "is_connected": True,
                                 "is_playing": player.is_playing,
                                 "is_paused": player.paused,
                                 "current_track": current_track,
@@ -273,6 +274,10 @@ class TapiBot(commands.Bot):
 
             # 활성 플레이어 상세 정보도 Redis에 업데이트
             redis_manager.update_active_players(shard_id, active_players)
+
+            # 봇이 속한 길드 ID 목록 업데이트
+            guild_ids = [str(g.id) for g in self.guilds]
+            redis_manager.update_bot_guilds(shard_id, guild_ids)
 
             LOGGER.debug(f"Updated shard {shard_id} status: {shard_data}")
         except Exception as e:
