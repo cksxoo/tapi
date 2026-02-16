@@ -1,17 +1,17 @@
 {
 
-    "help_main_title": "OMG! こんにちは！ ヾ(｡>﹏<｡)ﾉﾞ✧*:･ﾟ✧",
-    "help_main_description": "一緒に音楽を聴いてくれて本当にありがとう！ ✧(≧◡≦) ♡\n\n下のボタンを押して私についてもっと知ってね！ (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
+    "help_main_title": "TAPI",
+    "help_main_description": "Discord音楽ボットです。\n\n下のボタンでコマンドを確認できます。",
 
-    "help_general_title": "基本設定",
-    "help_general_description": "`/invite` - 他のサーバーにボットを招待する\n`/coffee` - TAPIを応援する ☕",
+    "help_general_title": "一般",
+    "help_general_description": "`/invite` - 他のサーバーにボットを招待\n`/coffee` - TAPIを応援する",
 
-    "help_music_title": "音楽コマンド",
+    "help_music_title": "音楽",
 
-    "help_music_description": "<:lucideplay:1472962445633912833> **再生コントロール**\n`/connect` - ボイスチャンネルに接続\n`/play [曲名/リンク/プレイリスト]` - 音楽を再生（YouTube、Spotify対応）\n`/spplay [曲名/リンク]` - Spotifyから検索・再生\n`/scplay [曲名/リンク]` - SoundCloudから検索・再生\n`/pause` - 一時停止/再開\n`/skip` - 次の曲へスキップ\n`/disconnect` - ボイスチャンネルから退出\n\n🔊 **音量＆プレイリスト**\n`/volume [1-100]` - 音量調節\n`/queue` - 再生待機リストを確認\n`/shuffle` - シャッフルモード切替\n`/repeat` - リピートモード切替\n\n⚙️**高度な機能**\n`/nowplaying` - 現在再生中の曲情報\n`/remove [番号]` - プレイリストから曲を削除\n`/clear` - プレイリストを全てクリア",
+    "help_music_description": "**再生**\n`/connect` - ボイスチャンネルに接続\n`/play [曲名/リンク/プレイリスト]` - 音楽を再生（YouTube、Spotify）\n`/spplay [曲名/リンク]` - Spotifyから検索・再生\n`/scplay [曲名/リンク]` - SoundCloudから検索・再生\n`/pause` - 一時停止 / 再開\n`/skip` - 次の曲へスキップ\n`/disconnect` - ボイスチャンネルから退出\n\n**キュー＆音量**\n`/volume [1-100]` - 音量調節\n`/queue` - キューを確認\n`/shuffle` - シャッフル切替\n`/repeat` - リピート切替\n\n**その他**\n`/nowplaying` - 現在再生中の曲情報\n`/remove [番号]` - キューから曲を削除\n`/clear` - キューを全てクリア",
 
-    "welcome_title": "OMG! こんにちは！ ヾ(｡>﹏<｡)ﾉﾞ✧.",
-    "welcome_description": "サーバーに招待してくれてありがとう！ ✧(≧◡≦) ♡\n\n/helpと入力してスラッシュコマンドを確認してね ♡",
+    "welcome_title": "TAPIを追加していただきありがとうございます！",
+    "welcome_description": "`/help`で利用可能なコマンドを確認できます。",
 
     "music_connect_voice_channel": "ボイスチャンネルに接続しました！",
     "music_already_connected_voice_channel": "すでにボイスチャンネルに接続しています！",
@@ -46,7 +46,7 @@
     "music_remove_no_wating_music": "待機中の音楽がありません！",
     "music_remove_input_over": "1から{last_queue}**まで**しか音楽が存在しません！",
     "music_remove_form_playlist": ":asterisk: | プレイリストから音楽が削除されました！:\n**{remove_music}**",
-    "music_recommend_title": "💝 おすすめ曲リスト",
+    "music_recommend_title": "おすすめ曲",
     "music_recommend_description": "**{track_title}** に基づくおすすめ",
     "music_recommend_footer": "下のドロップダウンとボタンで好きな曲を選んでね！",
     "music_recommend_select_placeholder": "おすすめ曲を選択してください...",
@@ -73,8 +73,8 @@
     "music_come_in_my_voice_channel": ":warning: | 別のボイスチャンネルにいます！私のいるボイスチャンネルに来てください。",
     "music_voice_channel_is_full": ":warning: | ボイスチャンネルが満員です！",
 
-    "other_invite_title": "**私をあなたが管理するサーバーに招待してくれるなんて！**",
-    "other_invite_description": "本当にありがとうございます！[ここ]({link})をクリックしてサーバーに招待してください！",
+    "other_invite_title": "TAPIを招待",
+    "other_invite_description": "[こちら]({link})からサーバーにTAPIを追加できます。",
         
     "music_search_results": "検索結果",
     "music_search_select": "下のリストから再生する曲を選択してください",
@@ -84,24 +84,24 @@
 
     "music_added_to_queue": "プレイリストに追加されました",
 
-    "music_queue_cleared": "🧹 | キュークリア完了",
+    "music_queue_cleared": "キュークリア完了",
     "music_queue_cleared_desc": "キューから{count}曲が削除されました。",
     "music_no_music_in_queue": "キューに音楽がありません。",
 
     "music_auto_disconnect_log": "ボットはギルド '{guild_name}'のボイスチャンネルから自動的に退出しました（チャンネルにユーザーがいません）",
     "music_auto_disconnect_error": "自動接続解除中にエラーが発生: {error}",
 
-    "vote_title": "OMG! ありがとう！ ✧(≧◡≦) ♡",
-    "vote_description": "一緒に音楽を聴いてくれて本当にありがとう！ヾ(｡>﹏<｡)ﾉﾞ✧\n\nもしよかったら下のボタンで投票やレビューを残してもらえますか？ (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
+    "vote_title": "ご利用ありがとうございます！",
+    "vote_description": "TAPIを気に入っていただけたら、下から投票やレビューをお願いします。",
 
     "music_play_fail_title": "再生失敗",
     "music_play_fail_description": "音楽を再生できません。",
 
-    "music_permission_dm_title": "🎧 音楽再生通知",
-    "music_permission_dm_description": "**{track_title}** 再生中です！🎧\n🏠 サーバー: **{guild_name}** - #{channel_name}\n💭 そのチャンネルにメッセージを送る権限がないので、こちらでお知らせしますね～",
+    "music_permission_dm_title": "再生中",
+    "music_permission_dm_description": "**{track_title}** を再生中です。\nサーバー: **{guild_name}** - #{channel_name}\n\n_チャンネルにメッセージを送信できないため、DMでお知らせしています。_",
 
-    "vote_required_title": "🗳️ 投票が必要です！",
-    "vote_required_description": "TAPIを使用するには、まず投票してください。\n一度投票すれば永久に使用できます！",
+    "vote_required_title": "投票が必要です",
+    "vote_required_description": "TAPIを使用するには、まず投票してください。\n投票は一度だけで大丈夫です。",
 
     "music_spotify_play": "Spotifyから再生！",
     "music_spotify_search": "Spotify検索結果",
@@ -112,7 +112,7 @@
     "music_queue_skip_to": "#{index}番目の曲にスキップしました",
     "music_queue_skip_failed": "選択した曲へのスキップに失敗しました",
 
-    "coffee_title": "<:BMC:1467139778242805811> TAPIを応援する",
-    "coffee_description": "TAPIをご利用いただきありがとうございます！\n\nご支援はサーバー維持費と開発に役立ちます。コーヒー1杯でTAPIの発展を応援してください！",
+    "coffee_title": "TAPIを応援",
+    "coffee_description": "ご支援はサーバー維持費と開発に使われます。",
     "coffee_button": "コーヒーをおごる"
 }

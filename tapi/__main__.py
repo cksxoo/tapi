@@ -167,8 +167,8 @@ class TapiBot(commands.Bot):
                 # 환영 메시지 V2 레이아웃
                 welcome_view = ui.LayoutView(timeout=None)
                 welcome_view.add_item(make_themed_container(
-                    ui.TextDisplay("## OMG! Hii guys ✧(≧◡≦) ♡"),
-                    ui.TextDisplay("Thank you for inviting me to hang with yall (*≧▽≦)\n\nType `/help` to view my slash commands ♡"),
+                    ui.TextDisplay("## Thanks for adding TAPI!"),
+                    ui.TextDisplay("Use `/help` to see available commands."),
                     make_separator(),
                     make_banner_gallery(),
                     accent_color=SUCCESS_COLOR,

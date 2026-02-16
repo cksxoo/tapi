@@ -5,7 +5,7 @@ from discord.ext import commands
 from tapi.utils.language import get_lan
 from tapi import LOGGER, INFO_COLOR
 from tapi.utils.v2_components import (
-    make_themed_container, make_separator, make_banner_gallery,
+    make_themed_container, make_separator,
 )
 
 
@@ -34,9 +34,9 @@ PAGE_CONFIG = {
 }
 
 PAGE_BUTTONS = [
-    ("main", "🏠 Main"),
-    ("music", "🎵 Music"),
-    ("general", "⚙️ General"),
+    ("main", "Main"),
+    ("music", "Music"),
+    ("general", "General"),
 ]
 
 
@@ -74,7 +74,6 @@ class HelpLayout(ui.LayoutView):
 
         items.append(make_separator())
         items.append(ui.ActionRow(*nav_buttons))
-        items.append(make_banner_gallery())
 
         self.add_item(make_themed_container(*items, accent_color=INFO_COLOR))
 

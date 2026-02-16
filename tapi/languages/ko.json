@@ -1,17 +1,17 @@
 {
 
-    "help_main_title": "OMG! 안녕하세요! ヾ(｡>﹏<｡)ﾉﾞ✧*:･ﾟ✧",
-    "help_main_description": "저와 함께 음악을 들어주셔서 정말 감사해요! ✧(≧◡≦) ♡\n\n아래 버튼을 눌러서 저에 대해 더 알아보세요! (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
+    "help_main_title": "TAPI",
+    "help_main_description": "Discord 음악 봇입니다.\n\n아래 버튼으로 명령어를 확인하세요.",
 
-    "help_general_title": "기본 설정",
-    "help_general_description": "`/invite` - 다른 서버에 봇 초대하기\n`/coffee` - TAPI 후원하기 ☕",
+    "help_general_title": "일반",
+    "help_general_description": "`/invite` - 다른 서버에 봇 초대\n`/coffee` - TAPI 후원하기",
 
-    "help_music_title": "음악 명령어",
+    "help_music_title": "음악",
 
-    "help_music_description": "<:lucideplay:1472962445633912833> **재생 제어**\n`/connect` - 음성 채널에 접속\n`/play [곡명/링크/재생목록]` - 음악 재생 (YouTube, Spotify 지원)\n`/spplay [곡명/링크]` - Spotify에서 검색 및 재생\n`/scplay [곡명/링크]` - SoundCloud에서 검색 및 재생\n`/pause` - 일시정지/재개\n`/skip` - 다음 곡으로 건너뛰기\n`/disconnect` - 음성 채널에서 나가기\n\n🔊 **음량 & 재생목록**\n`/volume [1-100]` - 음량 조절\n`/queue` - 재생 대기목록 확인\n`/shuffle` - 셔플 모드 전환\n`/repeat` - 반복 모드 전환\n\n⚙️**고급 기능**\n`/nowplaying` - 현재 재생 중인 곡 정보\n`/remove [번호]` - 재생목록에서 곡 제거\n`/clear` - 재생목록 전체 비우기",
+    "help_music_description": "**재생**\n`/connect` - 음성 채널에 접속\n`/play [곡명/링크/재생목록]` - 음악 재생 (YouTube, Spotify)\n`/spplay [곡명/링크]` - Spotify에서 검색 및 재생\n`/scplay [곡명/링크]` - SoundCloud에서 검색 및 재생\n`/pause` - 일시정지 / 재개\n`/skip` - 다음 곡으로 건너뛰기\n`/disconnect` - 음성 채널에서 나가기\n\n**대기열 & 음량**\n`/volume [1-100]` - 음량 조절\n`/queue` - 대기열 확인\n`/shuffle` - 셔플 전환\n`/repeat` - 반복 전환\n\n**기타**\n`/nowplaying` - 현재 재생 중인 곡 정보\n`/remove [번호]` - 대기열에서 곡 제거\n`/clear` - 대기열 전체 비우기",
 
-    "welcome_title": "OMG! 안녕하세요! ヾ(｡>﹏<｡)ﾉﾞ✧.",
-    "welcome_description": "저를 서버에 초대해주셔서 감사해요! ✧(≧◡≦) ♡\n\n/help를 입력해서 슬래시 명령어를 확인해보세요 ♡",
+    "welcome_title": "TAPI를 추가해주셔서 감사합니다!",
+    "welcome_description": "`/help`로 사용 가능한 명령어를 확인하세요.",
 
     "music_connect_voice_channel": "음성 채널에 접속했어요!",
     "music_already_connected_voice_channel": "이미 음성 채널에 접속해 있어요!",
@@ -46,7 +46,7 @@
     "music_remove_no_wating_music": "대기 중인 음악이 없어요!",
     "music_remove_input_over": "1 에서 {last_queue} **까지**만 음악이 존재합니다!",
     "music_remove_form_playlist": ":asterisk: | 재생목록에서 음악이 제거되었습니다! :\n**{remove_music}**",
-    "music_recommend_title": "💝 추천 곡 리스트",
+    "music_recommend_title": "추천 곡",
     "music_recommend_description": "**{track_title}** 기반 추천",
     "music_recommend_footer": "아래 드롭다운과 버튼으로 원하는 곡을 선택하세요!",
     "music_recommend_select_placeholder": "추천 곡을 선택하세요...",
@@ -73,8 +73,8 @@
     "music_come_in_my_voice_channel": ":warning: | 다른 음성 채널에 있어요! 제가 있는 음성 채널로 와주세요.",
     "music_voice_channel_is_full": ":warning: | 음성 채널 정원이 가득 찼어요!",
 
-    "other_invite_title": "**절 당신이 관리하는 서버에 초대해주시다니!**",
-    "other_invite_description": "정말 감사합니다! [여기]({link})를 눌러 서버에 초대해주세요!",
+    "other_invite_title": "TAPI 초대",
+    "other_invite_description": "[여기]({link})를 눌러 서버에 TAPI를 추가하세요.",
         
     "music_search_results": "검색 결과",
     "music_search_select": "아래 목록에서 재생할 곡을 선택하세요",
@@ -84,24 +84,24 @@
 
     "music_added_to_queue": "재생목록에 추가됨",
 
-    "music_queue_cleared": "🧹 | 대기열 비우기 완료",
+    "music_queue_cleared": "대기열 비우기 완료",
     "music_queue_cleared_desc": "대기열에서 {count}개의 곡이 제거되었습니다.",
     "music_no_music_in_queue": "대기열에 음악이 없습니다.",
 
     "music_auto_disconnect_log": "봇이 길드 '{guild_name}'의 음성 채널에서 자동으로 나갔습니다 (채널에 사용자가 없음)",
     "music_auto_disconnect_error": "자동 연결 해제 중 오류 발생: {error}",
 
-    "vote_title": "OMG! 고마워요! ✧(≧◡≦) ♡",
-    "vote_description": "저와 함께 음악을 들어주셔서 정말 감사해요! ヾ(｡>﹏<｡)ﾉﾞ✧\n\n혹시 아래 버튼으로 투표나 리뷰 남겨주실 수 있나요? (⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄ ♡",
+    "vote_title": "감사합니다!",
+    "vote_description": "TAPI가 마음에 드셨다면, 아래에서 투표 또는 리뷰를 남겨주세요.",
 
     "music_play_fail_title": "재생 실패",
     "music_play_fail_description": "음악을 재생할 수 없습니다.",
 
-    "music_permission_dm_title": "🎧 음악 재생 알림",
-    "music_permission_dm_description": "**{track_title}** 재생 중이에요! 🎧\n🏠 서버: **{guild_name}** - #{channel_name}\n💭 해당 채널에 메시지를 보낼 권한이 없어서 여기로 알려드려요~",
+    "music_permission_dm_title": "재생 중",
+    "music_permission_dm_description": "**{track_title}** 재생 중입니다.\n서버: **{guild_name}** - #{channel_name}\n\n_해당 채널에 메시지를 보낼 수 없어 DM으로 알려드립니다._",
 
-    "vote_required_title": "🗳️ 투표가 필요합니다!",
-    "vote_required_description": "TAPI를 사용하려면 먼저 투표를 해주세요.\n한 번만 투표하시면 영구적으로 사용 가능합니다!",
+    "vote_required_title": "투표가 필요합니다",
+    "vote_required_description": "TAPI를 사용하려면 먼저 투표해 주세요.\n한 번만 투표하시면 됩니다.",
 
     "music_spotify_play": "Spotify에서 재생!",
     "music_spotify_search": "Spotify 검색 결과",
@@ -112,7 +112,7 @@
     "music_queue_skip_to": "#{index}번째 곡으로 건너뛰었습니다",
     "music_queue_skip_failed": "선택한 곡으로 건너뛰기에 실패했습니다",
 
-    "coffee_title": "<:BMC:1467139778242805811> TAPI 후원하기",
-    "coffee_description": "TAPI를 사용해주셔서 감사합니다!\n\n후원은 서버 유지비와 개발에 큰 도움이 됩니다. 커피 한 잔의 가격으로 TAPI의 발전을 응원해주세요!",
+    "coffee_title": "TAPI 후원",
+    "coffee_description": "후원은 서버 유지비와 개발에 사용됩니다.",
     "coffee_button": "커피 한 잔 사주기"
 }

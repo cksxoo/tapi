@@ -3,7 +3,7 @@ from discord import app_commands, ui
 from discord.ext import commands
 
 from tapi.utils.language import get_lan
-from tapi import LOGGER, THEME_COLOR, APP_BANNER_URL, APP_NAME_TAG_VER
+from tapi import LOGGER
 from tapi.utils.v2_components import (
     make_themed_container, make_banner_gallery, make_separator, send_temp_v2,
 )

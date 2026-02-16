@@ -423,7 +423,7 @@ class MusicControlLayout(ui.LayoutView):
 
         self.add_item(ui.Container(
             *header_items,
-            ui.ActionRow(pause_btn, skip_btn, stop_btn, repeat_btn, shuffle_btn),
+            ui.ActionRow(shuffle_btn, stop_btn, pause_btn, skip_btn, repeat_btn),
             ui.ActionRow(queue_select),
             accent_colour=THEME_COLOR,
         ))
