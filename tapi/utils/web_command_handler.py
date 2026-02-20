@@ -210,6 +210,12 @@ async def handle_play(bot, guild_id: int, user_id: int, query: str = "", **_para
     if not results or not results.tracks:
         return {"success": False, "error": "No results found"}
 
+    # 큐 제한 체크
+    from tapi.modules.player import MAX_QUEUE_SIZE
+    queue_size = len(player.queue) + (1 if player.current else 0)
+    if queue_size >= MAX_QUEUE_SIZE:
+        return {"success": False, "error": f"Queue is full (max {MAX_QUEUE_SIZE} tracks)"}
+
     track = results.tracks[0]
     player.add(requester=user_id, track=track)
 

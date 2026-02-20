@@ -127,5 +127,8 @@
     "playlist_load_failed": "プレイリストから曲を読み込めません。",
     "playlist_load_failed_some": "{count}曲が見つかりませんでした。",
     "playlist_not_found": "保存されたプレイリストがありません。\n音楽再生中に`/save`で保存できます。",
-    "playlist_empty": "保存されたプレイリストに曲がありません。"
+    "playlist_empty": "保存されたプレイリストに曲がありません。",
+
+    "music_queue_full": "キューがいっぱいです！（最大{max}曲）",
+    "music_queue_full_partial": "{total}曲中{added}曲のみ追加されました（キュー制限: {max}曲）"
 }

@@ -36,6 +36,9 @@ from tapi.modules.music_handlers import MusicHandlers
 
 url_rx = re.compile(r"https?://(?:www\.)?.+")
 
+MAX_QUEUE_SIZE = 50
+MAX_PLAYLIST_TRACKS = 20
+
 
 # 투표 확인 데코레이터
 async def check_vote(interaction: discord.Interaction):
@@ -367,17 +370,32 @@ class Music(commands.Cog):
             track = results.tracks[0]
             return create_track_layout(track, interaction.user.display_name)
 
+    def _get_queue_size(self, player):
+        """현재 큐 크기 (재생 중인 곡 포함)"""
+        return len(player.queue) + (1 if player.current else 0)
+
     async def _add_tracks_to_player(self, player, results, user_id: int):
-        """플레이어에 트랙 추가"""
+        """플레이어에 트랙 추가 (큐 제한 적용). 추가된 곡 수와 총 곡 수를 반환."""
+        current_size = self._get_queue_size(player)
+        remaining = MAX_QUEUE_SIZE - current_size
+
         if results.load_type == LoadType.PLAYLIST:
+            added = 0
             for track in results.tracks:
+                if added >= remaining:
+                    break
                 try:
                     player.add(requester=user_id, track=track)
+                    added += 1
                 except Exception as e:
                     LOGGER.error(f"Error adding track from playlist: {e}")
+            return added, len(results.tracks)
         else:
+            if remaining <= 0:
+                return 0, 1
             track = results.tracks[0]
             player.add(requester=user_id, track=track)
+            return 1, 1
 
     @app_commands.command(
         name="play", description="Searches and plays a song from a given query."
@@ -412,12 +430,26 @@ class Music(commands.Cog):
                 )
                 return await send_temp_v2(interaction, layout)
 
+            # 큐 제한 체크
+            if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
+                text = get_lan(interaction, "music_queue_full").format(max=MAX_QUEUE_SIZE)
+                layout = StatusLayout(title_text=text, style="error")
+                return await send_temp_v2(interaction, layout)
+
             # 플레이어에 트랙 추가
-            await self._add_tracks_to_player(player, results, interaction.user.id)
+            added, total = await self._add_tracks_to_player(player, results, interaction.user.id)
 
             # V2 레이아웃 생성 및 전송
             layout = self._create_track_layout(results, interaction)
             await send_temp_v2(interaction, layout)
+
+            # 플레이리스트에서 일부만 추가된 경우 알림
+            if added < total:
+                partial_text = get_lan(interaction, "music_queue_full_partial").format(
+                    added=added, total=total, max=MAX_QUEUE_SIZE
+                )
+                partial_layout = StatusLayout(title_text=partial_text, style="warning")
+                await interaction.followup.send(view=partial_layout, ephemeral=True)
 
             if not player.is_playing:
                 await player.play()
@@ -491,17 +523,23 @@ class Music(commands.Cog):
             else:
                 break
 
-        if results.load_type == LoadType.PLAYLIST:
-            tracks = results.tracks
-            for track in tracks:
-                player.add(requester=interaction.user.id, track=track)
-            layout = create_playlist_layout(interaction, results.playlist_info.name, len(tracks))
-        else:
-            track = results.tracks[0]
-            player.add(requester=interaction.user.id, track=track)
-            layout = create_track_layout(track, interaction.user.display_name)
+        # 큐 제한 체크
+        if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
+            text = get_lan(interaction, "music_queue_full").format(max=MAX_QUEUE_SIZE)
+            layout = StatusLayout(title_text=text, style="error")
+            return await send_temp_v2(interaction, layout)
 
+        added, total = await self._add_tracks_to_player(player, results, interaction.user.id)
+
+        layout = self._create_track_layout(results, interaction)
         await send_temp_v2(interaction, layout)
+
+        if added < total:
+            partial_text = get_lan(interaction, "music_queue_full_partial").format(
+                added=added, total=total, max=MAX_QUEUE_SIZE
+            )
+            partial_layout = StatusLayout(title_text=partial_text, style="warning")
+            await interaction.followup.send(view=partial_layout, ephemeral=True)
 
         if not player.is_playing:
             await player.play()
@@ -555,17 +593,23 @@ class Music(commands.Cog):
             else:
                 break
 
-        if results.load_type == LoadType.PLAYLIST:
-            tracks = results.tracks
-            for track in tracks:
-                player.add(requester=interaction.user.id, track=track)
-            layout = create_playlist_layout(interaction, results.playlist_info.name, len(tracks))
-        else:
-            track = results.tracks[0]
-            player.add(requester=interaction.user.id, track=track)
-            layout = create_track_layout(track, interaction.user.display_name)
+        # 큐 제한 체크
+        if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
+            text = get_lan(interaction, "music_queue_full").format(max=MAX_QUEUE_SIZE)
+            layout = StatusLayout(title_text=text, style="error")
+            return await send_temp_v2(interaction, layout)
 
+        added, total = await self._add_tracks_to_player(player, results, interaction.user.id)
+
+        layout = self._create_track_layout(results, interaction)
         await send_temp_v2(interaction, layout)
+
+        if added < total:
+            partial_text = get_lan(interaction, "music_queue_full_partial").format(
+                added=added, total=total, max=MAX_QUEUE_SIZE
+            )
+            partial_layout = StatusLayout(title_text=partial_text, style="warning")
+            await interaction.followup.send(view=partial_layout, ephemeral=True)
 
         if not player.is_playing:
             await player.play()
@@ -615,6 +659,11 @@ class Music(commands.Cog):
 
     async def play_search_result(self, interaction: discord.Interaction, track):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+
+        if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
+            text = get_lan(interaction, "music_queue_full").format(max=MAX_QUEUE_SIZE)
+            layout = StatusLayout(title_text=text, style="error")
+            return await send_temp_v2(interaction, layout)
 
         player.add(requester=interaction.user.id, track=track)
 
@@ -881,12 +930,11 @@ class Music(commands.Cog):
                 "source_name": player.current.source_name,
             })
 
-        max_tracks = 30
         total_tracks = 1 + len(player.queue) if player.current else len(player.queue)
-        truncated = total_tracks > max_tracks
+        truncated = total_tracks > MAX_PLAYLIST_TRACKS
 
         for track in player.queue:
-            if len(tracks_data) >= max_tracks:
+            if len(tracks_data) >= MAX_PLAYLIST_TRACKS:
                 break
             tracks_data.append({
                 "title": track.title,
@@ -912,7 +960,7 @@ class Music(commands.Cog):
         desc = get_lan(interaction, "playlist_saved_desc").format(count=len(tracks_data))
         if truncated:
             desc += "\n" + get_lan(interaction, "playlist_save_truncated").format(
-                max=max_tracks
+                max=MAX_PLAYLIST_TRACKS
             )
         layout = StatusLayout(title_text=title, description_text=desc, style="success")
         await interaction.followup.send(view=layout, ephemeral=True)
@@ -952,6 +1000,11 @@ class Music(commands.Cog):
         failed_count = 0
 
         for track_data in tracks_data:
+            # 큐 제한 체크
+            if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
+                failed_count += len(tracks_data) - loaded_count - failed_count
+                break
+
             try:
                 uri = track_data.get("uri")
                 if not uri:

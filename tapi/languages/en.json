@@ -125,5 +125,8 @@
     "playlist_load_failed": "Failed to load any tracks from this playlist.",
     "playlist_load_failed_some": "{count} track(s) could not be found.",
     "playlist_not_found": "You don't have a saved playlist yet.\nUse `/save` while music is playing to create one.",
-    "playlist_empty": "Your saved playlist has no tracks."
+    "playlist_empty": "Your saved playlist has no tracks.",
+
+    "music_queue_full": "Queue is full! (max {max} tracks)",
+    "music_queue_full_partial": "Only {added} of {total} tracks were added (queue limit: {max})"
 }
