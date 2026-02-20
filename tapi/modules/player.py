@@ -311,6 +311,16 @@ class Music(commands.Cog):
         if is_search_query:
             return f"ytsearch:{original_query_stripped}", is_search_query
 
+        # YouTube 검색결과 페이지 URL → 검색어로 변환
+        yt_search_match = re.match(
+            r"https?://(?:www\.)?youtube\.com/results\?search_query=([^&]+)",
+            original_query_stripped,
+        )
+        if yt_search_match:
+            from urllib.parse import unquote
+            search_term = unquote(yt_search_match.group(1))
+            return f"ytsearch:{search_term}", True
+
         # URL인 경우 처리
         if (
             "youtube.com" in original_query_stripped
