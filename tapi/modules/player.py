@@ -245,6 +245,7 @@ class Music(commands.Cog):
             "spplay",
             "search",
             "connect",
+            "load",
         )
 
         voice_client = interaction.guild.voice_client
@@ -859,6 +860,144 @@ class Music(commands.Cog):
             await player.set_pause(True)
             await send_temp_status(interaction, "music_pause", style="music")
         await self._publish_web_state(interaction.guild.id, "pause")
+
+    # ===== 플레이리스트 커맨드 =====
+
+    @app_commands.command(name="save", description="Save current queue as your playlist")
+    @app_commands.check(require_playing)
+    async def save(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+
+        tracks_data = []
+        if player.current:
+            tracks_data.append({
+                "title": player.current.title,
+                "author": player.current.author,
+                "uri": player.current.uri,
+                "duration": player.current.duration,
+                "identifier": player.current.identifier,
+                "source_name": player.current.source_name,
+            })
+
+        max_tracks = 30
+        total_tracks = 1 + len(player.queue) if player.current else len(player.queue)
+        truncated = total_tracks > max_tracks
+
+        for track in player.queue:
+            if len(tracks_data) >= max_tracks:
+                break
+            tracks_data.append({
+                "title": track.title,
+                "author": track.author,
+                "uri": track.uri,
+                "duration": track.duration,
+                "identifier": track.identifier,
+                "source_name": track.source_name,
+            })
+
+        if not tracks_data:
+            return await send_temp_status(interaction, "playlist_save_empty", style="error")
+
+        db = Database()
+        result = db.save_playlist(interaction.user.id, tracks_data)
+
+        if not result:
+            text = get_lan(interaction, "playlist_save_error")
+            layout = StatusLayout(title_text=text, style="error")
+            return await interaction.followup.send(view=layout, ephemeral=True)
+
+        title = get_lan(interaction, "playlist_saved")
+        desc = get_lan(interaction, "playlist_saved_desc").format(count=len(tracks_data))
+        if truncated:
+            desc += "\n" + get_lan(interaction, "playlist_save_truncated").format(
+                max=max_tracks
+            )
+        layout = StatusLayout(title_text=title, description_text=desc, style="success")
+        await interaction.followup.send(view=layout, ephemeral=True)
+
+    @app_commands.command(name="load", description="Load your saved playlist into the queue")
+    @app_commands.check(create_player)
+    async def load(self, interaction: discord.Interaction):
+        if not await check_vote(interaction):
+            return
+
+        self._save_user_locale(interaction)
+        await interaction.response.defer()
+
+        db = Database()
+        playlist = db.load_playlist(interaction.user.id)
+
+        if not playlist:
+            text = get_lan(interaction, "playlist_not_found")
+            layout = StatusLayout(title_text=text, style="error")
+            return await send_temp_v2(interaction, layout)
+
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+        tracks_data = playlist.get("tracks", [])
+
+        if not tracks_data:
+            text = get_lan(interaction, "playlist_empty")
+            layout = StatusLayout(title_text=text, style="error")
+            return await send_temp_v2(interaction, layout)
+
+        loading_text = get_lan(interaction, "playlist_loading").format(
+            count=len(tracks_data)
+        )
+        loading_layout = StatusLayout(title_text=loading_text, style="info")
+        loading_msg = await interaction.followup.send(view=loading_layout)
+
+        loaded_count = 0
+        failed_count = 0
+
+        for track_data in tracks_data:
+            try:
+                uri = track_data.get("uri")
+                if not uri:
+                    failed_count += 1
+                    continue
+
+                results = await player.node.get_tracks(uri)
+
+                if results and results.tracks:
+                    player.add(requester=interaction.user.id, track=results.tracks[0])
+                    loaded_count += 1
+                else:
+                    search_query = f"ytsearch:{track_data.get('title', '')} {track_data.get('author', '')}"
+                    results = await player.node.get_tracks(search_query)
+                    if results and results.tracks:
+                        player.add(requester=interaction.user.id, track=results.tracks[0])
+                        loaded_count += 1
+                    else:
+                        failed_count += 1
+            except Exception as e:
+                LOGGER.error(f"Error resolving track: {e}")
+                failed_count += 1
+
+        try:
+            await loading_msg.delete()
+        except Exception:
+            pass
+
+        if loaded_count > 0:
+            title = get_lan(interaction, "playlist_loaded")
+            desc = get_lan(interaction, "playlist_loaded_desc").format(count=loaded_count)
+            if failed_count > 0:
+                desc += "\n" + get_lan(interaction, "playlist_load_failed_some").format(
+                    count=failed_count
+                )
+            layout = StatusLayout(title_text=title, description_text=desc, style="success")
+        else:
+            title = get_lan(interaction, "playlist_load_failed")
+            layout = StatusLayout(title_text=title, style="error")
+
+        await send_temp_v2(interaction, layout, delete_after=5)
+
+        if not player.is_playing and loaded_count > 0:
+            await player.play()
+        elif loaded_count > 0:
+            await self._publish_web_state(interaction.guild.id, "queue_add")
 
     async def cog_app_command_error(
         self, interaction: discord.Interaction, error: app_commands.AppCommandError

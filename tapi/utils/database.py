@@ -325,6 +325,54 @@ class Database:
             LOGGER.error(f"Error checking vote status: {e}")
             return False
 
+    # ===== 플레이리스트 관련 메서드 =====
+
+    def save_playlist(self, user_id, tracks):
+        """사용자 플레이리스트 저장 (유저당 1개, upsert)"""
+        client = self.get_client()
+        if not client:
+            return {}
+
+        try:
+            data = {
+                "user_id": str(user_id),
+                "tracks": tracks,
+                "track_count": len(tracks),
+            }
+
+            response = (
+                client.table("playlists")
+                .upsert(data, on_conflict="user_id")
+                .execute()
+            )
+
+            return response.data[0] if response.data else {}
+
+        except Exception as e:
+            LOGGER.error(f"Error saving playlist: {e}")
+            return {}
+
+    def load_playlist(self, user_id):
+        """사용자 플레이리스트 불러오기"""
+        client = self.get_client()
+        if not client:
+            return None
+
+        try:
+            response = (
+                client.table("playlists")
+                .select("*")
+                .eq("user_id", str(user_id))
+                .maybe_single()
+                .execute()
+            )
+
+            return response.data if response else None
+
+        except Exception as e:
+            LOGGER.error(f"Error loading playlist: {e}")
+            return None
+
     def create_table(self):
         """테이블 생성 (Supabase에서는 SQL Editor에서 직접 실행)"""
         LOGGER.info("Tables should be created directly in Supabase SQL Editor")

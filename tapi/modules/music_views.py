@@ -428,11 +428,12 @@ class MusicControlLayout(ui.LayoutView):
             accent_colour=THEME_COLOR,
         ))
         dashboard_url = f"https://tapi.cksxoo.com/dashboard/{self.guild_id}"
-        dashboard_btn = ui.Button(label="TAPI Dashboard (beta)", url=dashboard_url, emoji="🌸")
+        dashboard_btn = ui.Button(label="TAPI Dashboard", url=dashboard_url, emoji="🌸")
+        playlist_btn = ui.Button(label="Playlist (beta)", url="https://tapi.cksxoo.com/playlist", emoji="🎵")
         coffee_btn = ui.Button(label="Buy Me a Coffee", url="https://buymeacoffee.com/cksxoo", emoji="<:BMC:1467139778242805811>")
         self.add_item(ui.Container(
             make_banner_gallery(),
-            ui.ActionRow(dashboard_btn, coffee_btn),
+            ui.ActionRow(dashboard_btn, playlist_btn, coffee_btn),
         ))
 
         return self

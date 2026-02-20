@@ -8,7 +8,7 @@
 
     "help_music_title": "음악",
 
-    "help_music_description": "**재생**\n`/connect` - 음성 채널에 접속\n`/play [곡명/링크/재생목록]` - 음악 재생 (YouTube, Spotify)\n`/spplay [곡명/링크]` - Spotify에서 검색 및 재생\n`/scplay [곡명/링크]` - SoundCloud에서 검색 및 재생\n`/pause` - 일시정지 / 재개\n`/skip` - 다음 곡으로 건너뛰기\n`/disconnect` - 음성 채널에서 나가기\n\n**대기열 & 음량**\n`/volume [1-100]` - 음량 조절\n`/queue` - 대기열 확인\n`/shuffle` - 셔플 전환\n`/repeat` - 반복 전환\n\n**기타**\n`/nowplaying` - 현재 재생 중인 곡 정보\n`/remove [번호]` - 대기열에서 곡 제거\n`/clear` - 대기열 전체 비우기",
+    "help_music_description": "**재생**\n`/connect` - 음성 채널에 접속\n`/play [곡명/링크/재생목록]` - 음악 재생 (YouTube, Spotify)\n`/spplay [곡명/링크]` - Spotify에서 검색 및 재생\n`/scplay [곡명/링크]` - SoundCloud에서 검색 및 재생\n`/pause` - 일시정지 / 재개\n`/skip` - 다음 곡으로 건너뛰기\n`/disconnect` - 음성 채널에서 나가기\n\n**대기열 & 음량**\n`/volume [1-100]` - 음량 조절\n`/queue` - 대기열 확인\n`/shuffle` - 셔플 전환\n`/repeat` - 반복 전환\n\n**기타**\n`/nowplaying` - 현재 재생 중인 곡 정보\n`/remove [번호]` - 대기열에서 곡 제거\n`/clear` - 대기열 전체 비우기\n\n**플레이리스트**\n`/save` - 현재 대기열을 플레이리스트로 저장\n`/load` - 저장된 플레이리스트 불러오기",
 
     "welcome_title": "TAPI를 추가해주셔서 감사합니다!",
     "welcome_description": "`/help`로 사용 가능한 명령어를 확인하세요.",
@@ -114,5 +114,18 @@
 
     "coffee_title": "TAPI 후원",
     "coffee_description": "후원은 서버 유지비와 개발에 사용됩니다.",
-    "coffee_button": "커피 한 잔 사주기"
+    "coffee_button": "커피 한 잔 사주기",
+
+    "playlist_saved": "플레이리스트 저장 완료!",
+    "playlist_saved_desc": "{count}곡이 저장되었습니다.",
+    "playlist_save_empty": "저장할 음악이 없습니다! 먼저 음악을 재생하세요.",
+    "playlist_save_error": "플레이리스트 저장에 실패했습니다. 다시 시도해주세요.",
+    "playlist_save_truncated": "처음 {max}곡만 저장되었습니다 (베타 제한).",
+    "playlist_loaded": "플레이리스트 불러오기 완료!",
+    "playlist_loaded_desc": "{count}곡이 대기열에 추가되었습니다.",
+    "playlist_loading": "플레이리스트 불러오는 중 ({count}곡)...",
+    "playlist_load_failed": "플레이리스트에서 곡을 불러올 수 없습니다.",
+    "playlist_load_failed_some": "{count}곡을 찾을 수 없습니다.",
+    "playlist_not_found": "저장된 플레이리스트가 없습니다.\n음악 재생 중에 `/save`로 저장할 수 있습니다.",
+    "playlist_empty": "저장된 플레이리스트에 곡이 없습니다."
 }

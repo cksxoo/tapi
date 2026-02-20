@@ -7,7 +7,7 @@
     "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI",
 
     "help_music_title": "Music",
-    "help_music_description": "**Playback**\n`/connect` - Connect to voice channel\n`/play [song/link/playlist]` - Play music (YouTube, Spotify)\n`/spplay [song/link]` - Search and play from Spotify\n`/scplay [song/link]` - Search and play from SoundCloud\n`/pause` - Pause / Resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n**Queue & Volume**\n`/volume [1-100]` - Adjust volume\n`/queue` - View queue\n`/shuffle` - Toggle shuffle\n`/repeat` - Toggle repeat\n\n**More**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue",
+    "help_music_description": "**Playback**\n`/connect` - Connect to voice channel\n`/play [song/link/playlist]` - Play music (YouTube, Spotify)\n`/spplay [song/link]` - Search and play from Spotify\n`/scplay [song/link]` - Search and play from SoundCloud\n`/pause` - Pause / Resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n**Queue & Volume**\n`/volume [1-100]` - Adjust volume\n`/queue` - View queue\n`/shuffle` - Toggle shuffle\n`/repeat` - Toggle repeat\n\n**More**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue\n\n**Playlists**\n`/save` - Save current queue as your playlist\n`/load` - Load your saved playlist",
 
     "welcome_title": "Thanks for adding TAPI!",
     "welcome_description": "Use `/help` to see available commands.",
@@ -112,5 +112,18 @@
 
     "coffee_title": "Support TAPI",
     "coffee_description": "Your support helps cover server costs and development.",
-    "coffee_button": "Buy Me a Coffee"
+    "coffee_button": "Buy Me a Coffee",
+
+    "playlist_saved": "Playlist saved!",
+    "playlist_saved_desc": "{count} tracks saved.",
+    "playlist_save_empty": "Nothing to save! Play some music first.",
+    "playlist_save_error": "Failed to save playlist. Please try again.",
+    "playlist_save_truncated": "Only the first {max} tracks were saved (beta limit).",
+    "playlist_loaded": "Playlist loaded!",
+    "playlist_loaded_desc": "{count} tracks added to queue.",
+    "playlist_loading": "Loading playlist ({count} tracks)...",
+    "playlist_load_failed": "Failed to load any tracks from this playlist.",
+    "playlist_load_failed_some": "{count} track(s) could not be found.",
+    "playlist_not_found": "You don't have a saved playlist yet.\nUse `/save` while music is playing to create one.",
+    "playlist_empty": "Your saved playlist has no tracks."
 }

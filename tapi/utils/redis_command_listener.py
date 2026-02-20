@@ -4,7 +4,7 @@ import json
 import asyncio
 from tapi import LOGGER
 from tapi.utils.redis_manager import redis_manager
-from tapi.utils.web_command_handler import dispatch_command, get_player_state
+from tapi.utils.web_command_handler import dispatch_command, get_player_state, GLOBAL_COMMANDS
 
 
 async def start_command_listener(bot):
@@ -62,10 +62,18 @@ async def _process_command(bot, data: dict):
     user_id = int(data.get("user_id", 0))
     params = data.get("params", {})
 
-    # 이 샤드가 해당 길드를 관리하는지 확인
-    guild = bot.get_guild(guild_id)
-    if not guild:
-        return  # 다른 샤드가 처리
+    is_global = command in GLOBAL_COMMANDS
+
+    # 글로벌 명령은 첫 번째 샤드만 처리 (shard_id == 0 또는 단일 샤드)
+    if is_global:
+        shard_id = getattr(bot, "shard_id", 0) or 0
+        if shard_id != 0:
+            return
+    else:
+        # 이 샤드가 해당 길드를 관리하는지 확인
+        guild = bot.get_guild(guild_id)
+        if not guild:
+            return  # 다른 샤드가 처리
 
     LOGGER.info(f"Web command: {command} for guild {guild_id} by user {user_id}")
 
@@ -79,8 +87,8 @@ async def _process_command(bot, data: dict):
     if not result.get("success"):
         LOGGER.info(f"Web command failed: {command} - {result.get('error', 'unknown')}")
 
-    # 상태 변경 시 player_update 발행 (search 제외)
-    if result.get("success") and command != "search":
+    # 상태 변경 시 player_update 발행 (search, 글로벌 명령 제외)
+    if result.get("success") and command not in ("search",) and not is_global:
         state = get_player_state(bot, guild_id)
         await redis_manager.publish_player_update(guild_id, command, state)
 

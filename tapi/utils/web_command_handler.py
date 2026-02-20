@@ -274,6 +274,35 @@ async def handle_get_state(bot, guild_id: int, user_id: int, **_params):
     return {"success": True, "data": state}
 
 
+async def handle_resolve_track(bot, guild_id: int, user_id: int, url: str = "", **_params):
+    """URL에서 트랙 메타데이터를 resolve합니다 (guild 불필요)."""
+    if not url:
+        return {"success": False, "error": "No URL provided"}
+
+    nodes = bot.lavalink.node_manager.available_nodes
+    if not nodes:
+        return {"success": False, "error": "No Lavalink nodes available"}
+
+    node = nodes[0]
+    try:
+        results = await node.get_tracks(url)
+        if not results or not results.tracks:
+            return {"success": False, "error": "No tracks found"}
+
+        track = results.tracks[0]
+        return {"success": True, "data": {
+            "title": track.title,
+            "author": track.author,
+            "uri": track.uri,
+            "duration": track.duration,
+            "identifier": track.identifier,
+            "source_name": getattr(track, "source_name", "unknown"),
+        }}
+    except Exception as e:
+        LOGGER.error(f"Error resolving track: {e}")
+        return {"success": False, "error": "Failed to resolve track"}
+
+
 # 명령 디스패처
 COMMAND_HANDLERS = {
     "get_state": handle_get_state,
@@ -288,7 +317,11 @@ COMMAND_HANDLERS = {
     "remove": handle_remove,
     "move": handle_move,
     "seek": handle_seek,
+    "resolve_track": handle_resolve_track,
 }
+
+# guild_id가 필요 없는 글로벌 명령
+GLOBAL_COMMANDS = {"resolve_track"}
 
 
 async def dispatch_command(bot, command: str, guild_id: int, user_id: int, params: dict) -> dict:
