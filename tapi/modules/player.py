@@ -990,6 +990,10 @@ class Music(commands.Cog):
             layout = StatusLayout(title_text=text, style="error")
             return await send_temp_v2(interaction, layout)
 
+        # 기존 큐 비우고 현재 곡 정지
+        player.queue.clear()
+        await player.stop()
+
         loading_text = get_lan(interaction, "playlist_loading").format(
             count=len(tracks_data)
         )
@@ -1000,11 +1004,6 @@ class Music(commands.Cog):
         failed_count = 0
 
         for track_data in tracks_data:
-            # 큐 제한 체크
-            if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
-                failed_count += len(tracks_data) - loaded_count - failed_count
-                break
-
             try:
                 uri = track_data.get("uri")
                 if not uri:
@@ -1034,6 +1033,9 @@ class Music(commands.Cog):
             pass
 
         if loaded_count > 0:
+            # 첫 번째 트랙 재생 시작
+            if not player.is_playing:
+                await player.play()
             title = get_lan(interaction, "playlist_loaded")
             desc = get_lan(interaction, "playlist_loaded_desc").format(count=loaded_count)
             if failed_count > 0:
