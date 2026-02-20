@@ -4,21 +4,19 @@
 
 v0.9.1: Web Playlist & Queue Limits
 
-- Web Playlist Management: View, add, delete, and reorder personal playlists on the web (`tapi.cksxoo.com/playlist`)
+- Web Playlist Management: View, add, delete, and reorder personal playlists on the web
 - Playlist Button: Added `Playlist (beta)` button to Now Playing message
 - `/load` Behavior Change: Clears existing queue and stops current track before loading playlist
 - Queue Limits: Player queue max 50 tracks, playlist max 20 tracks (beta)
-- Docker npm cache mount for faster tapi-web builds
 
 ### *February 20, 2026* | v0.9.1: 웹 플레이리스트 & 큐 제한
 
 |no|contents|
 |:---:|:---|
-|1| 웹 플레이리스트 관리: 웹에서 개인 플레이리스트 조회/추가/삭제/순서 변경 (`tapi.cksxoo.com/playlist`)|
+|1| 웹 플레이리스트 관리: 웹에서 개인 플레이리스트 조회/추가/삭제/순서 변경|
 |2| Playlist 버튼: Now Playing 메시지에 `Playlist (beta)` 버튼 추가|
 |3| `/load` 동작 변경: 기존 큐를 비우고 현재 곡을 정지한 후 플레이리스트를 새로 로드|
 |4| 큐 제한: 플레이어 큐 최대 50곡, 플레이리스트 최대 20곡 (베타)|
-|5| Docker npm 캐시 마운트 추가 (tapi-web 빌드 속도 개선)|
 
 ---
 
