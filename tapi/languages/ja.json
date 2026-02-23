@@ -4,7 +4,7 @@
     "help_main_description": "Discord音楽ボットです。\n\n下のボタンでコマンドを確認できます。",
 
     "help_general_title": "一般",
-    "help_general_description": "`/invite` - 他のサーバーにボットを招待\n`/coffee` - TAPIを応援する",
+    "help_general_description": "`/invite` - 他のサーバーにボットを招待\n`/coffee` - TAPIを応援する\n`/channel` - 音楽コマンドチャンネルの設定/解除",
 
     "help_music_title": "音楽",
 
@@ -130,5 +130,9 @@
     "playlist_empty": "保存されたプレイリストに曲がありません。",
 
     "music_queue_full": "キューがいっぱいです！（最大{max}曲）",
-    "music_queue_full_partial": "{total}曲中{added}曲のみ追加されました（キュー制限: {max}曲）"
+    "music_queue_full_partial": "{total}曲中{added}曲のみ追加されました（キュー制限: {max}曲）",
+
+    "channel_set": "音楽コマンドが{channel}に制限されました！",
+    "channel_reset": "音楽コマンドチャンネルの制限が解除されました！",
+    "music_wrong_text_channel": "音楽コマンドは{channel}でのみ使用できます！"
 }

@@ -4,7 +4,7 @@
     "help_main_description": "Discord 음악 봇입니다.\n\n아래 버튼으로 명령어를 확인하세요.",
 
     "help_general_title": "일반",
-    "help_general_description": "`/invite` - 다른 서버에 봇 초대\n`/coffee` - TAPI 후원하기",
+    "help_general_description": "`/invite` - 다른 서버에 봇 초대\n`/coffee` - TAPI 후원하기\n`/channel` - 음악 명령어 채널 지정/해제",
 
     "help_music_title": "음악",
 
@@ -130,5 +130,9 @@
     "playlist_empty": "저장된 플레이리스트에 곡이 없습니다.",
 
     "music_queue_full": "대기열이 가득 찼습니다! (최대 {max}곡)",
-    "music_queue_full_partial": "{total}곡 중 {added}곡만 추가되었습니다 (대기열 제한: {max}곡)"
+    "music_queue_full_partial": "{total}곡 중 {added}곡만 추가되었습니다 (대기열 제한: {max}곡)",
+
+    "channel_set": "이제 음악 명령어는 {channel} 에서만 사용할 수 있어요!",
+    "channel_reset": "음악 명령어 채널 제한이 해제되었습니다!",
+    "music_wrong_text_channel": "음악 명령어는 {channel} 에서만 사용할 수 있어요!"
 }

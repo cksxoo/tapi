@@ -170,6 +170,17 @@ class Music(commands.Cog):
             player.set_shuffle(shuffle)
 
     @staticmethod
+    async def _check_text_channel(interaction: discord.Interaction):
+        """지정된 텍스트 채널에서만 명령어 사용 가능하도록 검증"""
+        db = Database()
+        text_channel_id = db.get_text_channel(interaction.guild.id)
+        if text_channel_id and str(interaction.channel.id) != str(text_channel_id):
+            text = get_lan(interaction, "music_wrong_text_channel").format(
+                channel=f"<#{text_channel_id}>"
+            )
+            raise app_commands.CheckFailure(text)
+
+    @staticmethod
     async def _validate_user_voice_state(interaction: discord.Interaction):
         """사용자 음성 상태 검증"""
         if not interaction.user.voice or not interaction.user.voice.channel:
@@ -217,6 +228,9 @@ class Music(commands.Cog):
         """
         if interaction.guild is None:
             raise app_commands.NoPrivateMessage()
+
+        # 텍스트 채널 제한 체크
+        await Music._check_text_channel(interaction)
 
         # Check if Lavalink is initialized
         if interaction.client.lavalink is None:
@@ -274,6 +288,9 @@ class Music(commands.Cog):
     async def require_playing(interaction: discord.Interaction):
         if interaction.guild is None:
             raise app_commands.NoPrivateMessage()
+
+        # 텍스트 채널 제한 체크
+        await Music._check_text_channel(interaction)
 
         # Check if user is in a voice channel
         if not interaction.user.voice or not interaction.user.voice.channel:
@@ -1076,6 +1093,9 @@ class Music(commands.Cog):
                 text = get_lan(interaction, "music_not_in_voice_channel_description")
             elif "Music not playing" in error_message:
                 text = get_lan(interaction, "music_not_playing")
+            elif "music_wrong_text_channel" in error_message or "<#" in error_message:
+                # 채널 제한 에러는 메시지를 그대로 사용
+                text = error_message
             else:
                 # 다른 CheckFailure는 로그만 남김
                 LOGGER.warning(f"CheckFailure: {error}")

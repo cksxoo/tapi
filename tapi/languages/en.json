@@ -4,7 +4,7 @@
     "help_main_description": "A music bot for Discord.\n\nUse the buttons below to browse commands.",
 
     "help_general_title": "General",
-    "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI",
+    "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI\n`/channel` - Set/unset music command channel",
 
     "help_music_title": "Music",
     "help_music_description": "**Playback**\n`/connect` - Connect to voice channel\n`/play [song/link/playlist]` - Play music (YouTube, Spotify)\n`/spplay [song/link]` - Search and play from Spotify\n`/scplay [song/link]` - Search and play from SoundCloud\n`/pause` - Pause / Resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n**Queue & Volume**\n`/volume [1-100]` - Adjust volume\n`/queue` - View queue\n`/shuffle` - Toggle shuffle\n`/repeat` - Toggle repeat\n\n**More**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue\n\n**Playlists**\n`/save` - Save current queue as your playlist\n`/load` - Load your saved playlist",
@@ -128,5 +128,9 @@
     "playlist_empty": "Your saved playlist has no tracks.",
 
     "music_queue_full": "Queue is full! (max {max} tracks)",
-    "music_queue_full_partial": "Only {added} of {total} tracks were added (queue limit: {max})"
+    "music_queue_full_partial": "Only {added} of {total} tracks were added (queue limit: {max})",
+
+    "channel_set": "Music commands are now restricted to {channel}!",
+    "channel_reset": "Music commands channel restriction removed!",
+    "music_wrong_text_channel": "Music commands can only be used in {channel}!"
 }

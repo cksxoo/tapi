@@ -147,6 +147,14 @@ class Database:
         """길드 셔플 설정"""
         self.upsert_guild_settings(guild_id, shuffle=shuffle)
 
+    def get_text_channel(self, guild_id):
+        """길드 텍스트 채널 지정 설정 가져오기"""
+        settings = self.get_guild_settings(guild_id)
+        return settings.get("text_channel_id", None)
+
+    def set_text_channel(self, guild_id, channel_id):
+        """길드 텍스트 채널 지정 설정 (None이면 제한 해제)"""
+        self.upsert_guild_settings(guild_id, text_channel_id=channel_id)
 
     def get_guild_settings(self, guild_id):
         """길드 설정 통합 조회 (캐시 활용)"""
@@ -162,6 +170,7 @@ class Database:
                 "volume": 20,
                 "loop_mode": 0,
                 "shuffle": False,
+                "text_channel_id": None,
             }
 
         try:
@@ -193,6 +202,7 @@ class Database:
                 "volume": 20,
                 "loop_mode": 0,
                 "shuffle": False,
+                "text_channel_id": None,
             }
 
     def upsert_guild_settings(self, guild_id, **kwargs):
