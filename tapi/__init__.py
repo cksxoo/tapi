@@ -4,7 +4,7 @@ import logging
 
 
 # Bot version
-BOT_VER = "v0.9.1"
+BOT_VER = "v0.9.2"
 
 # enable logging
 logging.basicConfig(

@@ -2,6 +2,18 @@
 
 ---
 
+v0.9.2: Channel Restriction
+
+- Bot Channel: Added `/channel` command — admins can designate a bot-only channel where slash commands are restricted
+
+### *February 25, 2026* | v0.9.2: 채널 제한
+
+|no|contents|
+|:---:|:---|
+|1| 봇 전용 채널: `/channel` 커맨드 추가 — 관리자가 봇 전용 채널을 지정하면 해당 채널에서만 슬래시 커맨드 사용 가능|
+
+---
+
 v0.9.1: Web Playlist & Queue Limits
 
 - Web Playlist Management: View, add, delete, and reorder personal playlists on the web
