@@ -272,3 +272,110 @@ class MusicHandlers:
 
                 except Exception as e:
                     LOGGER.error(f"Error during auto-disconnect in guild {guild.name}: {e}")
+
+    async def handle_autoplay_message(self, message: discord.Message):
+        """봇 전용 채널에 올라온 유튜브 링크를 감지하여 자동 재생.
+        MESSAGE_CONTENT_INTENT 가 활성화된 경우에만 on_message 에서 호출됨.
+        """
+        # 봇 전용 채널 확인
+        bot_channel_id = Database().get_channel(message.guild.id)
+        if not bot_channel_id or message.channel.id != bot_channel_id:
+            return
+
+        # 유튜브 링크 추출
+        yt_pattern = re.compile(
+            r"https?://(?:www\.)?(?:youtube\.com/watch\?[^\s]*v=[\w-]+|youtu\.be/[\w-]+|youtube\.com/shorts/[\w-]+)"
+        )
+        urls = yt_pattern.findall(message.content)
+        if not urls:
+            return
+
+        # 유저가 음성 채널에 있는지 확인
+        member = message.guild.get_member(message.author.id)
+        if not member or not member.voice or not member.voice.channel:
+            await message.channel.send(
+                f"⚠️ {message.author.mention} 먼저 음성 채널에 입장해 주세요!",
+                delete_after=8,
+            )
+            return
+
+        voice_channel = member.voice.channel
+
+        if not self.bot.lavalink:
+            return
+
+        try:
+            from tapi.modules.audio_connection import AudioConnection
+
+            # 플레이어 생성 또는 가져오기
+            existing_player = self.bot.lavalink.player_manager.get(message.guild.id)
+            player = self.bot.lavalink.player_manager.create(message.guild.id)
+
+            # 새 플레이어면 DB 설정 적용
+            if existing_player is None:
+                from tapi.modules.player import Music
+                await Music._setup_player_settings(player, message.guild.id)
+
+            # 음성 채널 연결 (아직 연결 안 된 경우)
+            if not message.guild.voice_client:
+                perms = voice_channel.permissions_for(message.guild.me)
+                if not perms.connect or not perms.speak:
+                    await message.channel.send(
+                        "⚠️ 음성 채널에 접근할 권한이 없습니다.",
+                        delete_after=8,
+                    )
+                    return
+                player.store("channel", message.channel.id)
+                await voice_channel.connect(cls=AudioConnection)
+            elif message.guild.voice_client.channel.id != voice_channel.id:
+                await message.channel.send(
+                    f"⚠️ {message.author.mention} 봇이 있는 음성 채널로 입장해 주세요!",
+                    delete_after=8,
+                )
+                return
+
+            # 첫 번째 URL만 처리 (복수 링크 도배 방지)
+            url = urls[0]
+            query, _ = self.music_cog._prepare_query(url)
+            results = await self.music_cog._search_tracks(player, query, url, False)
+
+            if not results:
+                await message.channel.send(
+                    f"⚠️ `{url}` 에서 재생 가능한 트랙을 찾을 수 없습니다.",
+                    delete_after=8,
+                )
+                return
+
+            added, total = await self.music_cog._add_tracks_to_player(player, results, message.author.id)
+
+            if added == 0:
+                await message.channel.send(
+                    "⚠️ 대기열이 가득 찼습니다.",
+                    delete_after=8,
+                )
+                return
+
+            # 재생 시작
+            if not player.is_playing:
+                await player.play()
+
+            # 추가된 트랙 정보 UI 출력
+            from lavalink.server import LoadType
+            from tapi import SUCCESS_COLOR
+
+            if results.load_type == LoadType.PLAYLIST:
+                desc = f"▶️ 플레이리스트 **{results.playlist_info.name}** 에서 {added}곡이 추가되었습니다."
+            else:
+                track = results.tracks[0]
+                desc = f"▶️ **{track.title}** - {track.author}"
+
+            notify_layout = ui.LayoutView(timeout=None)
+            notify_layout.add_item(make_themed_container(
+                ui.TextDisplay(desc),
+                accent_color=SUCCESS_COLOR,
+            ))
+            await message.channel.send(view=notify_layout, delete_after=15)
+
+        except Exception as e:
+            LOGGER.error(f"Error in handle_autoplay_message: {e}")
+

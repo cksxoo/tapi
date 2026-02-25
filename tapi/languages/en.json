@@ -1,17 +1,12 @@
 {
-
     "help_main_title": "TAPI",
     "help_main_description": "A music bot for Discord.\n\nCheck out the commands below!",
-
     "help_general_title": "General",
     "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI",
-
     "help_music_title": "Music",
     "help_music_description": "**Playback**\n`/connect` - Connect to voice channel\n`/play [song/link/playlist]` - Play music (YouTube, Spotify)\n`/spplay [song/link]` - Search and play from Spotify\n`/scplay [song/link]` - Search and play from SoundCloud\n`/pause` - Pause / Resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n**Queue & Volume**\n`/volume [1-100]` - Adjust volume\n`/queue` - View queue\n`/shuffle` - Toggle shuffle\n`/repeat` - Toggle repeat\n\n**More**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue\n\n**Playlists**\n`/save` - Save current queue as your playlist\n`/load` - Load your saved playlist",
-
     "welcome_title": "Thanks for adding TAPI!",
     "welcome_description": "Try `/help` to see what I can do!",
-
     "music_connect_voice_channel": "Joined the voice channel!",
     "music_already_connected_voice_channel": "Already in the voice channel!",
     "music_can_not_find_anything": "Couldn't find anything!",
@@ -70,50 +65,37 @@
     "music_no_permission": ":warning: | I need Connect and Speak permissions!",
     "music_come_in_my_voice_channel": ":warning: | You're in a different channel! Come join mine.",
     "music_voice_channel_is_full": ":warning: | The voice channel is full!",
-
     "other_invite_title": "Invite TAPI",
     "other_invite_description": "Click [here]({link}) to add TAPI to your server!",
-
     "music_search_results": "Search Results",
     "music_search_select": "Pick a song to play!",
     "music_search_no_keyword": "Enter something to search for!",
     "music_search_no_results": "No results found",
     "music_search_select_placeholder": "Pick a song...",
-
     "music_added_to_queue": "added to queue",
-
     "music_queue_cleared": "Queue cleared!",
     "music_queue_cleared_desc": "Removed {count} tracks from the queue.",
     "music_no_music_in_queue": "The queue is empty.",
-
     "music_auto_disconnect_log": "Bot automatically left voice channel in guild '{guild_name}' (no users in channel)",
     "music_auto_disconnect_error": "Error occurred during auto-disconnect: {error}",
-
     "vote_title": "Thanks for listening!",
     "vote_description": "Enjoying TAPI? Consider voting or leaving a review!",
-
     "music_play_fail_title": "Playback failed",
     "music_play_fail_description": "Couldn't play this track.",
-
     "music_permission_dm_title": "Now Playing",
     "music_permission_dm_description": "**{track_title}** is now playing.\nServer: **{guild_name}** - #{channel_name}\n\n_Sent via DM because I can't send messages in that channel._",
-
     "vote_required_title": "Vote needed",
     "vote_required_description": "Please vote for TAPI to get started!\nYou only need to vote once.",
-
     "music_spotify_play": "Playing from Spotify!",
     "music_spotify_search": "Spotify Results",
-
     "music_queue_select_placeholder": "Queue ({count} tracks)",
     "music_queue_select_placeholder_empty": "Queue (Empty)",
     "music_queue_select_empty": "No tracks in queue",
     "music_queue_skip_to": "Skipped to track #{index}!",
     "music_queue_skip_failed": "Couldn't skip to that track",
-
     "coffee_title": "Support TAPI",
     "coffee_description": "Your support helps keep TAPI running!",
     "coffee_button": "Buy Me a Coffee",
-
     "playlist_saved": "Playlist saved!",
     "playlist_saved_desc": "{count} tracks saved!",
     "playlist_save_empty": "Nothing to save! Play some music first.",
@@ -126,7 +108,11 @@
     "playlist_load_failed_some": "Couldn't find {count} track(s).",
     "playlist_not_found": "No saved playlist yet!\nUse `/save` while music is playing to create one.",
     "playlist_empty": "Your saved playlist is empty.",
-
     "music_queue_full": "Queue is full! (max {max} tracks)",
-    "music_queue_full_partial": "Only {added} of {total} tracks were added (queue limit: {max})"
+    "music_queue_full_partial": "Only {added} of {total} tracks were added (queue limit: {max})",
+    "channel_set_title": "Bot Channel Set",
+    "channel_set_description": "{channel} has been set as the bot-only channel.\nSlash commands can only be used here.",
+    "channel_unset_title": "Bot Channel Restriction Removed",
+    "channel_unset_description": "The bot-only channel setting for {channel} has been removed.\nCommands can now be used in any channel.",
+    "channel_restrict_message": "⚠️ Bot commands can only be used in {channel}."
 }

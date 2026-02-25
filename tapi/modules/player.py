@@ -19,6 +19,7 @@ from tapi import (
     PSW,
     REGION,
     PORT,
+    MESSAGE_CONTENT_INTENT,
 )
 from tapi.utils.database import Database
 from tapi.utils.statistics import Statistics
@@ -148,6 +149,13 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         return await self.handlers.on_voice_state_update(member, before, after)
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        """봇 전용 채널 YouTube 링크 자동 재생 — 로직은 MusicHandlers.handle_autoplay_message 참고"""
+        if message.author.bot or not message.guild or not MESSAGE_CONTENT_INTENT:
+            return
+        await self.handlers.handle_autoplay_message(message)
 
     @staticmethod
     async def _setup_player_settings(player, guild_id: int):
@@ -407,233 +415,89 @@ class Music(commands.Cog):
             player.add(requester=user_id, track=track)
             return 1, 1
 
+    async def _execute_play(
+        self,
+        interaction: discord.Interaction,
+        query: str,
+    ) -> None:
+        """공통 재생 실행 흐름: 검색 → 큐 추가 → 전송 → 재생 시작 → 웹 전파.
+        query 는 이미 prefix(ytsearch:/scsearch:/spsearch:)가 적용된 최종 쿼리.
+        """
+        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
+        original = query.strip("<>")
+
+        results = await self._search_tracks(player, query, original, False)
+        if not results:
+            layout = create_error_layout(
+                f"{get_lan(interaction, 'music_can_not_find_anything')}\nQuery: {original}"
+            )
+            return await send_temp_v2(interaction, layout)
+
+        if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
+            text = get_lan(interaction, "music_queue_full").format(max=MAX_QUEUE_SIZE)
+            layout = StatusLayout(title_text=text, style="error")
+            return await send_temp_v2(interaction, layout)
+
+        added, total = await self._add_tracks_to_player(player, results, interaction.user.id)
+        await send_temp_v2(interaction, self._create_track_layout(results, interaction))
+
+        if added < total:
+            partial_text = get_lan(interaction, "music_queue_full_partial").format(
+                added=added, total=total, max=MAX_QUEUE_SIZE
+            )
+            partial_layout = StatusLayout(title_text=partial_text, style="warning")
+            await interaction.followup.send(view=partial_layout, ephemeral=True)
+
+        if not player.is_playing:
+            await player.play()
+        else:
+            await self._publish_web_state(interaction.guild.id, "queue_add")
+
     @app_commands.command(
         name="play", description="Searches and plays a song from a given query."
     )
     @app_commands.describe(query="찾고싶은 음악의 제목이나 링크를 입력하세요")
     @app_commands.check(create_player)
     async def play(self, interaction: discord.Interaction, query: str):
-        # 투표 확인
         if not await check_vote(interaction):
             return
-
-        # 사용자 언어 설정 저장
         self._save_user_locale(interaction)
-
         await interaction.response.defer()
 
-        try:
-            player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-            original_query_stripped = query.strip("<>")
-
-            # 쿼리 준비
-            current_lavalink_query, is_search_query = self._prepare_query(query)
-
-            # 트랙 검색
-            results = await self._search_tracks(
-                player, current_lavalink_query, original_query_stripped, is_search_query
-            )
-
-            if not results:
-                layout = create_error_layout(
-                    f"{get_lan(interaction, 'music_can_not_find_anything')}\nQuery: {original_query_stripped}"
-                )
-                return await send_temp_v2(interaction, layout)
-
-            # 큐 제한 체크
-            if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
-                text = get_lan(interaction, "music_queue_full").format(max=MAX_QUEUE_SIZE)
-                layout = StatusLayout(title_text=text, style="error")
-                return await send_temp_v2(interaction, layout)
-
-            # 플레이어에 트랙 추가
-            added, total = await self._add_tracks_to_player(player, results, interaction.user.id)
-
-            # V2 레이아웃 생성 및 전송
-            layout = self._create_track_layout(results, interaction)
-            await send_temp_v2(interaction, layout)
-
-            # 플레이리스트에서 일부만 추가된 경우 알림
-            if added < total:
-                partial_text = get_lan(interaction, "music_queue_full_partial").format(
-                    added=added, total=total, max=MAX_QUEUE_SIZE
-                )
-                partial_layout = StatusLayout(title_text=partial_text, style="warning")
-                await interaction.followup.send(view=partial_layout, ephemeral=True)
-
-            if not player.is_playing:
-                await player.play()
-            else:
-                # 이미 재생 중이면 큐만 변경 → 웹 대시보드에 상태 전파
-                try:
-                    from tapi.utils.redis_manager import redis_manager
-                    from tapi.utils.web_command_handler import get_player_state
-                    if redis_manager.available:
-                        state = get_player_state(self.bot, interaction.guild.id)
-                        await redis_manager.publish_player_update(
-                            interaction.guild.id, "queue_add", state
-                        )
-                except Exception:
-                    pass
-
-        except Exception as e:
-            LOGGER.error(f"Error in play command: {e}")
-            try:
-                Statistics().record_play(
-                    track=(
-                        results.tracks[0]
-                        if "results" in locals() and results and results.tracks
-                        else None
-                    ),
-                    guild_id=interaction.guild_id,
-                    channel_id=interaction.channel_id,
-                    user_id=interaction.guild.id,
-                    success=False,
-                    interaction=interaction,
-                )
-            except Exception as stats_error:
-                LOGGER.error(f"Failed to record failure statistics: {stats_error}")
-            raise e
+        prepared_query, _ = self._prepare_query(query)
+        await self._execute_play(interaction, prepared_query)
 
     @app_commands.command(
         name="scplay", description="Searches and plays a song from SoundCloud."
     )
-    @app_commands.describe(
-        query="SoundCloud에서 찾고싶은 음악의 제목이나 링크를 입력하세요"
-    )
+    @app_commands.describe(query="SoundCloud에서 찾고싶은 음악의 제목이나 링크를 입력하세요")
     @app_commands.check(create_player)
     async def scplay(self, interaction: discord.Interaction, query: str):
-        # 투표 확인
         if not await check_vote(interaction):
             return
-
-        # 사용자 언어 설정 저장
         self._save_user_locale(interaction)
-
         await interaction.response.defer()
 
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        query = query.strip("<>")
-
-        if not url_rx.match(query):
-            query = f"scsearch:{query}"
-
-        nofind = 0
-        while True:
-            results = await player.node.get_tracks(query)
-
-            if results.load_type == LoadType.EMPTY or not results or not results.tracks:
-                if nofind < 3:
-                    nofind += 1
-                elif nofind == 3:
-                    layout = create_error_layout(
-                        get_lan(interaction.guild.id, "music_can_not_find_anything")
-                    )
-                    return await send_temp_v2(interaction, layout)
-            else:
-                break
-
-        # 큐 제한 체크
-        if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
-            text = get_lan(interaction, "music_queue_full").format(max=MAX_QUEUE_SIZE)
-            layout = StatusLayout(title_text=text, style="error")
-            return await send_temp_v2(interaction, layout)
-
-        added, total = await self._add_tracks_to_player(player, results, interaction.user.id)
-
-        layout = self._create_track_layout(results, interaction)
-        await send_temp_v2(interaction, layout)
-
-        if added < total:
-            partial_text = get_lan(interaction, "music_queue_full_partial").format(
-                added=added, total=total, max=MAX_QUEUE_SIZE
-            )
-            partial_layout = StatusLayout(title_text=partial_text, style="warning")
-            await interaction.followup.send(view=partial_layout, ephemeral=True)
-
-        if not player.is_playing:
-            await player.play()
-        else:
-            try:
-                from tapi.utils.redis_manager import redis_manager
-                from tapi.utils.web_command_handler import get_player_state
-                if redis_manager.available:
-                    state = get_player_state(self.bot, interaction.guild.id)
-                    await redis_manager.publish_player_update(
-                        interaction.guild.id, "queue_add", state
-                    )
-            except Exception:
-                pass
+        q = query.strip("<>")
+        if not url_rx.match(q):
+            q = f"scsearch:{q}"
+        await self._execute_play(interaction, q)
 
     @app_commands.command(
         name="spplay", description="Searches and plays a song from Spotify."
     )
-    @app_commands.describe(
-        query="Spotify에서 찾고싶은 음악의 제목이나 링크를 입력하세요"
-    )
+    @app_commands.describe(query="Spotify에서 찾고싶은 음악의 제목이나 링크를 입력하세요")
     @app_commands.check(create_player)
     async def spplay(self, interaction: discord.Interaction, query: str):
-        # 투표 확인
         if not await check_vote(interaction):
             return
-
-        # 사용자 언어 설정 저장
         self._save_user_locale(interaction)
-
         await interaction.response.defer()
 
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-        query = query.strip("<>")
-
-        if not url_rx.match(query):
-            query = f"spsearch:{query}"
-
-        nofind = 0
-        while True:
-            results = await player.node.get_tracks(query)
-
-            if results.load_type == LoadType.EMPTY or not results or not results.tracks:
-                if nofind < 3:
-                    nofind += 1
-                elif nofind == 3:
-                    layout = create_error_layout(
-                        get_lan(interaction.guild.id, "music_can_not_find_anything")
-                    )
-                    return await send_temp_v2(interaction, layout)
-            else:
-                break
-
-        # 큐 제한 체크
-        if self._get_queue_size(player) >= MAX_QUEUE_SIZE:
-            text = get_lan(interaction, "music_queue_full").format(max=MAX_QUEUE_SIZE)
-            layout = StatusLayout(title_text=text, style="error")
-            return await send_temp_v2(interaction, layout)
-
-        added, total = await self._add_tracks_to_player(player, results, interaction.user.id)
-
-        layout = self._create_track_layout(results, interaction)
-        await send_temp_v2(interaction, layout)
-
-        if added < total:
-            partial_text = get_lan(interaction, "music_queue_full_partial").format(
-                added=added, total=total, max=MAX_QUEUE_SIZE
-            )
-            partial_layout = StatusLayout(title_text=partial_text, style="warning")
-            await interaction.followup.send(view=partial_layout, ephemeral=True)
-
-        if not player.is_playing:
-            await player.play()
-        else:
-            try:
-                from tapi.utils.redis_manager import redis_manager
-                from tapi.utils.web_command_handler import get_player_state
-                if redis_manager.available:
-                    state = get_player_state(self.bot, interaction.guild.id)
-                    await redis_manager.publish_player_update(
-                        interaction.guild.id, "queue_add", state
-                    )
-            except Exception:
-                pass
+        q = query.strip("<>")
+        if not url_rx.match(q):
+            q = f"spsearch:{q}"
+        await self._execute_play(interaction, q)
 
     @app_commands.command(
         name="search", description="Search for songs with a given keyword"

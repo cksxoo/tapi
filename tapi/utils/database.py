@@ -147,6 +147,17 @@ class Database:
         """길드 셔플 설정"""
         self.upsert_guild_settings(guild_id, shuffle=shuffle)
 
+    def get_channel(self, guild_id):
+        """봇 전용 채널 ID 가져오기. 설정되지 않은 경우 None 반환."""
+        settings = self.get_guild_settings(guild_id)
+        channel_id = settings.get("channel_id")
+        return int(channel_id) if channel_id else None
+
+    def set_channel(self, guild_id, channel_id):
+        """봇 전용 채널 ID 설정. channel_id=None이면 제한 해제."""
+        self.upsert_guild_settings(guild_id, channel_id=str(channel_id) if channel_id else None)
+
+
     def get_guild_settings(self, guild_id):
         """길드 설정 통합 조회 (캐시 활용)"""
         # 캐시 확인

@@ -1,18 +1,12 @@
 {
-
     "help_main_title": "TAPI",
     "help_main_description": "Discordの音楽ボットだよ！\n\n下のボタンからコマンドをチェックしてね！",
-
     "help_general_title": "一般",
     "help_general_description": "`/invite` - 他のサーバーにボットを招待\n`/coffee` - TAPIを応援する",
-
     "help_music_title": "音楽",
-
     "help_music_description": "**再生**\n`/connect` - ボイスチャンネルに接続\n`/play [曲名/リンク/プレイリスト]` - 音楽を再生（YouTube、Spotify）\n`/spplay [曲名/リンク]` - Spotifyから検索・再生\n`/scplay [曲名/リンク]` - SoundCloudから検索・再生\n`/pause` - 一時停止 / 再開\n`/skip` - 次の曲へスキップ\n`/disconnect` - ボイスチャンネルから退出\n\n**キュー＆音量**\n`/volume [1-100]` - 音量調節\n`/queue` - キューを確認\n`/shuffle` - シャッフル切替\n`/repeat` - リピート切替\n\n**その他**\n`/nowplaying` - 現在再生中の曲情報\n`/remove [番号]` - キューから曲を削除\n`/clear` - キューを全てクリア\n\n**プレイリスト**\n`/save` - 現在のキューをプレイリストとして保存\n`/load` - 保存したプレイリストを読み込む",
-
     "welcome_title": "TAPIを追加してくれてありがとう！",
     "welcome_description": "`/help`でコマンドをチェックしてね！",
-
     "music_connect_voice_channel": "ボイスチャンネルに入ったよ！",
     "music_already_connected_voice_channel": "もうボイスチャンネルにいるよ！",
     "music_can_not_find_anything": "何も見つからなかった！",
@@ -72,50 +66,37 @@
     "music_no_permission": ":warning: | 権限が足りないよ！(ConnectとSpeak権限をちょうだい！)",
     "music_come_in_my_voice_channel": ":warning: | 別のチャンネルにいるよ！私のいるチャンネルに来てね。",
     "music_voice_channel_is_full": ":warning: | ボイスチャンネルがいっぱいだよ！",
-
     "other_invite_title": "TAPIを招待",
     "other_invite_description": "[こちら]({link})からサーバーにTAPIを追加してね！",
-
     "music_search_results": "検索結果",
     "music_search_select": "再生したい曲を選んでね！",
     "music_search_no_keyword": "検索ワードを入力してね！",
     "music_search_no_results": "検索結果がなかったよ",
     "music_search_select_placeholder": "曲を選んでね...",
-
     "music_added_to_queue": "キューに追加したよ",
-
     "music_queue_cleared": "キューをクリアしたよ！",
     "music_queue_cleared_desc": "キューから{count}曲を削除したよ。",
     "music_no_music_in_queue": "キューに曲がないよ。",
-
     "music_auto_disconnect_log": "ボットはギルド '{guild_name}'のボイスチャンネルから自動的に退出しました（チャンネルにユーザーがいません）",
     "music_auto_disconnect_error": "自動接続解除中にエラーが発生: {error}",
-
     "vote_title": "ありがとう！",
     "vote_description": "TAPIを気に入ってくれたら、投票やレビューしてくれると嬉しいな！",
-
     "music_play_fail_title": "再生できなかった",
     "music_play_fail_description": "この曲は再生できないみたい。",
-
     "music_permission_dm_title": "再生中",
     "music_permission_dm_description": "**{track_title}** を再生してるよ。\nサーバー: **{guild_name}** - #{channel_name}\n\n_チャンネルにメッセージを送れないからDMでお知らせしてるよ。_",
-
     "vote_required_title": "投票が必要だよ",
     "vote_required_description": "TAPIを使うには投票してね！\n一回だけでOKだよ。",
-
     "music_spotify_play": "Spotifyから再生！",
     "music_spotify_search": "Spotify検索結果",
-
     "music_queue_select_placeholder": "キュー ({count}曲)",
     "music_queue_select_placeholder_empty": "キュー (空)",
     "music_queue_select_empty": "キューに曲がないよ",
     "music_queue_skip_to": "#{index}番目の曲にスキップしたよ！",
     "music_queue_skip_failed": "スキップできなかった",
-
     "coffee_title": "TAPIを応援",
     "coffee_description": "応援してくれるとサーバー維持と開発の支えになるよ！",
     "coffee_button": "コーヒーをおごる",
-
     "playlist_saved": "プレイリスト保存したよ！",
     "playlist_saved_desc": "{count}曲を保存したよ！",
     "playlist_save_empty": "保存する曲がないよ！まず音楽を流してね。",
@@ -128,7 +109,11 @@
     "playlist_load_failed_some": "{count}曲が見つからなかったよ。",
     "playlist_not_found": "まだプレイリストがないよ。\n音楽を流しながら`/save`で保存してね！",
     "playlist_empty": "プレイリストに曲がないよ。",
-
     "music_queue_full": "キューがいっぱいだよ！（最大{max}曲）",
-    "music_queue_full_partial": "{total}曲中{added}曲だけ追加したよ（キュー制限: {max}曲）"
+    "music_queue_full_partial": "{total}曲中{added}曲だけ追加したよ（キュー制限: {max}曲）",
+    "channel_set_title": "ボット専用チャンネル設定完了",
+    "channel_set_description": "{channel} がボット専用チャンネルに設定されたよ！\nスラッシュコマンドはここだけで使えるよ。",
+    "channel_unset_title": "ボット専用チャンネル設定解除",
+    "channel_unset_description": "{channel} のボット専用チャンネル設定を解除したよ。\nすべてのチャンネルでコマンドが使えるようになったよ。",
+    "channel_restrict_message": "⚠️ ボットのコマンドは {channel} チャンネルでのみ使えるよ。"
 }

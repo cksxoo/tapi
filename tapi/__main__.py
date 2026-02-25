@@ -21,6 +21,7 @@ from tapi import (
     CLIENT_ID,
     TOPGG_TOKEN,
     KOREANBOT_TOKEN,
+    MESSAGE_CONTENT_INTENT,
 )
 from tapi.utils.redis_manager import redis_manager
 from tapi.utils.stats_updater import BotStatsUpdater
@@ -38,6 +39,8 @@ class TapiBot(commands.Bot):
         intents = discord.Intents.none()
         intents.guilds = True  # For basic guild operations
         intents.voice_states = True  # For Lavalink to manage voice channels
+        intents.messages = MESSAGE_CONTENT_INTENT        # For on_message event (bot channel auto-play)
+        intents.message_content = MESSAGE_CONTENT_INTENT  # config 플래그로 조절
 
         # 샤딩 설정
         if shard_id is not None and shard_count is not None:
@@ -58,12 +61,41 @@ class TapiBot(commands.Bot):
         for extension in EXTENSIONS:
             await self.load_extension(f"tapi.modules.{extension}")
 
+        # 전역 인터랙션 체크 등록 (봇 전용 채널 제한)
+        self.tree.interaction_check = self._global_interaction_check
+
         # shard 0일 때만 슬래시 동기화
         if getattr(self, "shard_id", None) == 0 or not hasattr(self, "shard_id"):
             await self.tree.sync()
             LOGGER.info("Slash commands synced")
         else:
             LOGGER.info("Slash command sync skipped")
+
+    async def _global_interaction_check(self, interaction: discord.Interaction) -> bool:
+        """전역 인터랙션 체크: 봇 전용 채널이 설정된 경우 해당 채널에서만 명령어 허용"""
+        # DM은 그대로 허용
+        if interaction.guild is None:
+            return True
+
+        # /channel 명령어 자체는 채널 제한 없이 허용
+        if interaction.command and interaction.command.name == "channel":
+            return True
+
+        # DB에서 봇 전용 채널 조회
+        from tapi.utils.database import Database
+        bot_channel_id = Database().get_channel(interaction.guild.id)
+
+        if bot_channel_id and interaction.channel_id != bot_channel_id:
+            bot_channel = interaction.guild.get_channel(bot_channel_id)
+            channel_mention = bot_channel.mention if bot_channel else f"<#{bot_channel_id}>"
+            from tapi.utils.language import get_lan
+            await interaction.response.send_message(
+                get_lan(interaction, "channel_restrict_message").format(channel=channel_mention),
+                ephemeral=True,
+            )
+            return False
+
+        return True
 
     async def on_ready(self):
         if self.lavalink is None:

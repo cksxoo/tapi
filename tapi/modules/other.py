@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from tapi.utils.language import get_lan
 from tapi import LOGGER
+from tapi.utils.database import Database
 from tapi.utils.v2_components import (
     make_themed_container, make_banner_gallery, make_separator, send_temp_v2,
 )
@@ -51,6 +52,46 @@ class Other(commands.Cog):
         ))
 
         await interaction.response.send_message(view=layout)
+
+
+    @app_commands.command(
+        name="channel",
+        description="Set or unset this channel as the bot-only channel. (Admin only)"
+    )
+    @app_commands.default_permissions(administrator=True)
+    async def channel(
+        self,
+        interaction: discord.Interaction,
+    ):
+        db = Database()
+        current_bot_channel_id = db.get_channel(interaction.guild.id)
+        current_channel = interaction.channel
+
+        if current_bot_channel_id == current_channel.id:
+            db.set_channel(interaction.guild.id, None)
+            layout = ui.LayoutView(timeout=None)
+            layout.add_item(make_themed_container(
+                ui.TextDisplay(f"### {get_lan(interaction, 'channel_unset_title')}"),
+                ui.TextDisplay(
+                    get_lan(interaction, "channel_unset_description").format(
+                        channel=current_channel.mention
+                    )
+                ),
+            ))
+        else:
+            db.set_channel(interaction.guild.id, current_channel.id)
+            layout = ui.LayoutView(timeout=None)
+            layout.add_item(make_themed_container(
+                ui.TextDisplay(f"### {get_lan(interaction, 'channel_set_title')}"),
+                ui.TextDisplay(
+                    get_lan(interaction, "channel_set_description").format(
+                        channel=current_channel.mention
+                    )
+                ),
+            ))
+
+        await interaction.response.send_message(view=layout, ephemeral=True)
+
 
 
 async def setup(bot):
