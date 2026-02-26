@@ -93,7 +93,7 @@ class Help(commands.Cog):
     async def help(self, interaction: discord.Interaction):
         """Show interactive help menu"""
         view = HelpLayout(interaction, interaction.user.id, page="main")
-        await interaction.response.send_message(view=view)
+        await interaction.response.send_message(view=view, ephemeral=True)
         view.message = await interaction.original_response()
 
 

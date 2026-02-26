@@ -51,7 +51,7 @@ class Other(commands.Cog):
             ),
         ))
 
-        await interaction.response.send_message(view=layout)
+        await interaction.response.send_message(view=layout, ephemeral=True)
 
 
     @app_commands.command(

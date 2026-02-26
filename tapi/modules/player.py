@@ -270,6 +270,7 @@ class Music(commands.Cog):
 
             await Music._validate_voice_permissions(interaction, voice_channel)
             player.store("channel", interaction.channel.id)
+            setattr(player, "_tapi_just_connected", True)
             await voice_channel.connect(cls=AudioConnection)
         elif voice_client.channel.id != voice_channel.id:
             raise app_commands.CheckFailure(
@@ -298,18 +299,6 @@ class Music(commands.Cog):
 
         return True
 
-    @app_commands.command(name="connect", description="Connect to voice channel!")
-    @app_commands.check(create_player)
-    async def connect(self, interaction: discord.Interaction):
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-
-        if not player.is_connected:
-            text = get_lan(interaction, "music_connect_voice_channel")
-        else:
-            text = get_lan(interaction, "music_already_connected_voice_channel")
-
-        layout = StatusLayout(title_text=text, style="info")
-        await interaction.response.send_message(view=layout)
 
     def _prepare_query(self, query: str) -> tuple[str, bool]:
         """쿼리를 처리하고 검색 타입을 결정"""
@@ -580,20 +569,6 @@ class Music(commands.Cog):
 
         await send_temp_status(interaction, "music_dc_disconnected", style="info")
 
-    @app_commands.command(name="skip", description="Skip to the next song!")
-    @app_commands.check(require_playing)
-    async def skip(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-
-        # 한 곡 반복모드일 때는 전체 반복으로 전환 후 skip
-        if player.loop == 1:  # 한 곡 반복모드
-            player.set_loop(2)  # 전체 반복으로 전환
-            Database().set_loop(interaction.guild.id, 2)  # 설정 저장
-
-        await player.skip()
-        await send_temp_status(interaction, "music_skip_next", style="music")
 
     @app_commands.command(
         name="nowplaying", description="Sending the currently playing song!"
@@ -643,31 +618,6 @@ class Music(commands.Cog):
             )
             await send_temp_v2(interaction, layout, delete_after=5)
 
-    @app_commands.command(
-        name="repeat", description="Repeat one song or repeat multiple songs!"
-    )
-    @app_commands.check(require_playing)
-    async def repeat(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-
-        if player.loop == 0:
-            player.set_loop(1)
-        elif player.loop == 1:
-            player.set_loop(2)
-        else:
-            player.set_loop(0)
-
-        Database().set_loop(interaction.guild.id, player.loop)
-
-        if player.loop == 0:
-            await send_temp_status(interaction, "music_repeat_off", style="music")
-        elif player.loop == 1:
-            await send_temp_status(interaction, "music_repeat_one", style="music")
-        elif player.loop == 2:
-            await send_temp_status(interaction, "music_repeat_all", style="music")
-        await self._publish_web_state(interaction.guild.id, "repeat")
 
     @app_commands.command(name="remove", description="Remove music from the playlist!")
     @app_commands.describe(
@@ -696,24 +646,6 @@ class Music(commands.Cog):
         await send_temp_v2(interaction, layout)
         await self._publish_web_state(interaction.guild.id, "remove")
 
-    @app_commands.command(
-        name="shuffle",
-        description="The music in the playlist comes out randomly from the next song!",
-    )
-    @app_commands.check(require_playing)
-    async def shuffle(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-
-        player.set_shuffle(not player.shuffle)
-        Database().set_shuffle(interaction.guild.id, player.shuffle)
-
-        if player.shuffle:
-            await send_temp_status(interaction, "music_shuffle_on", style="music")
-        else:
-            await send_temp_status(interaction, "music_shuffle_off", style="music")
-        await self._publish_web_state(interaction.guild.id, "shuffle")
 
     @app_commands.command(name="clear", description="Clear the music queue")
     @app_commands.check(create_player)
@@ -769,20 +701,6 @@ class Music(commands.Cog):
         await send_temp_v2(interaction, layout)
         await self._publish_web_state(interaction.guild.id, "volume")
 
-    @app_commands.command(name="pause", description="Pause or resume music!")
-    @app_commands.check(require_playing)
-    async def pause(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-
-        if player.paused:
-            await player.set_pause(False)
-            await send_temp_status(interaction, "music_resume", style="music")
-        else:
-            await player.set_pause(True)
-            await send_temp_status(interaction, "music_pause", style="music")
-        await self._publish_web_state(interaction.guild.id, "pause")
 
     # ===== 플레이리스트 커맨드 =====
 
