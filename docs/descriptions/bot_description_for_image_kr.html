@@ -11,41 +11,25 @@
         }
 
         html {
-            background: #0f1923;
+            background: #fdf6f8;
         }
 
         body {
             width: 1200px;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f1923 0%, #1a2633 50%, #0f1923 100%);
+            background: linear-gradient(135deg, #fdf6f8 0%, #f8e8ed 50%, #f3dde5 100%);
             padding: 40px;
             position: relative;
         }
 
-        .sparkle {
-            position: absolute;
-            color: rgba(255, 215, 100, 0.2);
-            font-size: 14px;
-            pointer-events: none;
-        }
-
-        .sp1 { left: 30px; top: 100px; }
-        .sp2 { left: 60px; top: 400px; font-size: 10px; }
-        .sp3 { left: 1120px; top: 180px; }
-        .sp4 { left: 1140px; top: 500px; font-size: 12px; }
-        .sp5 { left: 40px; top: 750px; font-size: 10px; }
-        .sp6 { left: 1100px; top: 900px; }
-        .sp7 { left: 50px; top: 1150px; font-size: 12px; }
-        .sp8 { left: 1130px; top: 1300px; font-size: 10px; }
-
         .header {
             text-align: center;
             padding: 40px;
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.12) 0%, rgba(255, 215, 0, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(210, 140, 160, 0.18) 0%, rgba(180, 100, 130, 0.07) 100%);
             border-radius: 20px;
             margin-bottom: 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 215, 100, 0.15);
+            box-shadow: 0 4px 20px rgba(180, 100, 130, 0.1);
+            border: 1px solid rgba(210, 160, 175, 0.45);
             position: relative;
         }
 
@@ -54,12 +38,13 @@
             height: 100px;
             margin-bottom: 20px;
             border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
         .title {
             font-size: 48px;
             font-weight: 800;
-            background: linear-gradient(135deg, #FFD700 0%, #ffffff 50%, #FFA500 100%);
+            background: linear-gradient(135deg, #c0617a 0%, #a0435e 50%, #7a2d45 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -68,11 +53,11 @@
 
         .subtitle {
             font-size: 18px;
-            color: #a0aec0;
+            color: #8c6070;
         }
 
         .subtitle .accent {
-            color: #FFD700;
+            color: #b5566e;
         }
 
         .badges {
@@ -84,12 +69,12 @@
 
         .badge {
             padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(180, 100, 130, 0.07);
+            border: 1px solid rgba(180, 100, 130, 0.18);
             border-radius: 20px;
             font-size: 14px;
             font-weight: 600;
-            color: #e2e8f0;
+            color: #9b4060;
         }
 
         .features {
@@ -100,12 +85,12 @@
         }
 
         .feature-card {
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.6);
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(180, 100, 130, 0.08);
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(230, 200, 210, 0.6);
             transition: all 0.3s ease;
         }
 
@@ -117,28 +102,28 @@
         .feature-title {
             font-size: 16px;
             font-weight: 600;
-            color: #f7fafc;
+            color: #7a2d45;
             margin-bottom: 8px;
         }
 
         .feature-desc {
             font-size: 13px;
-            color: #a0aec0;
+            color: #8c6070;
             line-height: 1.5;
         }
 
         .commands {
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.08) 0%, rgba(255, 215, 0, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(210, 155, 170, 0.15) 0%, rgba(180, 100, 130, 0.07) 100%);
             padding: 30px;
             border-radius: 15px;
             margin: 40px 0;
-            border: 1px solid rgba(255, 215, 100, 0.1);
+            border: 1px solid rgba(210, 160, 175, 0.35);
         }
 
         .commands h3 {
             text-align: center;
             margin-bottom: 20px;
-            color: #f7fafc;
+            color: #7a2d45;
         }
 
         .command-grid {
@@ -148,22 +133,22 @@
         }
 
         .command {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.7);
             padding: 12px;
             border-radius: 8px;
-            border-left: 3px solid #FFD700;
+            border-left: 3px solid #c0617a;
         }
 
         .command-name {
             font-family: monospace;
             font-size: 13px;
             font-weight: 600;
-            color: #f7fafc;
+            color: #9b4060;
         }
 
         .command-desc {
             font-size: 11px;
-            color: #a0aec0;
+            color: #8c6070;
             margin-top: 2px;
         }
 
@@ -171,11 +156,11 @@
             display: flex;
             justify-content: space-around;
             padding: 30px;
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.6);
             border-radius: 15px;
             margin: 40px 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 12px rgba(180, 100, 130, 0.08);
+            border: 1px solid rgba(230, 200, 210, 0.6);
         }
 
         .stat {
@@ -185,7 +170,7 @@
         .stat-value {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            background: linear-gradient(135deg, #c0617a 0%, #9b4060 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -193,7 +178,7 @@
 
         .stat-label {
             font-size: 12px;
-            color: #a0aec0;
+            color: #8c6070;
             text-transform: uppercase;
             margin-top: 4px;
         }
@@ -202,7 +187,7 @@
             width: 100%;
             border-radius: 15px;
             margin: 30px 0;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 16px rgba(180, 100, 130, 0.12);
         }
 
         .banner-wrapper {
@@ -218,15 +203,15 @@
             right: 0;
             bottom: 0;
             background: linear-gradient(135deg,
-                    rgba(218, 165, 32, 0.03) 0%,
-                    rgba(255, 215, 0, 0.05) 100%);
+                    rgba(210, 155, 170, 0.15) 0%,
+                    rgba(180, 100, 130, 0.08) 100%);
             pointer-events: none;
         }
 
         .footer {
             text-align: center;
             padding: 30px;
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.08) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(210, 155, 170, 0.18) 0%, transparent 100%);
             border-radius: 15px;
             position: relative;
         }
@@ -234,52 +219,30 @@
         .footer-title {
             font-size: 24px;
             font-weight: 700;
-            color: #f7fafc;
+            color: #7a2d45;
             margin-bottom: 10px;
         }
 
         .footer-subtitle {
             font-size: 16px;
-            color: #a0aec0;
+            color: #8c6070;
             margin-bottom: 30px;
         }
 
         .footer-text {
             font-size: 12px;
-            color: #a0aec0;
+            color: #8c6070;
             margin-top: 15px;
-        }
-
-        .holiday-msg {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 24px;
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.15) 0%, rgba(255, 215, 0, 0.15) 100%);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 215, 100, 0.2);
-        }
-
-        .holiday-msg span {
-            color: #FFE082;
-            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
-    <span class="sparkle sp1">✨</span>
-    <span class="sparkle sp2">✨</span>
-    <span class="sparkle sp3">✨</span>
-    <span class="sparkle sp4">✨</span>
-    <span class="sparkle sp5">✨</span>
-    <span class="sparkle sp6">✨</span>
-    <span class="sparkle sp7">✨</span>
-    <span class="sparkle sp8">✨</span>
 
     <div class="header">
         <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/themes/2026-main/logo.png" class="logo">
         <h1 class="title">TAPI</h1>
-        <p class="subtitle">모던 디스코드 음악 봇 <span class="accent">· 2026 New Year Edition</span></p>
+        <p class="subtitle">모던 디스코드 음악 봇 <span class="accent">· Cherry Blossom Edition</span></p>
         <div class="badges">
             <span class="badge">High Quality Audio</span>
             <span class="badge">99.9% Uptime</span>
@@ -291,33 +254,33 @@
     <div class="features">
         <div class="feature-card">
             <div class="feature-icon">🎵</div>
-            <div class="feature-title">안정적인 재생</div>
-            <div class="feature-desc">다양한 음원 소스에서 끊김 없는 스트리밍</div>
+            <div class="feature-title">깨끗한 음질</div>
+            <div class="feature-desc">딜레이와 끊김 없는 쾌적한 오디오 스트리밍</div>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">🎯</div>
-            <div class="feature-title">스마트 재생목록</div>
-            <div class="feature-desc">셔플, 반복 기능을 갖춘 직관적인 관리</div>
+            <div class="feature-icon">💻</div>
+            <div class="feature-title">웹 대시보드</div>
+            <div class="feature-desc">브라우저에서 실시간으로 플레이어를 제어하고 상태를 확인</div>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">🌐</div>
-            <div class="feature-title">다국어 지원</div>
-            <div class="feature-desc">완벽한 한국어와 영어 지원</div>
+            <div class="feature-icon">📂</div>
+            <div class="feature-title">플레이리스트 (Beta)</div>
+            <div class="feature-desc">나만의 음악 세트를 저장하고 언제든 원클릭으로 불러오기</div>
         </div>
         <div class="feature-card">
             <div class="feature-icon">✨</div>
-            <div class="feature-title">모던 인터페이스</div>
-            <div class="feature-desc">슬래시 명령어와 인터랙티브 버튼</div>
+            <div class="feature-title">직관적인 UI</div>
+            <div class="feature-desc">버튼 클릭만으로 복잡한 명령어 없이 모든 기능을 제어</div>
         </div>
         <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <div class="feature-title">빠른 응답</div>
-            <div class="feature-desc">1초 미만의 초고속 명령어 처리</div>
+            <div class="feature-icon">🎯</div>
+            <div class="feature-title">스마트 대기열</div>
+            <div class="feature-desc">셔플, 반복 재생, 곡 순서 이동 등 완벽한 큐 관리 지원</div>
         </div>
         <div class="feature-card">
             <div class="feature-icon">🚀</div>
-            <div class="feature-title">프로덕션 레디</div>
-            <div class="feature-desc">대규모 서버에서도 안정적</div>
+            <div class="feature-title">강력한 안정성</div>
+            <div class="feature-desc">24시간 99.9% 가동률을 자랑하는 탄탄한 서버 인프라</div>
         </div>
     </div>
 
@@ -329,32 +292,32 @@
                 <div class="command-desc">음악 재생</div>
             </div>
             <div class="command">
-                <div class="command-name">/skip</div>
-                <div class="command-desc">다음 곡</div>
-            </div>
-            <div class="command">
-                <div class="command-name">/queue</div>
-                <div class="command-desc">재생목록</div>
+                <div class="command-name">/search</div>
+                <div class="command-desc">음악 검색</div>
             </div>
             <div class="command">
                 <div class="command-name">/volume</div>
                 <div class="command-desc">볼륨 조절</div>
             </div>
             <div class="command">
-                <div class="command-name">/shuffle</div>
-                <div class="command-desc">셔플 모드</div>
+                <div class="command-name">/nowplaying</div>
+                <div class="command-desc">현재 재생 정보</div>
             </div>
             <div class="command">
-                <div class="command-name">/repeat</div>
-                <div class="command-desc">반복 재생</div>
+                <div class="command-name">/queue</div>
+                <div class="command-desc">재생목록</div>
             </div>
             <div class="command">
-                <div class="command-name">/pause</div>
-                <div class="command-desc">일시정지</div>
+                <div class="command-name">/remove</div>
+                <div class="command-desc">곡 삭제</div>
             </div>
             <div class="command">
-                <div class="command-name">/disconnect</div>
-                <div class="command-desc">연결 종료</div>
+                <div class="command-name">/clear</div>
+                <div class="command-desc">대기열 초기화</div>
+            </div>
+            <div class="command">
+                <div class="command-name">/help</div>
+                <div class="command-desc">도움말</div>
             </div>
         </div>
     </div>
@@ -382,12 +345,11 @@
         <div class="footer-title">서버의 음악 경험을 한 단계 업그레이드하세요</div>
         <div class="footer-subtitle">지금 바로 TAPI를 디스코드 서버에 추가하세요</div>
         <div class="banner-wrapper">
-            <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/themes/2026-main/banner.png" class="banner">
+            <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/themes/2026-main/banner.png"
+                class="banner">
             <div class="banner-overlay"></div>
         </div>
-        <div class="holiday-msg">
-            <span>🎉 새해 복 많이 받으세요 2026 ✨</span>
-        </div>
+
         <div class="footer-text">Made with ❤️ by cksxoo</div>
     </div>
 </body>

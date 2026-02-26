@@ -11,41 +11,25 @@
         }
 
         html {
-            background: #0f1923;
+            background: #fdf6f8;
         }
 
         body {
             width: 1200px;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f1923 0%, #1a2633 50%, #0f1923 100%);
+            background: linear-gradient(135deg, #fdf6f8 0%, #f8e8ed 50%, #f3dde5 100%);
             padding: 40px;
             position: relative;
         }
 
-        .sparkle {
-            position: absolute;
-            color: rgba(255, 215, 100, 0.2);
-            font-size: 14px;
-            pointer-events: none;
-        }
-
-        .sp1 { left: 30px; top: 100px; }
-        .sp2 { left: 60px; top: 400px; font-size: 10px; }
-        .sp3 { left: 1120px; top: 180px; }
-        .sp4 { left: 1140px; top: 500px; font-size: 12px; }
-        .sp5 { left: 40px; top: 750px; font-size: 10px; }
-        .sp6 { left: 1100px; top: 900px; }
-        .sp7 { left: 50px; top: 1150px; font-size: 12px; }
-        .sp8 { left: 1130px; top: 1300px; font-size: 10px; }
-
         .header {
             text-align: center;
             padding: 40px;
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.12) 0%, rgba(255, 215, 0, 0.08) 100%);
+            background: linear-gradient(135deg, rgba(210, 140, 160, 0.18) 0%, rgba(180, 100, 130, 0.07) 100%);
             border-radius: 20px;
             margin-bottom: 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 215, 100, 0.15);
+            box-shadow: 0 4px 20px rgba(180, 100, 130, 0.1);
+            border: 1px solid rgba(210, 160, 175, 0.45);
             position: relative;
         }
 
@@ -54,12 +38,13 @@
             height: 100px;
             margin-bottom: 20px;
             border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
         .title {
             font-size: 48px;
             font-weight: 800;
-            background: linear-gradient(135deg, #FFD700 0%, #ffffff 50%, #FFA500 100%);
+            background: linear-gradient(135deg, #c0617a 0%, #a0435e 50%, #7a2d45 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -68,11 +53,11 @@
 
         .subtitle {
             font-size: 18px;
-            color: #a0aec0;
+            color: #8c6070;
         }
 
         .subtitle .accent {
-            color: #FFD700;
+            color: #b5566e;
         }
 
         .badges {
@@ -84,12 +69,12 @@
 
         .badge {
             padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(180, 100, 130, 0.07);
+            border: 1px solid rgba(180, 100, 130, 0.18);
             border-radius: 20px;
             font-size: 14px;
             font-weight: 600;
-            color: #e2e8f0;
+            color: #9b4060;
         }
 
         .features {
@@ -100,12 +85,12 @@
         }
 
         .feature-card {
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.6);
             padding: 25px;
             border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(180, 100, 130, 0.08);
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(230, 200, 210, 0.6);
             transition: all 0.3s ease;
         }
 
@@ -117,28 +102,28 @@
         .feature-title {
             font-size: 16px;
             font-weight: 600;
-            color: #f7fafc;
+            color: #7a2d45;
             margin-bottom: 8px;
         }
 
         .feature-desc {
             font-size: 13px;
-            color: #a0aec0;
+            color: #8c6070;
             line-height: 1.5;
         }
 
         .commands {
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.08) 0%, rgba(255, 215, 0, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(210, 155, 170, 0.15) 0%, rgba(180, 100, 130, 0.07) 100%);
             padding: 30px;
             border-radius: 15px;
             margin: 40px 0;
-            border: 1px solid rgba(255, 215, 100, 0.1);
+            border: 1px solid rgba(210, 160, 175, 0.35);
         }
 
         .commands h3 {
             text-align: center;
             margin-bottom: 20px;
-            color: #f7fafc;
+            color: #7a2d45;
         }
 
         .command-grid {
@@ -148,22 +133,22 @@
         }
 
         .command {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.7);
             padding: 12px;
             border-radius: 8px;
-            border-left: 3px solid #FFD700;
+            border-left: 3px solid #c0617a;
         }
 
         .command-name {
             font-family: monospace;
             font-size: 13px;
             font-weight: 600;
-            color: #f7fafc;
+            color: #9b4060;
         }
 
         .command-desc {
             font-size: 11px;
-            color: #a0aec0;
+            color: #8c6070;
             margin-top: 2px;
         }
 
@@ -171,11 +156,11 @@
             display: flex;
             justify-content: space-around;
             padding: 30px;
-            background: rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.6);
             border-radius: 15px;
             margin: 40px 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 12px rgba(180, 100, 130, 0.08);
+            border: 1px solid rgba(230, 200, 210, 0.6);
         }
 
         .stat {
@@ -185,7 +170,7 @@
         .stat-value {
             font-size: 28px;
             font-weight: 700;
-            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            background: linear-gradient(135deg, #c0617a 0%, #9b4060 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -193,7 +178,7 @@
 
         .stat-label {
             font-size: 12px;
-            color: #a0aec0;
+            color: #8c6070;
             text-transform: uppercase;
             margin-top: 4px;
         }
@@ -202,7 +187,7 @@
             width: 100%;
             border-radius: 15px;
             margin: 30px 0;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 8px 16px rgba(180, 100, 130, 0.12);
         }
 
         .banner-wrapper {
@@ -218,15 +203,15 @@
             right: 0;
             bottom: 0;
             background: linear-gradient(135deg,
-                    rgba(218, 165, 32, 0.03) 0%,
-                    rgba(255, 215, 0, 0.05) 100%);
+                    rgba(210, 155, 170, 0.15) 0%,
+                    rgba(180, 100, 130, 0.08) 100%);
             pointer-events: none;
         }
 
         .footer {
             text-align: center;
             padding: 30px;
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.08) 0%, transparent 100%);
+            background: linear-gradient(135deg, rgba(210, 155, 170, 0.18) 0%, transparent 100%);
             border-radius: 15px;
             position: relative;
         }
@@ -234,52 +219,30 @@
         .footer-title {
             font-size: 24px;
             font-weight: 700;
-            color: #f7fafc;
+            color: #7a2d45;
             margin-bottom: 10px;
         }
 
         .footer-subtitle {
             font-size: 16px;
-            color: #a0aec0;
+            color: #8c6070;
             margin-bottom: 30px;
         }
 
         .footer-text {
             font-size: 12px;
-            color: #a0aec0;
+            color: #8c6070;
             margin-top: 15px;
-        }
-
-        .holiday-msg {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 24px;
-            background: linear-gradient(135deg, rgba(218, 165, 32, 0.15) 0%, rgba(255, 215, 0, 0.15) 100%);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 215, 100, 0.2);
-        }
-
-        .holiday-msg span {
-            color: #FFE082;
-            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
-    <span class="sparkle sp1">✨</span>
-    <span class="sparkle sp2">✨</span>
-    <span class="sparkle sp3">✨</span>
-    <span class="sparkle sp4">✨</span>
-    <span class="sparkle sp5">✨</span>
-    <span class="sparkle sp6">✨</span>
-    <span class="sparkle sp7">✨</span>
-    <span class="sparkle sp8">✨</span>
 
     <div class="header">
         <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/themes/2026-main/logo.png" class="logo">
         <h1 class="title">TAPI</h1>
-        <p class="subtitle">Modern Discord Music Bot <span class="accent">· 2026 New Year Edition</span></p>
+        <p class="subtitle">Modern Discord Music Bot <span class="accent">· Cherry Blossom Edition</span></p>
         <div class="badges">
             <span class="badge">High Quality Audio</span>
             <span class="badge">99.9% Uptime</span>
@@ -291,33 +254,33 @@
     <div class="features">
         <div class="feature-card">
             <div class="feature-icon">🎵</div>
-            <div class="feature-title">Reliable Playback</div>
-            <div class="feature-desc">Seamless streaming from multiple music sources</div>
+            <div class="feature-title">Crystal Clear Audio</div>
+            <div class="feature-desc">Seamless and high-quality streaming from multiple sources</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💻</div>
+            <div class="feature-title">Web Dashboard</div>
+            <div class="feature-desc">Control and monitor your music player in real-time from your browser</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📂</div>
+            <div class="feature-title">Playlist System (Beta)</div>
+            <div class="feature-desc">Save your favorite music sets and load them with one click</div>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">✨</div>
+            <div class="feature-title">Intuitive UI</div>
+            <div class="feature-desc">Control everything with interactive buttons without typing commands</div>
         </div>
         <div class="feature-card">
             <div class="feature-icon">🎯</div>
             <div class="feature-title">Smart Queue</div>
-            <div class="feature-desc">Intuitive management with shuffle & repeat</div>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">🌐</div>
-            <div class="feature-title">Multi-Language</div>
-            <div class="feature-desc">Full Korean and English support</div>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">✨</div>
-            <div class="feature-title">Modern Interface</div>
-            <div class="feature-desc">Slash commands with interactive buttons</div>
-        </div>
-        <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <div class="feature-title">Fast Response</div>
-            <div class="feature-desc">Lightning-fast command processing under 1 second</div>
+            <div class="feature-desc">Full support for shuffle, repeat, and advanced queue management</div>
         </div>
         <div class="feature-card">
             <div class="feature-icon">🚀</div>
             <div class="feature-title">Production Ready</div>
-            <div class="feature-desc">Built for reliability at scale</div>
+            <div class="feature-desc">24/7 uptime built for reliability at scale</div>
         </div>
     </div>
 
@@ -329,32 +292,32 @@
                 <div class="command-desc">Play music</div>
             </div>
             <div class="command">
-                <div class="command-name">/skip</div>
-                <div class="command-desc">Next track</div>
-            </div>
-            <div class="command">
-                <div class="command-name">/queue</div>
-                <div class="command-desc">View playlist</div>
+                <div class="command-name">/search</div>
+                <div class="command-desc">Search songs</div>
             </div>
             <div class="command">
                 <div class="command-name">/volume</div>
                 <div class="command-desc">Adjust volume</div>
             </div>
             <div class="command">
-                <div class="command-name">/shuffle</div>
-                <div class="command-desc">Shuffle mode</div>
+                <div class="command-name">/nowplaying</div>
+                <div class="command-desc">Current track</div>
             </div>
             <div class="command">
-                <div class="command-name">/repeat</div>
-                <div class="command-desc">Repeat mode</div>
+                <div class="command-name">/queue</div>
+                <div class="command-desc">View playlist</div>
             </div>
             <div class="command">
-                <div class="command-name">/pause</div>
-                <div class="command-desc">Pause/Resume</div>
+                <div class="command-name">/remove</div>
+                <div class="command-desc">Remove track</div>
             </div>
             <div class="command">
-                <div class="command-name">/disconnect</div>
-                <div class="command-desc">Leave channel</div>
+                <div class="command-name">/clear</div>
+                <div class="command-desc">Clear queue</div>
+            </div>
+            <div class="command">
+                <div class="command-name">/help</div>
+                <div class="command-desc">Bot commands</div>
             </div>
         </div>
     </div>
@@ -382,12 +345,11 @@
         <div class="footer-title">Ready to elevate your server's music experience?</div>
         <div class="footer-subtitle">Add TAPI to your Discord server today</div>
         <div class="banner-wrapper">
-            <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/themes/2026-main/banner.png" class="banner">
+            <img src="https://raw.githubusercontent.com/cksxoo/tapi/main/docs/themes/2026-main/banner.png"
+                class="banner">
             <div class="banner-overlay"></div>
         </div>
-        <div class="holiday-msg">
-            <span>🎉 Happy New Year 2026 ✨</span>
-        </div>
+
         <div class="footer-text">Made with ❤️ by cksxoo</div>
     </div>
 </body>
