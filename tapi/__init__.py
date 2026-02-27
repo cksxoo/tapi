@@ -66,7 +66,7 @@ for file in os.listdir("tapi/modules"):
         if module_name not in EXCLUDED_MODULES:
             EXTENSIONS.append(module_name)
 
-APP_BANNER_URL = "https://raw.githubusercontent.com/cksxoo/tapi/main/docs/themes/2026-main/discord.png?v=20260220"
+APP_BANNER_URL = "https://raw.githubusercontent.com/cksxoo/tapi/main/docs/themes/2026-main/discord.png?v=20260227"
 APP_NAME_TAG_VER = "%s%s | %s" % (APPLICATION_NAME, APP_TAG, BOT_VER)
 
 # Initialize database after all imports are complete
