@@ -536,38 +536,6 @@ class Music(commands.Cog):
         if not player.is_playing:
             await player.play()
 
-    @app_commands.command(
-        name="disconnect",
-        description="Disconnects the player from the voice channel and clears its queue.",
-    )
-    @app_commands.check(create_player)
-    async def disconnect(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-
-        player = self.bot.lavalink.player_manager.get(interaction.guild.id)
-
-        if not interaction.guild.voice_client:
-            return await send_temp_status(
-                interaction, "music_dc_not_connect_voice_channel", style="error"
-            )
-
-        if not interaction.user.voice or (
-            player.is_connected
-            and interaction.user.voice.channel.id != int(player.channel_id)
-        ):
-            text = get_lan(interaction.guild.id, "music_dc_not_connect_my_voice_channel").format(
-                name=interaction.user.name
-            )
-            layout = StatusLayout(title_text=text, style="error")
-            return await send_temp_v2(interaction, layout)
-
-        guild_id = interaction.guild.id
-        await self._full_disconnect_cleanup(
-            guild_id,
-            "manual_disconnect",
-        )
-
-        await send_temp_status(interaction, "music_dc_disconnected", style="info")
 
 
     @app_commands.command(

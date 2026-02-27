@@ -158,6 +158,15 @@ class Database:
         self.upsert_guild_settings(guild_id, channel_id=str(channel_id) if channel_id else None)
 
 
+    def get_autodel(self, guild_id):
+        """길드 메시지 자동 삭제 설정 가져오기"""
+        settings = self.get_guild_settings(guild_id)
+        return settings.get("autodel", True)
+
+    def set_autodel(self, guild_id, autodel):
+        """길드 메시지 자동 삭제 설정"""
+        self.upsert_guild_settings(guild_id, autodel=autodel)
+
     def get_guild_settings(self, guild_id):
         """길드 설정 통합 조회 (캐시 활용)"""
         # 캐시 확인
@@ -172,6 +181,7 @@ class Database:
                 "volume": 20,
                 "loop_mode": 0,
                 "shuffle": False,
+                "autodel": True,
             }
 
         try:
@@ -193,6 +203,7 @@ class Database:
                     "volume": 20,
                     "loop_mode": 0,
                     "shuffle": False,
+                    "autodel": True,
                 }
                 return default_settings
 
@@ -203,6 +214,7 @@ class Database:
                 "volume": 20,
                 "loop_mode": 0,
                 "shuffle": False,
+                "autodel": True,
             }
 
     def upsert_guild_settings(self, guild_id, **kwargs):

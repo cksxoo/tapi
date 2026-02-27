@@ -374,7 +374,13 @@ class MusicHandlers:
                 ui.TextDisplay(desc),
                 accent_color=SUCCESS_COLOR,
             ))
-            await message.channel.send(view=notify_layout, delete_after=15)
+            
+            # Check autodel setting
+            db = Database()
+            if db.get_autodel(message.guild.id):
+                await message.channel.send(view=notify_layout, delete_after=15)
+            else:
+                await message.channel.send(view=notify_layout)
 
         except Exception as e:
             LOGGER.error(f"Error in handle_autoplay_message: {e}")

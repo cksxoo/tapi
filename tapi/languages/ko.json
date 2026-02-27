@@ -2,9 +2,9 @@
     "help_main_title": "TAPI",
     "help_main_description": "Discord 음악 봇이에요.\n\n아래 버튼으로 명령어를 확인해보세요!",
     "help_general_title": "일반",
-    "help_general_description": "`/invite` - 다른 서버에 봇 초대\n`/coffee` - TAPI 후원하기",
+    "help_general_description": "`/invite` - 다른 서버에 봇 초대\n`/coffee` - TAPI 후원하기\n`/setting [옵션]` - 봇 설정 변경 (관리자)",
     "help_music_title": "음악",
-    "help_music_description": "**재생**\n`/connect` - 음성 채널에 접속\n`/play [곡명/링크/재생목록]` - 음악 재생 (YouTube, Spotify)\n`/spplay [곡명/링크]` - Spotify에서 검색 및 재생\n`/scplay [곡명/링크]` - SoundCloud에서 검색 및 재생\n`/pause` - 일시정지 / 재개\n`/skip` - 다음 곡으로 건너뛰기\n`/disconnect` - 음성 채널에서 나가기\n\n**대기열 & 음량**\n`/volume [1-100]` - 음량 조절\n`/queue` - 대기열 확인\n`/shuffle` - 셔플 전환\n`/repeat` - 반복 전환\n\n**기타**\n`/nowplaying` - 현재 재생 중인 곡 정보\n`/remove [번호]` - 대기열에서 곡 제거\n`/clear` - 대기열 전체 비우기\n\n**플레이리스트**\n`/save` - 현재 대기열을 플레이리스트로 저장\n`/load` - 저장된 플레이리스트 불러오기",
+    "help_music_description": "**재생**\n`/play [곡명/링크/재생목록]` - 음악 재생 (YouTube, Spotify)\n`/spplay [곡명/링크]` - Spotify에서 검색 및 재생\n`/scplay [곡명/링크]` - SoundCloud에서 검색 및 재생\n`/search [검색어]` - 곡 검색 및 선택 재생\n*(일시정지, 스킵 등은 곡 재생 시 나타나는 버튼으로 조작하세요)*\n\n**대기열 & 음량**\n`/volume [1-100]` - 음량 조절\n`/queue` - 대기열 확인\n`/remove [번호]` - 대기열에서 곡 제거\n`/clear` - 대기열 전체 비우기\n*(반복, 셔플 등은 곡 재생 시 나타나는 버튼으로 조작하세요)*\n\n**기타**\n`/nowplaying` - 현재 재생 중인 곡 정보\n\n**플레이리스트**\n`/save` - 현재 대기열을 플레이리스트로 저장\n`/load` - 저장된 플레이리스트 불러오기",
     "welcome_title": "TAPI를 추가해주셔서 감사해요!",
     "welcome_description": "`/help`로 명령어를 확인해보세요!",
     "music_connect_voice_channel": "음성 채널에 들어왔어요!",
@@ -115,5 +115,13 @@
     "channel_set_description": "{channel} 채널이 봇 전용 채널로 설정되었습니다.\n이제 슬래시 명령어는 이 채널에서만 사용할 수 있습니다.",
     "channel_unset_title": "봇 채널 제한 해제",
     "channel_unset_description": "{channel} 채널의 봇 전용 채널 설정이 해제되었습니다.\n이제 모든 채널에서 봇 명령어를 사용할 수 있습니다.",
-    "channel_restrict_message": "⚠️ 봇 명령어는 {channel} 채널에서만 사용할 수 있습니다."
+    "channel_restrict_message": "⚠️ 봇 명령어는 {channel} 채널에서만 사용할 수 있습니다.",
+    "setting_title": "설정",
+    "setting_desc": "이 서버의 봇 설정을 변경합니다.",
+    "setting_autodel_name": "자동삭제",
+    "setting_autodel_desc": "봇 메시지를 자동으로 삭제할지 여부를 설정합니다.",
+    "setting_autodel_on": "켜기",
+    "setting_autodel_off": "끄기",
+    "setting_autodel_result_on": "메시지 자동 삭제가 **켜짐** 상태로 설정되었습니다.",
+    "setting_autodel_result_off": "메시지 자동 삭제가 **꺼짐** 상태로 설정되었습니다. (메시지가 삭제되지 않습니다)"
 }

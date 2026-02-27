@@ -2,9 +2,9 @@
     "help_main_title": "TAPI",
     "help_main_description": "A music bot for Discord.\n\nCheck out the commands below!",
     "help_general_title": "General",
-    "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI",
+    "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI\n`/setting [Option]` - Configure bot settings (Admin)",
     "help_music_title": "Music",
-    "help_music_description": "**Playback**\n`/connect` - Connect to voice channel\n`/play [song/link/playlist]` - Play music (YouTube, Spotify)\n`/spplay [song/link]` - Search and play from Spotify\n`/scplay [song/link]` - Search and play from SoundCloud\n`/pause` - Pause / Resume\n`/skip` - Skip to next song\n`/disconnect` - Leave voice channel\n\n**Queue & Volume**\n`/volume [1-100]` - Adjust volume\n`/queue` - View queue\n`/shuffle` - Toggle shuffle\n`/repeat` - Toggle repeat\n\n**More**\n`/nowplaying` - Current song info\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue\n\n**Playlists**\n`/save` - Save current queue as your playlist\n`/load` - Load your saved playlist",
+    "help_music_description": "**Playback**\n`/play [song/link/playlist]` - Play music (YouTube, Spotify)\n`/spplay [song/link]` - Search and play from Spotify\n`/scplay [song/link]` - Search and play from SoundCloud\n`/search [keyword]` - Search and select songs\n*(Pause, skip, etc. are controlled via buttons during playback)*\n\n**Queue & Volume**\n`/volume [1-100]` - Adjust volume\n`/queue` - View queue\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue\n*(Shuffle and repeat are controlled via buttons during playback)*\n\n**More**\n`/nowplaying` - Current song info\n\n**Playlists**\n`/save` - Save current queue as your playlist\n`/load` - Load your saved playlist",
     "welcome_title": "Thanks for adding TAPI!",
     "welcome_description": "Try `/help` to see what I can do!",
     "music_connect_voice_channel": "Joined the voice channel!",
@@ -114,5 +114,13 @@
     "channel_set_description": "{channel} has been set as the bot-only channel.\nSlash commands can only be used here.",
     "channel_unset_title": "Bot Channel Restriction Removed",
     "channel_unset_description": "The bot-only channel setting for {channel} has been removed.\nCommands can now be used in any channel.",
-    "channel_restrict_message": "⚠️ Bot commands can only be used in {channel}."
+    "channel_restrict_message": "⚠️ Bot commands can only be used in {channel}.",
+    "setting_title": "Bot Settings",
+    "setting_desc": "Configure the bot's behavior for this server.",
+    "setting_autodel_name": "auto-delete",
+    "setting_autodel_desc": "Set whether the bot should automatically delete its messages.",
+    "setting_autodel_on": "ON",
+    "setting_autodel_off": "OFF",
+    "setting_autodel_result_on": "Auto-delete is now **ON**.",
+    "setting_autodel_result_off": "Auto-delete is now **OFF**. (Messages will not be deleted)"
 }

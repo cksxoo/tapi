@@ -163,10 +163,18 @@ def create_error_layout(error_message):
 # ---- send_temp_v2 (V2용 임시 메시지 전송) ----
 
 async def send_temp_v2(interaction, layout_view, delete_after=3, refresh_control=True):
-    """V2 임시 메시지 전송 (자동 삭제)"""
+    """V2 임시 메시지 전송 (자동 삭제 설정에 따라)"""
     try:
         message = await interaction.followup.send(view=layout_view)
-        await message.delete(delay=delete_after)
+        
+        # 설정 확인 후 삭제 여부 결정
+        if interaction.guild:
+            from tapi.utils.database import Database
+            db = Database()
+            if db.get_autodel(interaction.guild.id):
+                await message.delete(delay=delete_after)
+        else:
+            await message.delete(delay=delete_after)
 
         if refresh_control and hasattr(interaction, "guild") and interaction.guild:
             await _refresh_now_playing(interaction)
