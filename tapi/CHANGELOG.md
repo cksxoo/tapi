@@ -2,12 +2,12 @@
 
 ---
 
-v0.9.2: Channel Restriction
+v0.9.2: 🌸 Cherry Blossom Edition & Bot Settings
 
-- Cherry Blossom Edition: Updated bot description images and HTML with cherry blossom theme
+- 🌸 Cherry Blossom Edition: Updated bot description images and HTML with cherry blossom theme
 - Bot Settings: Added `/settings` command — admins can configure bot channel restriction and other settings
 
-### *February 27, 2026* | v0.9.2: 채널 제한
+### *February 27, 2026* | v0.9.2: 🌸 벚꽃 에디션 & 봇 설정
 
 |no|contents|
 |:---:|:---|
