@@ -12,8 +12,11 @@ from tapi.utils.language import get_lan
 from tapi.utils.database import Database
 from tapi.utils.embed import format_text_with_limit, get_track_thumbnail
 from tapi.utils.v2_components import (
-    make_themed_container, make_separator, make_banner_gallery,
-    make_invisible_spacer, get_platform_emoji,
+    make_themed_container,
+    make_separator,
+    make_banner_gallery,
+    make_invisible_spacer,
+    get_platform_emoji,
 )
 
 
@@ -21,8 +24,10 @@ from tapi.utils.v2_components import (
 # Search
 # ============================================================
 
+
 class SearchSelect(ui.Select):
     """검색 결과 드롭다운 셀렉트"""
+
     def __init__(self, tracks, cog, interaction):
         self.tracks = tracks
         self.cog = cog
@@ -51,6 +56,7 @@ class SearchSelect(ui.Select):
 
 class SearchLayout(ui.LayoutView):
     """V2 검색 결과 레이아웃"""
+
     def __init__(self, tracks, cog, interaction):
         super().__init__(timeout=30)
         self.message = None
@@ -69,15 +75,17 @@ class SearchLayout(ui.LayoutView):
 
         select = SearchSelect(tracks, cog, interaction)
 
-        self.add_item(make_themed_container(
-            ui.TextDisplay(f"## {title}"),
-            ui.TextDisplay(f"-# {subtitle}"),
-            make_separator(),
-            ui.TextDisplay(result_text),
-            make_invisible_spacer(),
-            ui.ActionRow(select),
-            accent_color=INFO_COLOR,
-        ))
+        self.add_item(
+            make_themed_container(
+                ui.TextDisplay(f"## {title}"),
+                ui.TextDisplay(f"-# {subtitle}"),
+                make_separator(),
+                ui.TextDisplay(result_text),
+                make_invisible_spacer(),
+                ui.ActionRow(select),
+                accent_color=INFO_COLOR,
+            )
+        )
 
     async def on_timeout(self):
         if self.message:
@@ -91,16 +99,24 @@ class SearchLayout(ui.LayoutView):
 # Queue Select (공유 컴포넌트)
 # ============================================================
 
+
 class QueueSelect(ui.Select):
     """재생목록 드롭다운 셀렉트 (Now Playing, Queue에서 공유)"""
+
     def __init__(self, player, guild_id):
         self.player = player
         self.guild_id = guild_id
 
         options = []
         for i, track in enumerate(player.queue[:25], start=1):
-            title = track.title[:80] if len(track.title) <= 80 else track.title[:77] + "..."
-            author = track.author[:80] if len(track.author) <= 80 else track.author[:77] + "..."
+            title = (
+                track.title[:80] if len(track.title) <= 80 else track.title[:77] + "..."
+            )
+            author = (
+                track.author[:80]
+                if len(track.author) <= 80
+                else track.author[:77] + "..."
+            )
             duration = lavalink.utils.format_time(track.duration)
 
             emoji = get_platform_emoji(track)
@@ -184,6 +200,7 @@ QUEUE_PAGE_ID = 1101
 
 class QueueNavButton(ui.Button):
     """큐 페이지 네비게이션 버튼"""
+
     def __init__(self, label, direction, disabled=False):
         style = discord.ButtonStyle.gray
         if direction == 0:
@@ -198,6 +215,7 @@ class QueueNavButton(ui.Button):
 
 class QueuePaginatorLayout(ui.LayoutView):
     """V2 큐 페이지네이션 레이아웃"""
+
     ITEMS_PER_PAGE = 10
 
     def __init__(self, interaction, player, pages, current_page=0):
@@ -210,28 +228,38 @@ class QueuePaginatorLayout(ui.LayoutView):
 
         queue_text, page_text = self._build_page_text(interaction)
 
-        self.add_item(make_themed_container(
-            ui.TextDisplay(queue_text, id=QUEUE_TEXT_ID),
-            make_separator(),
-            ui.TextDisplay(page_text, id=QUEUE_PAGE_ID),
-            ui.ActionRow(
-                QueueNavButton("◀ Prev", -1),
-                QueueNavButton(f"Page {self.current_page + 1}/{len(self.pages)}", 0),
-                QueueNavButton("Next ▶", 1),
-            ),
-        ))
+        self.add_item(
+            make_themed_container(
+                ui.TextDisplay(queue_text, id=QUEUE_TEXT_ID),
+                make_separator(),
+                ui.TextDisplay(page_text, id=QUEUE_PAGE_ID),
+                ui.ActionRow(
+                    QueueNavButton("◀ Prev", -1),
+                    QueueNavButton(
+                        f"Page {self.current_page + 1}/{len(self.pages)}", 0
+                    ),
+                    QueueNavButton("Next ▶", 1),
+                ),
+            )
+        )
 
     def _build_page_text(self, interaction):
         queue_list = ""
         start_index = self.current_page * self.ITEMS_PER_PAGE
-        for index, track in enumerate(self.pages[self.current_page], start=start_index + 1):
+        for index, track in enumerate(
+            self.pages[self.current_page], start=start_index + 1
+        ):
             title = format_text_with_limit(track.title, 30)
             artist = format_text_with_limit(track.author, 30)
             duration = lavalink.utils.format_time(track.duration)
-            queue_list += f"`{index}.` **[{title}]({track.uri})**\n> *{artist}* `{duration}`\n"
+            queue_list += (
+                f"`{index}.` **[{title}]({track.uri})**\n> *{artist}* `{duration}`\n"
+            )
 
         header = f"## Queue  `{len(self.player.queue)} tracks`\n\n{queue_list}"
-        page_info = f"-# Page {self.current_page + 1}/{len(self.pages)} | {APP_NAME_TAG_VER}"
+        page_info = (
+            f"-# Page {self.current_page + 1}/{len(self.pages)} | {APP_NAME_TAG_VER}"
+        )
         return header, page_info
 
     async def navigate(self, interaction, direction):
@@ -278,6 +306,7 @@ NP_STATUS_ID = 1003
 
 class MusicButton(ui.Button):
     """음악 컨트롤 버튼"""
+
     def __init__(self, action, **kwargs):
         super().__init__(**kwargs)
         self.action = action
@@ -288,9 +317,7 @@ class MusicButton(ui.Button):
 
         player = view.cog.bot.lavalink.player_manager.get(view.guild_id)
         if not player or not player.is_playing:
-            return await interaction.followup.send(
-                "음악이 재생되고 있지 않습니다!", ephemeral=True
-            )
+            return await interaction.followup.send("음악이 재생되고 있지 않습니다!", ephemeral=True)
 
         if self.action == "pause_resume":
             await player.set_pause(not player.paused)
@@ -314,12 +341,14 @@ class MusicButton(ui.Button):
                 and interaction.user.voice.channel.id != int(player.channel_id)
             ):
                 return await interaction.followup.send(
-                    get_lan(interaction, "music_dc_not_connect_my_voice_channel").format(
-                        name=interaction.user.name
-                    ),
+                    get_lan(
+                        interaction, "music_dc_not_connect_my_voice_channel"
+                    ).format(name=interaction.user.name),
                     ephemeral=True,
                 )
-            await view.cog._full_disconnect_cleanup(view.guild_id, "manual_disconnect_button")
+            await view.cog._full_disconnect_cleanup(
+                view.guild_id, "manual_disconnect_button"
+            )
             return await interaction.followup.send(
                 get_lan(interaction, "music_dc_disconnected"),
                 ephemeral=True,
@@ -343,15 +372,19 @@ class MusicButton(ui.Button):
         try:
             from tapi.utils.redis_manager import redis_manager
             from tapi.utils.web_command_handler import get_player_state
+
             if redis_manager.available:
                 state = get_player_state(view.cog.bot, view.guild_id)
-                await redis_manager.publish_player_update(view.guild_id, self.action, state)
+                await redis_manager.publish_player_update(
+                    view.guild_id, self.action, state
+                )
         except Exception:
             pass
 
 
 class MusicControlLayout(ui.LayoutView):
     """V2 Now Playing 컨트롤 패널"""
+
     def __init__(self, cog, guild_id):
         super().__init__(timeout=7200)
         self.cog = cog
@@ -375,27 +408,56 @@ class MusicControlLayout(ui.LayoutView):
             m, s = divmod(s, 60)
             h, m = divmod(m, 60)
             return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
+
         position_str = short_time(player.position)
         duration_str = short_time(track.duration)
         volume_label = get_lan(interaction, "music_volume")
-        status_text = f"`{position_str} / {duration_str}  ·  {volume_label}: {player.volume}%`"
+        status_text = (
+            f"`{position_str} / {duration_str}  ·  {volume_label}: {player.volume}%`"
+        )
 
         # 트랙 정보 텍스트
         track_info = f"> {platform_emoji} **[{title}]({track.uri})**\n> *{artist}*"
 
         # 버튼 생성
-        pause_emoji = "<:lucideplay:1472962445633912833>" if player.paused else "<:lucidepause:1472962430643605514>"
+        pause_emoji = (
+            "<:lucideplay:1472962445633912833>"
+            if player.paused
+            else "<:lucidepause:1472962430643605514>"
+        )
 
-        pause_btn = MusicButton(action="pause_resume", emoji=pause_emoji, style=discord.ButtonStyle.primary)
-        skip_btn = MusicButton(action="skip", emoji="<:lucideskip:1472962392853053606>", style=discord.ButtonStyle.secondary)
-        stop_btn = MusicButton(action="stop", emoji="<:lucidestop:1472962376356593785>", style=discord.ButtonStyle.danger)
-        repeat_emoji = "<:luciderepeat1:1472962355024498809>" if player.loop == 1 else "<:luciderepeat:1472962333666967637>"
-        repeat_style = discord.ButtonStyle.success if player.loop > 0 else discord.ButtonStyle.secondary
-        repeat_btn = MusicButton(action="repeat", emoji=repeat_emoji, style=repeat_style)
+        pause_btn = MusicButton(
+            action="pause_resume", emoji=pause_emoji, style=discord.ButtonStyle.primary
+        )
+        skip_btn = MusicButton(
+            action="skip",
+            emoji="<:lucideskip:1472962392853053606>",
+            style=discord.ButtonStyle.secondary,
+        )
+        stop_btn = MusicButton(
+            action="stop",
+            emoji="<:lucidestop:1472962376356593785>",
+            style=discord.ButtonStyle.danger,
+        )
+        repeat_emoji = (
+            "<:luciderepeat1:1472962355024498809>"
+            if player.loop == 1
+            else "<:luciderepeat:1472962333666967637>"
+        )
+        repeat_style = (
+            discord.ButtonStyle.success
+            if player.loop > 0
+            else discord.ButtonStyle.secondary
+        )
+        repeat_btn = MusicButton(
+            action="repeat", emoji=repeat_emoji, style=repeat_style
+        )
         shuffle_btn = MusicButton(
             action="shuffle",
             emoji="<:lucideshuffle:1472962301664432190>",
-            style=discord.ButtonStyle.success if player.shuffle else discord.ButtonStyle.secondary,
+            style=discord.ButtonStyle.success
+            if player.shuffle
+            else discord.ButtonStyle.secondary,
         )
 
         # Queue Select
@@ -410,30 +472,44 @@ class MusicControlLayout(ui.LayoutView):
         status_display = ui.TextDisplay(status_text, id=NP_STATUS_ID)
         header_items = []
         if thumbnail_url:
-            header_items.append(ui.Section(
-                header_title,
-                header_track,
-                status_display,
-                accessory=ui.Thumbnail(thumbnail_url),
-            ))
+            header_items.append(
+                ui.Section(
+                    header_title,
+                    header_track,
+                    status_display,
+                    accessory=ui.Thumbnail(thumbnail_url),
+                )
+            )
         else:
             header_items.append(header_title)
             header_items.append(header_track)
             header_items.append(status_display)
 
-        self.add_item(ui.Container(
-            *header_items,
-            ui.ActionRow(shuffle_btn, stop_btn, pause_btn, skip_btn, repeat_btn),
-            ui.ActionRow(queue_select),
-            accent_colour=THEME_COLOR,
-        ))
+        self.add_item(
+            ui.Container(
+                *header_items,
+                ui.ActionRow(shuffle_btn, stop_btn, pause_btn, skip_btn, repeat_btn),
+                ui.ActionRow(queue_select),
+                accent_colour=THEME_COLOR,
+            )
+        )
         dashboard_url = f"https://tapi.cksxoo.com/dashboard/{self.guild_id}"
         dashboard_btn = ui.Button(label="TAPI Dashboard", url=dashboard_url, emoji="🌸")
-        playlist_btn = ui.Button(label="Playlist (beta)", url="https://tapi.cksxoo.com/playlist", emoji="<:playlist:1474397212858515559>")
-        coffee_btn = ui.Button(label="Buy Me a Coffee", url="https://buymeacoffee.com/cksxoo", emoji="<:BMC:1467139778242805811>")
-        self.add_item(ui.Container(
-            make_banner_gallery(),
-            ui.ActionRow(dashboard_btn, playlist_btn, coffee_btn),
-        ))
+        playlist_btn = ui.Button(
+            label="Playlist (beta)",
+            url="https://tapi.cksxoo.com/playlist",
+            emoji="<:playlist:1474397212858515559>",
+        )
+        coffee_btn = ui.Button(
+            label="Buy Me a Coffee",
+            url="https://buymeacoffee.com/cksxoo",
+            emoji="<:BMC:1467139778242805811>",
+        )
+        self.add_item(
+            ui.Container(
+                make_banner_gallery(),
+                ui.ActionRow(dashboard_btn, playlist_btn, coffee_btn),
+            )
+        )
 
         return self

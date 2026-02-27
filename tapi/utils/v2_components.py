@@ -2,14 +2,22 @@ import discord
 from discord import ui
 
 from tapi import (
-    THEME_COLOR, APP_BANNER_URL, APP_NAME_TAG_VER, LOGGER,
-    SUCCESS_COLOR, ERROR_COLOR, WARNING_COLOR, INFO_COLOR, MUSIC_COLOR,
+    THEME_COLOR,
+    APP_BANNER_URL,
+    APP_NAME_TAG_VER,
+    LOGGER,
+    SUCCESS_COLOR,
+    ERROR_COLOR,
+    WARNING_COLOR,
+    INFO_COLOR,
+    MUSIC_COLOR,
 )
 from tapi.utils.language import get_lan
 from tapi.utils.embed import get_track_thumbnail, format_text_with_limit
 
 
 # ---- Shared Component Factories ----
+
 
 def make_themed_container(*items, accent_color=THEME_COLOR, spoiler=False):
     """TAPI 테마 색상이 적용된 Container 생성"""
@@ -23,7 +31,9 @@ def make_banner_gallery():
 
 def make_separator(large=False):
     """구분선 생성"""
-    spacing = discord.SeparatorSpacing.large if large else discord.SeparatorSpacing.small
+    spacing = (
+        discord.SeparatorSpacing.large if large else discord.SeparatorSpacing.small
+    )
     return ui.Separator(visible=True, spacing=spacing)
 
 
@@ -38,6 +48,7 @@ def make_footer_text():
 
 
 # ---- Progress Bar & Time Formatting ----
+
 
 def format_ms_time(ms):
     """밀리초를 M:SS 또는 H:MM:SS 포맷으로 변환"""
@@ -68,6 +79,7 @@ def make_progress_bar(current, total, length=16):
 
 # ---- Platform Emoji Helper ----
 
+
 def get_platform_emoji(track):
     """트랙 URI 기반 플랫폼 이모지 반환"""
     if track.uri:
@@ -82,8 +94,10 @@ def get_platform_emoji(track):
 
 # ---- FakeInteraction (공통) ----
 
+
 class FakeInteraction:
     """이벤트 핸들러에서 언어 키 조회용 가짜 interaction"""
+
     def __init__(self, user_id, guild_id, locale):
         self.user = type("obj", (object,), {"id": user_id})()
         self.guild = type("obj", (object,), {"id": guild_id})()
@@ -104,8 +118,17 @@ STYLE_COLORS = {
 
 class StatusLayout(ui.LayoutView):
     """범용 상태 메시지 V2 레이아웃"""
-    def __init__(self, title_text=None, description_text=None, thumbnail_url=None,
-                 accent_color=None, show_banner=False, show_footer=False, style="default"):
+
+    def __init__(
+        self,
+        title_text=None,
+        description_text=None,
+        thumbnail_url=None,
+        accent_color=None,
+        show_banner=False,
+        show_footer=False,
+        style="default",
+    ):
         super().__init__(timeout=None)
 
         if accent_color is None:
@@ -135,6 +158,7 @@ class StatusLayout(ui.LayoutView):
 
 # ---- Track/Playlist/Error Layout Factories ----
 
+
 def create_track_layout(track, user_display_name):
     """단일 트랙용 V2 레이아웃"""
     thumbnail_url = get_track_thumbnail(track)
@@ -162,14 +186,16 @@ def create_error_layout(error_message):
 
 # ---- send_temp_v2 (V2용 임시 메시지 전송) ----
 
+
 async def send_temp_v2(interaction, layout_view, delete_after=3, refresh_control=True):
     """V2 임시 메시지 전송 (자동 삭제 설정에 따라)"""
     try:
         message = await interaction.followup.send(view=layout_view)
-        
+
         # 설정 확인 후 삭제 여부 결정
         if interaction.guild:
             from tapi.utils.database import Database
+
             db = Database()
             if db.get_autodel(interaction.guild.id):
                 await message.delete(delay=delete_after)
@@ -184,7 +210,9 @@ async def send_temp_v2(interaction, layout_view, delete_after=3, refresh_control
         return None
 
 
-async def send_temp_status(interaction, key, delete_after=3, style="default", **format_kwargs):
+async def send_temp_status(
+    interaction, key, delete_after=3, style="default", **format_kwargs
+):
     """언어 키로 V2 상태 메시지 전송"""
     text = get_lan(interaction, key)
     if format_kwargs:
@@ -194,6 +222,7 @@ async def send_temp_status(interaction, key, delete_after=3, style="default", **
 
 
 # ---- Now Playing 패널 refresh 로직 ----
+
 
 async def _refresh_now_playing(interaction):
     """Now Playing 패널을 현재 플레이어 상태로 갱신"""
@@ -213,10 +242,13 @@ async def _refresh_now_playing(interaction):
         old_message = cog.last_music_messages[guild_id]
 
         from tapi.modules.music_views import MusicControlLayout
+
         control_layout = MusicControlLayout(cog, guild_id)
 
-        requester_id = player.current.requester if player.current else interaction.user.id
-        user_locale = cog.user_locales.get(requester_id, 'en')
+        requester_id = (
+            player.current.requester if player.current else interaction.user.id
+        )
+        user_locale = cog.user_locales.get(requester_id, "en")
         fake_interaction = FakeInteraction(requester_id, guild_id, user_locale)
         control_layout.build_layout(fake_interaction, player)
 
@@ -266,10 +298,11 @@ async def sync_discord_message(bot, guild_id: int, command: str, user_id: int = 
         old_message = cog.last_music_messages[guild_id]
 
         from tapi.modules.music_views import MusicControlLayout
+
         control_layout = MusicControlLayout(cog, guild_id)
 
         requester_id = player.current.requester if player.current else user_id
-        user_locale = cog.user_locales.get(requester_id, 'en')
+        user_locale = cog.user_locales.get(requester_id, "en")
         fake_interaction = FakeInteraction(requester_id, guild_id, user_locale)
         control_layout.build_layout(fake_interaction, player)
 

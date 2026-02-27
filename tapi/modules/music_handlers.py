@@ -1,5 +1,4 @@
 import re
-import traceback
 from datetime import datetime
 import pytz
 
@@ -8,11 +7,12 @@ from discord import ui
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent, TrackExceptionEvent
 
-from tapi import LOGGER, THEME_COLOR
+from tapi import LOGGER
 from tapi.utils.database import Database
 from tapi.modules.music_views import MusicControlLayout
 from tapi.utils.v2_components import (
-    make_themed_container, make_separator, make_banner_gallery, FakeInteraction,
+    make_themed_container,
+    FakeInteraction,
 )
 
 
@@ -53,7 +53,6 @@ class MusicHandlers:
                 LOGGER.debug(f"Player cleaned up for guild {guild_id}")
         except Exception as e:
             LOGGER.error(f"Error cleaning up player for guild {guild_id}: {e}")
-
 
     async def _full_disconnect_cleanup(
         self,
@@ -150,16 +149,18 @@ class MusicHandlers:
                         requester = await self.bot.fetch_user(requester_id)
                     if requester:
                         dm_view = ui.LayoutView(timeout=None)
-                        dm_view.add_item(make_themed_container(
-                            ui.TextDisplay("## ⚠️ Permission Required"),
-                            ui.TextDisplay(
-                                f"I don't have permission to send messages in **{channel.name}** "
-                                f"(Server: {guild.name}).\n\n"
-                                f"Playing: **{track.title}**\n\n"
-                                f"Please ask a server admin to grant me 'Send Messages' permission in that channel."
-                            ),
-                            accent_color=0xFF6600,
-                        ))
+                        dm_view.add_item(
+                            make_themed_container(
+                                ui.TextDisplay("## ⚠️ Permission Required"),
+                                ui.TextDisplay(
+                                    f"I don't have permission to send messages in **{channel.name}** "
+                                    f"(Server: {guild.name}).\n\n"
+                                    f"Playing: **{track.title}**\n\n"
+                                    f"Please ask a server admin to grant me 'Send Messages' permission in that channel."
+                                ),
+                                accent_color=0xFF6600,
+                            )
+                        )
                         await requester.send(view=dm_view)
                 except (discord.Forbidden, discord.NotFound, discord.HTTPException):
                     pass
@@ -172,7 +173,7 @@ class MusicHandlers:
             control_layout = MusicControlLayout(self.music_cog, guild_id)
 
             # 사용자의 저장된 언어 설정 가져오기 (없으면 기본값 영어)
-            user_locale = self.music_cog.user_locales.get(requester_id, 'en')
+            user_locale = self.music_cog.user_locales.get(requester_id, "en")
             fake_interaction = FakeInteraction(requester_id, guild_id, user_locale)
             control_layout.build_layout(fake_interaction, player)
 
@@ -180,8 +181,11 @@ class MusicHandlers:
             try:
                 from tapi.utils.redis_manager import redis_manager
                 from tapi.utils.web_command_handler import get_player_state
+
                 state = get_player_state(self.bot, guild_id)
-                await redis_manager.publish_player_update(guild_id, "track_start", state)
+                await redis_manager.publish_player_update(
+                    guild_id, "track_start", state
+                )
             except Exception as e:
                 LOGGER.debug(f"Failed to publish player update: {e}")
 
@@ -210,6 +214,7 @@ class MusicHandlers:
         try:
             from tapi.utils.redis_manager import redis_manager
             from tapi.utils.web_command_handler import get_player_state
+
             state = get_player_state(self.bot, guild_id)
             await redis_manager.publish_player_update(guild_id, "queue_end", state)
         except Exception as e:
@@ -268,10 +273,14 @@ class MusicHandlers:
                         "auto_disconnect",
                     )
 
-                    LOGGER.info(f"Auto-disconnected from voice channel in guild {guild.name}")
+                    LOGGER.info(
+                        f"Auto-disconnected from voice channel in guild {guild.name}"
+                    )
 
                 except Exception as e:
-                    LOGGER.error(f"Error during auto-disconnect in guild {guild.name}: {e}")
+                    LOGGER.error(
+                        f"Error during auto-disconnect in guild {guild.name}: {e}"
+                    )
 
     async def handle_autoplay_message(self, message: discord.Message):
         """봇 전용 채널에 올라온 유튜브 링크를 감지하여 자동 재생.
@@ -314,6 +323,7 @@ class MusicHandlers:
             # 새 플레이어면 DB 설정 적용
             if existing_player is None:
                 from tapi.modules.player import Music
+
                 await Music._setup_player_settings(player, message.guild.id)
 
             # 음성 채널 연결 (아직 연결 안 된 경우)
@@ -346,7 +356,9 @@ class MusicHandlers:
                 )
                 return
 
-            added, total = await self.music_cog._add_tracks_to_player(player, results, message.author.id)
+            added, total = await self.music_cog._add_tracks_to_player(
+                player, results, message.author.id
+            )
 
             if added == 0:
                 await message.channel.send(
@@ -364,17 +376,21 @@ class MusicHandlers:
             from tapi import SUCCESS_COLOR
 
             if results.load_type == LoadType.PLAYLIST:
-                desc = f"▶️ 플레이리스트 **{results.playlist_info.name}** 에서 {added}곡이 추가되었습니다."
+                desc = (
+                    f"▶️ 플레이리스트 **{results.playlist_info.name}** 에서 {added}곡이 추가되었습니다."
+                )
             else:
                 track = results.tracks[0]
                 desc = f"▶️ **{track.title}** - {track.author}"
 
             notify_layout = ui.LayoutView(timeout=None)
-            notify_layout.add_item(make_themed_container(
-                ui.TextDisplay(desc),
-                accent_color=SUCCESS_COLOR,
-            ))
-            
+            notify_layout.add_item(
+                make_themed_container(
+                    ui.TextDisplay(desc),
+                    accent_color=SUCCESS_COLOR,
+                )
+            )
+
             # Check autodel setting
             db = Database()
             if db.get_autodel(message.guild.id):
@@ -384,4 +400,3 @@ class MusicHandlers:
 
         except Exception as e:
             LOGGER.error(f"Error in handle_autoplay_message: {e}")
-

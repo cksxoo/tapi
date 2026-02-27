@@ -112,19 +112,24 @@ class AudioConnection(discord.VoiceClient):
         # 웹 대시보드에 disconnect 상태 전파
         try:
             from tapi.utils.redis_manager import redis_manager
-            await redis_manager.publish_player_update(self.guild_id, "disconnect", {
-                "guild_id": str(self.guild_id),
-                "is_connected": False,
-                "is_playing": False,
-                "is_paused": False,
-                "current_track": None,
-                "queue": [],
-                "queue_length": 0,
-                "volume": 100,
-                "loop": 0,
-                "shuffle": False,
-                "channel_name": "",
-            })
+
+            await redis_manager.publish_player_update(
+                self.guild_id,
+                "disconnect",
+                {
+                    "guild_id": str(self.guild_id),
+                    "is_connected": False,
+                    "is_playing": False,
+                    "is_paused": False,
+                    "current_track": None,
+                    "queue": [],
+                    "queue_length": 0,
+                    "volume": 100,
+                    "loop": 0,
+                    "shuffle": False,
+                    "channel_name": "",
+                },
+            )
         except Exception as e:
             LOGGER.debug(f"Failed to publish disconnect state: {e}")
 

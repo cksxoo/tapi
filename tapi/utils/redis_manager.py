@@ -1,7 +1,5 @@
 import json
 import os
-import asyncio
-from tapi.sample_config import Config
 from tapi import LOGGER
 
 try:
@@ -201,9 +199,7 @@ class RedisManager:
         if client:
             try:
                 key = f"{self.playback_state_key_prefix}{shard_id}"
-                client.set(
-                    key, json.dumps(playback_states), ex=self.playback_state_ttl
-                )
+                client.set(key, json.dumps(playback_states), ex=self.playback_state_ttl)
                 LOGGER.info(
                     f"Saved playback state for {len(playback_states)} players on shard {shard_id}"
                 )
@@ -283,11 +279,13 @@ class RedisManager:
 
     async def publish_player_update(self, guild_id: int, event: str, state: dict):
         """플레이어 상태 변경을 웹 대시보드에 발행합니다."""
-        message = json.dumps({
-            "guild_id": str(guild_id),
-            "event": event,
-            "state": state,
-        })
+        message = json.dumps(
+            {
+                "guild_id": str(guild_id),
+                "event": event,
+                "state": state,
+            }
+        )
         await self.publish("bot:player_update", message)
 
     def create_async_pubsub(self):

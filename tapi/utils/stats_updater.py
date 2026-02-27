@@ -10,7 +10,9 @@ from tapi import LOGGER
 class BotStatsUpdater:
     """봇 리스팅 사이트에 서버 수 업데이트"""
 
-    def __init__(self, bot_id: int, topgg_token: Optional[str], koreanbot_token: Optional[str]):
+    def __init__(
+        self, bot_id: int, topgg_token: Optional[str], koreanbot_token: Optional[str]
+    ):
         self.bot_id = bot_id
         self.topgg_token = topgg_token
         self.koreanbot_token = koreanbot_token
@@ -22,7 +24,9 @@ class BotStatsUpdater:
             self.session = aiohttp.ClientSession()
         return self.session
 
-    async def update_topgg(self, guild_count: int, shard_count: Optional[int] = None) -> bool:
+    async def update_topgg(
+        self, guild_count: int, shard_count: Optional[int] = None
+    ) -> bool:
         """
         top.gg에 서버 수 업데이트
 
@@ -52,14 +56,18 @@ class BotStatsUpdater:
                     return True
                 else:
                     error_text = await resp.text()
-                    LOGGER.error(f"❌ top.gg update failed ({resp.status}): {error_text}")
+                    LOGGER.error(
+                        f"❌ top.gg update failed ({resp.status}): {error_text}"
+                    )
                     return False
 
         except Exception as e:
             LOGGER.error(f"❌ Error updating top.gg stats: {e}")
             return False
 
-    async def update_koreanbots(self, guild_count: int, shard_count: Optional[int] = None) -> bool:
+    async def update_koreanbots(
+        self, guild_count: int, shard_count: Optional[int] = None
+    ) -> bool:
         """
         koreanbots.dev에 서버 수 업데이트
 
@@ -89,14 +97,18 @@ class BotStatsUpdater:
                     return True
                 else:
                     error_text = await resp.text()
-                    LOGGER.error(f"❌ koreanbots.dev update failed ({resp.status}): {error_text}")
+                    LOGGER.error(
+                        f"❌ koreanbots.dev update failed ({resp.status}): {error_text}"
+                    )
                     return False
 
         except Exception as e:
             LOGGER.error(f"❌ Error updating koreanbots.dev stats: {e}")
             return False
 
-    async def update_all(self, guild_count: int, shard_count: Optional[int] = None) -> dict:
+    async def update_all(
+        self, guild_count: int, shard_count: Optional[int] = None
+    ) -> dict:
         """
         모든 봇 리스팅 사이트에 업데이트
 

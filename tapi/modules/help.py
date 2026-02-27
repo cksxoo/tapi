@@ -5,12 +5,14 @@ from discord.ext import commands
 from tapi.utils.language import get_lan
 from tapi import LOGGER, INFO_COLOR
 from tapi.utils.v2_components import (
-    make_themed_container, make_separator,
+    make_themed_container,
+    make_separator,
 )
 
 
 class HelpNavButton(ui.Button):
     """Help 페이지 네비게이션 버튼"""
+
     def __init__(self, label, style, target_page, disabled=False):
         super().__init__(label=label, style=style, disabled=disabled)
         self.target_page = target_page
@@ -42,6 +44,7 @@ PAGE_BUTTONS = [
 
 class HelpLayout(ui.LayoutView):
     """V2 Help 메뉴 레이아웃"""
+
     def __init__(self, interaction, user_id, page="main"):
         super().__init__(timeout=120)
         self.user_id = user_id
@@ -64,13 +67,15 @@ class HelpLayout(ui.LayoutView):
         nav_buttons = []
         for page_key, label in PAGE_BUTTONS:
             if page_key == page:
-                nav_buttons.append(HelpNavButton(
-                    label, discord.ButtonStyle.success, page_key, disabled=True
-                ))
+                nav_buttons.append(
+                    HelpNavButton(
+                        label, discord.ButtonStyle.success, page_key, disabled=True
+                    )
+                )
             else:
-                nav_buttons.append(HelpNavButton(
-                    label, discord.ButtonStyle.secondary, page_key
-                ))
+                nav_buttons.append(
+                    HelpNavButton(label, discord.ButtonStyle.secondary, page_key)
+                )
 
         items.append(make_separator())
         items.append(ui.ActionRow(*nav_buttons))

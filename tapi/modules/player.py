@@ -1,38 +1,39 @@
 import re
-import traceback
 
 import discord
 from discord import app_commands, ui
 from discord.ext import commands
 
-import lavalink
 from lavalink.server import LoadType
 
 from tapi.utils.language import get_lan
 from tapi import (
     LOGGER,
-    THEME_COLOR,
     WARNING_COLOR,
-    APP_NAME_TAG_VER,
-    APP_BANNER_URL,
     HOST,
-    PSW,
     REGION,
     PORT,
     MESSAGE_CONTENT_INTENT,
 )
 from tapi.utils.database import Database
-from tapi.utils.statistics import Statistics
 from tapi.utils.v2_components import (
-    make_themed_container, make_separator,
-    send_temp_v2, send_temp_status,
-    create_track_layout, create_playlist_layout, create_error_layout,
+    make_themed_container,
+    make_separator,
+    send_temp_v2,
+    send_temp_status,
+    create_track_layout,
+    create_playlist_layout,
+    create_error_layout,
     StatusLayout,
 )
 
 # 분리된 모듈들 import
 from tapi.modules.audio_connection import AudioConnection
-from tapi.modules.music_views import SearchLayout, MusicControlLayout, QueuePaginatorLayout
+from tapi.modules.music_views import (
+    SearchLayout,
+    MusicControlLayout,
+    QueuePaginatorLayout,
+)
 from tapi.modules.music_handlers import MusicHandlers
 
 url_rx = re.compile(r"https?://(?:www\.)?.+")
@@ -66,32 +67,34 @@ async def check_vote(interaction: discord.Interaction):
                 "vote_required_description",
                 "To use TAPI, please vote for us first.\nJust vote once and you can use it forever!",
             )
-        except:
+        except Exception:
             title = "🗳️ Vote Required!"
             description = "To use TAPI, please vote for us first.\nJust vote once and you can use it forever!"
 
         # V2 투표 요청 레이아웃
         layout = ui.LayoutView(timeout=None)
-        layout.add_item(make_themed_container(
-            ui.TextDisplay(f"**{title}**"),
-            ui.TextDisplay(f"{interaction.user.mention} {description}"),
-            make_separator(),
-            ui.ActionRow(
-                ui.Button(
-                    emoji="<:koreanbots:1422912074819960833>",
-                    label="KoreanBots Vote",
-                    url="https://koreanbots.dev/bots/1157593204682657933/vote",
-                    style=discord.ButtonStyle.link,
+        layout.add_item(
+            make_themed_container(
+                ui.TextDisplay(f"**{title}**"),
+                ui.TextDisplay(f"{interaction.user.mention} {description}"),
+                make_separator(),
+                ui.ActionRow(
+                    ui.Button(
+                        emoji="<:koreanbots:1422912074819960833>",
+                        label="KoreanBots Vote",
+                        url="https://koreanbots.dev/bots/1157593204682657933/vote",
+                        style=discord.ButtonStyle.link,
+                    ),
+                    ui.Button(
+                        emoji="<:topgg:1422912056549441630>",
+                        label="Top.gg Vote",
+                        url="https://top.gg/bot/1157593204682657933/vote",
+                        style=discord.ButtonStyle.link,
+                    ),
                 ),
-                ui.Button(
-                    emoji="<:topgg:1422912056549441630>",
-                    label="Top.gg Vote",
-                    url="https://top.gg/bot/1157593204682657933/vote",
-                    style=discord.ButtonStyle.link,
-                ),
-            ),
-            accent_color=WARNING_COLOR,
-        ))
+                accent_color=WARNING_COLOR,
+            )
+        )
 
         await interaction.response.send_message(view=layout, ephemeral=True)
         return False
@@ -124,6 +127,7 @@ class Music(commands.Cog):
         try:
             from tapi.utils.redis_manager import redis_manager
             from tapi.utils.web_command_handler import get_player_state
+
             if redis_manager.available:
                 state = get_player_state(self.bot, guild_id)
                 await redis_manager.publish_player_update(guild_id, command, state)
@@ -197,9 +201,7 @@ class Music(commands.Cog):
             text = get_lan(interaction, "music_no_permission")
             layout = StatusLayout(title_text=text, style="error")
             await interaction.response.send_message(view=layout, ephemeral=True)
-            raise app_commands.CheckFailure(
-                get_lan(interaction, "music_no_permission")
-            )
+            raise app_commands.CheckFailure(get_lan(interaction, "music_no_permission"))
 
         if voice_channel.user_limit > 0:
             if (
@@ -212,7 +214,7 @@ class Music(commands.Cog):
 
     def _save_user_locale(self, interaction: discord.Interaction):
         """사용자의 언어 설정을 캐시에 저장"""
-        if hasattr(interaction, 'locale'):
+        if hasattr(interaction, "locale"):
             self.user_locales[interaction.user.id] = str(interaction.locale)
 
     @staticmethod
@@ -299,7 +301,6 @@ class Music(commands.Cog):
 
         return True
 
-
     def _prepare_query(self, query: str) -> tuple[str, bool]:
         """쿼리를 처리하고 검색 타입을 결정"""
         original_query_stripped = query.strip("<>")
@@ -315,6 +316,7 @@ class Music(commands.Cog):
         )
         if yt_search_match:
             from urllib.parse import unquote
+
             search_term = unquote(yt_search_match.group(1))
             return f"ytsearch:{search_term}", True
 
@@ -427,7 +429,9 @@ class Music(commands.Cog):
             layout = StatusLayout(title_text=text, style="error")
             return await send_temp_v2(interaction, layout)
 
-        added, total = await self._add_tracks_to_player(player, results, interaction.user.id)
+        added, total = await self._add_tracks_to_player(
+            player, results, interaction.user.id
+        )
         await send_temp_v2(interaction, self._create_track_layout(results, interaction))
 
         if added < total:
@@ -506,13 +510,17 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
 
         if not query:
-            return await send_temp_status(interaction, "music_search_no_keyword", style="error")
+            return await send_temp_status(
+                interaction, "music_search_no_keyword", style="error"
+            )
 
         query = f"ytsearch:{query}"
         results = await player.node.get_tracks(query)
 
         if not results or not results.tracks:
-            return await send_temp_status(interaction, "music_search_no_results", style="error")
+            return await send_temp_status(
+                interaction, "music_search_no_results", style="error"
+            )
 
         tracks = results.tracks[:5]
 
@@ -535,8 +543,6 @@ class Music(commands.Cog):
 
         if not player.is_playing:
             await player.play()
-
-
 
     @app_commands.command(
         name="nowplaying", description="Sending the currently playing song!"
@@ -586,11 +592,8 @@ class Music(commands.Cog):
             )
             await send_temp_v2(interaction, layout, delete_after=5)
 
-
     @app_commands.command(name="remove", description="Remove music from the playlist!")
-    @app_commands.describe(
-        index="Queue에서 제거하고 싶은 음악이 몇 번째 음악인지 입력해 주세요"
-    )
+    @app_commands.describe(index="Queue에서 제거하고 싶은 음악이 몇 번째 음악인지 입력해 주세요")
     @app_commands.check(create_player)
     async def remove(self, interaction: discord.Interaction, index: int):
         await interaction.response.defer()
@@ -614,7 +617,6 @@ class Music(commands.Cog):
         await send_temp_v2(interaction, layout)
         await self._publish_web_state(interaction.guild.id, "remove")
 
-
     @app_commands.command(name="clear", description="Clear the music queue")
     @app_commands.check(create_player)
     async def clear(self, interaction: discord.Interaction):
@@ -622,7 +624,9 @@ class Music(commands.Cog):
 
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         if not player.queue:
-            return await send_temp_status(interaction, "music_no_music_in_queue", style="error")
+            return await send_temp_status(
+                interaction, "music_no_music_in_queue", style="error"
+            )
 
         queue_length = len(player.queue)
         await self._cleanup_player(
@@ -630,7 +634,9 @@ class Music(commands.Cog):
         )
 
         title = get_lan(interaction, "music_queue_cleared")
-        desc = get_lan(interaction, "music_queue_cleared_desc").format(count=queue_length)
+        desc = get_lan(interaction, "music_queue_cleared_desc").format(
+            count=queue_length
+        )
         layout = StatusLayout(title_text=title, description_text=desc, style="success")
         await send_temp_v2(interaction, layout)
         await self._publish_web_state(interaction.guild.id, "clear")
@@ -644,6 +650,7 @@ class Music(commands.Cog):
         player = self.bot.lavalink.player_manager.get(interaction.guild.id)
         if volume is None:
             from tapi.utils import volumeicon
+
             volicon = volumeicon(player.volume)
             text = get_lan(interaction, "music_now_vol").format(
                 volicon=volicon, volume=player.volume
@@ -654,13 +661,16 @@ class Music(commands.Cog):
         if volume > 100 or volume < 1:
             title = get_lan(interaction, "music_input_over_vol")
             desc = get_lan(interaction, "music_default_vol")
-            layout = StatusLayout(title_text=title, description_text=desc, style="error")
+            layout = StatusLayout(
+                title_text=title, description_text=desc, style="error"
+            )
             return await send_temp_v2(interaction, layout)
 
         await player.set_volume(volume)
         Database().set_volume(interaction.guild.id, volume)
 
         from tapi.utils import volumeicon
+
         volicon = volumeicon(player.volume)
         text = get_lan(interaction, "music_set_vol").format(
             volicon=volicon, volume=player.volume
@@ -669,10 +679,11 @@ class Music(commands.Cog):
         await send_temp_v2(interaction, layout)
         await self._publish_web_state(interaction.guild.id, "volume")
 
-
     # ===== 플레이리스트 커맨드 =====
 
-    @app_commands.command(name="save", description="Save current queue as your playlist")
+    @app_commands.command(
+        name="save", description="Save current queue as your playlist"
+    )
     @app_commands.check(require_playing)
     async def save(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
@@ -681,14 +692,16 @@ class Music(commands.Cog):
 
         tracks_data = []
         if player.current:
-            tracks_data.append({
-                "title": player.current.title,
-                "author": player.current.author,
-                "uri": player.current.uri,
-                "duration": player.current.duration,
-                "identifier": player.current.identifier,
-                "source_name": player.current.source_name,
-            })
+            tracks_data.append(
+                {
+                    "title": player.current.title,
+                    "author": player.current.author,
+                    "uri": player.current.uri,
+                    "duration": player.current.duration,
+                    "identifier": player.current.identifier,
+                    "source_name": player.current.source_name,
+                }
+            )
 
         total_tracks = 1 + len(player.queue) if player.current else len(player.queue)
         truncated = total_tracks > MAX_PLAYLIST_TRACKS
@@ -696,17 +709,21 @@ class Music(commands.Cog):
         for track in player.queue:
             if len(tracks_data) >= MAX_PLAYLIST_TRACKS:
                 break
-            tracks_data.append({
-                "title": track.title,
-                "author": track.author,
-                "uri": track.uri,
-                "duration": track.duration,
-                "identifier": track.identifier,
-                "source_name": track.source_name,
-            })
+            tracks_data.append(
+                {
+                    "title": track.title,
+                    "author": track.author,
+                    "uri": track.uri,
+                    "duration": track.duration,
+                    "identifier": track.identifier,
+                    "source_name": track.source_name,
+                }
+            )
 
         if not tracks_data:
-            return await send_temp_status(interaction, "playlist_save_empty", style="error")
+            return await send_temp_status(
+                interaction, "playlist_save_empty", style="error"
+            )
 
         db = Database()
         result = db.save_playlist(interaction.user.id, tracks_data)
@@ -717,7 +734,9 @@ class Music(commands.Cog):
             return await interaction.followup.send(view=layout, ephemeral=True)
 
         title = get_lan(interaction, "playlist_saved")
-        desc = get_lan(interaction, "playlist_saved_desc").format(count=len(tracks_data))
+        desc = get_lan(interaction, "playlist_saved_desc").format(
+            count=len(tracks_data)
+        )
         if truncated:
             desc += "\n" + get_lan(interaction, "playlist_save_truncated").format(
                 max=MAX_PLAYLIST_TRACKS
@@ -725,7 +744,9 @@ class Music(commands.Cog):
         layout = StatusLayout(title_text=title, description_text=desc, style="success")
         await interaction.followup.send(view=layout, ephemeral=True)
 
-    @app_commands.command(name="load", description="Load your saved playlist into the queue")
+    @app_commands.command(
+        name="load", description="Load your saved playlist into the queue"
+    )
     @app_commands.check(create_player)
     async def load(self, interaction: discord.Interaction):
         if not await check_vote(interaction):
@@ -779,7 +800,9 @@ class Music(commands.Cog):
                     search_query = f"ytsearch:{track_data.get('title', '')} {track_data.get('author', '')}"
                     results = await player.node.get_tracks(search_query)
                     if results and results.tracks:
-                        player.add(requester=interaction.user.id, track=results.tracks[0])
+                        player.add(
+                            requester=interaction.user.id, track=results.tracks[0]
+                        )
                         loaded_count += 1
                     else:
                         failed_count += 1
@@ -797,12 +820,16 @@ class Music(commands.Cog):
             if not player.is_playing:
                 await player.play()
             title = get_lan(interaction, "playlist_loaded")
-            desc = get_lan(interaction, "playlist_loaded_desc").format(count=loaded_count)
+            desc = get_lan(interaction, "playlist_loaded_desc").format(
+                count=loaded_count
+            )
             if failed_count > 0:
                 desc += "\n" + get_lan(interaction, "playlist_load_failed_some").format(
                     count=failed_count
                 )
-            layout = StatusLayout(title_text=title, description_text=desc, style="success")
+            layout = StatusLayout(
+                title_text=title, description_text=desc, style="success"
+            )
         else:
             title = get_lan(interaction, "playlist_load_failed")
             layout = StatusLayout(title_text=title, style="error")
@@ -821,7 +848,7 @@ class Music(commands.Cog):
         if isinstance(error, app_commands.CheckFailure):
             # CheckFailure인 경우, 사용자에게 친절한 메시지 전송
             error_message = str(error)
-            
+
             if "User not in voice channel" in error_message:
                 text = get_lan(interaction, "music_not_in_voice_channel_description")
             elif "Music not playing" in error_message:
@@ -836,7 +863,9 @@ class Music(commands.Cog):
             # interaction이 이미 응답되지 않았다면 응답
             try:
                 if not interaction.response.is_done():
-                    await interaction.response.send_message(view=error_layout, ephemeral=True)
+                    await interaction.response.send_message(
+                        view=error_layout, ephemeral=True
+                    )
                 else:
                     await interaction.followup.send(view=error_layout, ephemeral=True)
             except Exception as e:

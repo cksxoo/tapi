@@ -4,7 +4,11 @@ import json
 import asyncio
 from tapi import LOGGER
 from tapi.utils.redis_manager import redis_manager
-from tapi.utils.web_command_handler import dispatch_command, get_player_state, GLOBAL_COMMANDS
+from tapi.utils.web_command_handler import (
+    dispatch_command,
+    get_player_state,
+    GLOBAL_COMMANDS,
+)
 
 
 async def start_command_listener(bot):
@@ -95,6 +99,7 @@ async def _process_command(bot, data: dict):
         # Discord Now Playing 메시지 동기화
         try:
             from tapi.utils.v2_components import sync_discord_message
+
             await sync_discord_message(bot, guild_id, command, user_id)
         except Exception as e:
             LOGGER.debug(f"Failed to sync discord message: {e}")

@@ -33,7 +33,14 @@ def get_player_state(bot, guild_id: int) -> dict:
 
     if not player:
         LOGGER.debug(f"get_player_state({guild_id}): no player found")
-        return {"guild_id": str(guild_id), "is_connected": False, "is_playing": False, "current_track": None, "queue": [], "queue_length": 0}
+        return {
+            "guild_id": str(guild_id),
+            "is_connected": False,
+            "is_playing": False,
+            "current_track": None,
+            "queue": [],
+            "queue_length": 0,
+        }
 
     current_track = None
     if player.current:
@@ -48,13 +55,15 @@ def get_player_state(bot, guild_id: int) -> dict:
 
     queue = []
     for track in player.queue:
-        queue.append({
-            "title": track.title,
-            "author": track.author,
-            "uri": track.uri,
-            "duration": track.duration,
-            "thumbnail": get_track_thumbnail(track),
-        })
+        queue.append(
+            {
+                "title": track.title,
+                "author": track.author,
+                "uri": track.uri,
+                "duration": track.duration,
+                "thumbnail": get_track_thumbnail(track),
+            }
+        )
 
     channel_name = "Unknown"
     if guild and guild.voice_client and guild.voice_client.channel:
@@ -162,13 +171,15 @@ async def handle_search(bot, guild_id: int, user_id: int, query: str = "", **_pa
 
     tracks = []
     for track in results.tracks[:10]:
-        tracks.append({
-            "title": track.title,
-            "author": track.author,
-            "uri": track.uri,
-            "duration": track.duration,
-            "identifier": track.identifier,
-        })
+        tracks.append(
+            {
+                "title": track.title,
+                "author": track.author,
+                "uri": track.uri,
+                "duration": track.duration,
+                "identifier": track.identifier,
+            }
+        )
 
     return {"success": True, "data": {"tracks": tracks}}
 
@@ -212,9 +223,13 @@ async def handle_play(bot, guild_id: int, user_id: int, query: str = "", **_para
 
     # 큐 제한 체크
     from tapi.modules.player import MAX_QUEUE_SIZE
+
     queue_size = len(player.queue) + (1 if player.current else 0)
     if queue_size >= MAX_QUEUE_SIZE:
-        return {"success": False, "error": f"Queue is full (max {MAX_QUEUE_SIZE} tracks)"}
+        return {
+            "success": False,
+            "error": f"Queue is full (max {MAX_QUEUE_SIZE} tracks)",
+        }
 
     track = results.tracks[0]
     player.add(requester=user_id, track=track)
@@ -222,11 +237,14 @@ async def handle_play(bot, guild_id: int, user_id: int, query: str = "", **_para
     if not player.is_playing:
         await player.play()
 
-    return {"success": True, "data": {
-        "title": track.title,
-        "author": track.author,
-        "uri": track.uri,
-    }}
+    return {
+        "success": True,
+        "data": {
+            "title": track.title,
+            "author": track.author,
+            "uri": track.uri,
+        },
+    }
 
 
 async def handle_remove(bot, guild_id: int, user_id: int, index: int = 0, **_params):
@@ -242,7 +260,9 @@ async def handle_remove(bot, guild_id: int, user_id: int, index: int = 0, **_par
     return {"success": True, "data": {"removed": removed.title}}
 
 
-async def handle_move(bot, guild_id: int, user_id: int, from_index: int = 0, to_index: int = 0, **_params):
+async def handle_move(
+    bot, guild_id: int, user_id: int, from_index: int = 0, to_index: int = 0, **_params
+):
     valid, msg = validate_user_in_voice(bot, guild_id, user_id)
     if not valid:
         return {"success": False, "error": msg}
@@ -280,7 +300,9 @@ async def handle_get_state(bot, guild_id: int, user_id: int, **_params):
     return {"success": True, "data": state}
 
 
-async def handle_resolve_track(bot, guild_id: int, user_id: int, url: str = "", **_params):
+async def handle_resolve_track(
+    bot, guild_id: int, user_id: int, url: str = "", **_params
+):
     """URL에서 트랙 메타데이터를 resolve합니다 (guild 불필요)."""
     if not url:
         return {"success": False, "error": "No URL provided"}
@@ -296,14 +318,17 @@ async def handle_resolve_track(bot, guild_id: int, user_id: int, url: str = "", 
             return {"success": False, "error": "No tracks found"}
 
         track = results.tracks[0]
-        return {"success": True, "data": {
-            "title": track.title,
-            "author": track.author,
-            "uri": track.uri,
-            "duration": track.duration,
-            "identifier": track.identifier,
-            "source_name": getattr(track, "source_name", "unknown"),
-        }}
+        return {
+            "success": True,
+            "data": {
+                "title": track.title,
+                "author": track.author,
+                "uri": track.uri,
+                "duration": track.duration,
+                "identifier": track.identifier,
+                "source_name": getattr(track, "source_name", "unknown"),
+            },
+        }
     except Exception as e:
         LOGGER.error(f"Error resolving track: {e}")
         return {"success": False, "error": "Failed to resolve track"}
@@ -330,7 +355,9 @@ COMMAND_HANDLERS = {
 GLOBAL_COMMANDS = {"resolve_track"}
 
 
-async def dispatch_command(bot, command: str, guild_id: int, user_id: int, params: dict) -> dict:
+async def dispatch_command(
+    bot, command: str, guild_id: int, user_id: int, params: dict
+) -> dict:
     """명령을 적절한 핸들러로 디스패치합니다."""
     handler = COMMAND_HANDLERS.get(command)
     if not handler:

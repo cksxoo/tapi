@@ -1,14 +1,11 @@
 import os
-import asyncio
 from datetime import datetime, timezone, timedelta
 import logging
-from functools import lru_cache
 import time
-import pytz
 
 # Supabase 클라이언트
 try:
-    from supabase import create_client, Client
+    from supabase import create_client
 
     SUPABASE_AVAILABLE = True
 except ImportError:
@@ -155,8 +152,9 @@ class Database:
 
     def set_channel(self, guild_id, channel_id):
         """봇 전용 채널 ID 설정. channel_id=None이면 제한 해제."""
-        self.upsert_guild_settings(guild_id, channel_id=str(channel_id) if channel_id else None)
-
+        self.upsert_guild_settings(
+            guild_id, channel_id=str(channel_id) if channel_id else None
+        )
 
     def get_autodel(self, guild_id):
         """길드 메시지 자동 삭제 설정 가져오기"""
@@ -194,7 +192,7 @@ class Database:
             )
 
             if response and response.data:
-                self._set_cache('guild_settings', guild_id, response.data)
+                self._set_cache("guild_settings", guild_id, response.data)
                 return response.data
             else:
                 # 기본값
@@ -297,7 +295,7 @@ class Database:
 
         try:
             # Supabase는 한 번에 대량 삽입 가능
-            response = client.table("statistics").insert(self.stats_buffer).execute()
+            client.table("statistics").insert(self.stats_buffer).execute()
 
             LOGGER.debug(f"Flushed {len(self.stats_buffer)} statistics to Supabase")
             self.stats_buffer = []
@@ -363,9 +361,7 @@ class Database:
             }
 
             response = (
-                client.table("playlists")
-                .upsert(data, on_conflict="user_id")
-                .execute()
+                client.table("playlists").upsert(data, on_conflict="user_id").execute()
             )
 
             return response.data[0] if response.data else {}
@@ -398,7 +394,6 @@ class Database:
     def create_table(self):
         """테이블 생성 (Supabase에서는 SQL Editor에서 직접 실행)"""
         LOGGER.info("Tables should be created directly in Supabase SQL Editor")
-        pass
 
     def __del__(self):
         """소멸자에서 남은 통계 플러시"""

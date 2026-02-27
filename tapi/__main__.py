@@ -30,7 +30,9 @@ from tapi.modules.audio_connection import AudioConnection
 from discord import ui
 from tapi import SUCCESS_COLOR, WARNING_COLOR
 from tapi.utils.v2_components import (
-    make_themed_container, make_separator, make_banner_gallery,
+    make_themed_container,
+    make_separator,
+    make_banner_gallery,
 )
 
 
@@ -39,7 +41,9 @@ class TapiBot(commands.Bot):
         intents = discord.Intents.none()
         intents.guilds = True  # For basic guild operations
         intents.voice_states = True  # For Lavalink to manage voice channels
-        intents.messages = MESSAGE_CONTENT_INTENT        # For on_message event (bot channel auto-play)
+        intents.messages = (
+            MESSAGE_CONTENT_INTENT  # For on_message event (bot channel auto-play)
+        )
         intents.message_content = MESSAGE_CONTENT_INTENT  # config 플래그로 조절
 
         # 샤딩 설정
@@ -83,14 +87,20 @@ class TapiBot(commands.Bot):
 
         # DB에서 봇 전용 채널 조회
         from tapi.utils.database import Database
+
         bot_channel_id = Database().get_channel(interaction.guild.id)
 
         if bot_channel_id and interaction.channel_id != bot_channel_id:
             bot_channel = interaction.guild.get_channel(bot_channel_id)
-            channel_mention = bot_channel.mention if bot_channel else f"<#{bot_channel_id}>"
+            channel_mention = (
+                bot_channel.mention if bot_channel else f"<#{bot_channel_id}>"
+            )
             from tapi.utils.language import get_lan
+
             await interaction.response.send_message(
-                get_lan(interaction, "channel_restrict_message").format(channel=channel_mention),
+                get_lan(interaction, "channel_restrict_message").format(
+                    channel=channel_mention
+                ),
                 ephemeral=True,
             )
             return False
@@ -139,6 +149,7 @@ class TapiBot(commands.Bot):
 
         # 웹 대시보드 명령 리스너 시작
         from tapi.utils.redis_command_listener import start_command_listener
+
         self.loop.create_task(start_command_listener(self))
 
         # 점검 후 재생 상태 복원 (잠시 대기 후 실행)
@@ -198,13 +209,15 @@ class TapiBot(commands.Bot):
             if channel:
                 # 환영 메시지 V2 레이아웃
                 welcome_view = ui.LayoutView(timeout=None)
-                welcome_view.add_item(make_themed_container(
-                    ui.TextDisplay("## Thanks for adding TAPI!"),
-                    ui.TextDisplay("Use `/help` to see available commands."),
-                    make_separator(),
-                    make_banner_gallery(),
-                    accent_color=SUCCESS_COLOR,
-                ))
+                welcome_view.add_item(
+                    make_themed_container(
+                        ui.TextDisplay("## Thanks for adding TAPI!"),
+                        ui.TextDisplay("Use `/help` to see available commands."),
+                        make_separator(),
+                        make_banner_gallery(),
+                        accent_color=SUCCESS_COLOR,
+                    )
+                )
 
                 await channel.send(view=welcome_view)
                 LOGGER.info(
@@ -246,9 +259,7 @@ class TapiBot(commands.Bot):
                         if voice_client and voice_client.channel:
                             channel_name = voice_client.channel.name
                             channel_id = voice_client.channel.id
-                            user_count = (
-                                len(voice_client.channel.members) - 1
-                            )  # 봇 제외
+                            user_count = len(voice_client.channel.members) - 1  # 봇 제외
 
                         # 현재 재생 중인 트랙 정보
                         current_track = None
@@ -265,13 +276,15 @@ class TapiBot(commands.Bot):
                         # 큐 상세 정보
                         queue = []
                         for track in player.queue:
-                            queue.append({
-                                "title": track.title,
-                                "author": track.author,
-                                "uri": track.uri,
-                                "duration": track.duration,
-                                "thumbnail": get_track_thumbnail(track),
-                            })
+                            queue.append(
+                                {
+                                    "title": track.title,
+                                    "author": track.author,
+                                    "uri": track.uri,
+                                    "duration": track.duration,
+                                    "thumbnail": get_track_thumbnail(track),
+                                }
+                            )
 
                         active_players.append(
                             {
@@ -391,13 +404,20 @@ class TapiBot(commands.Bot):
                             if channel:
                                 try:
                                     shutdown_view = ui.LayoutView(timeout=None)
-                                    shutdown_view.add_item(make_themed_container(
-                                        ui.TextDisplay("**<:reset:1448850253234311250> Bot Restarting**"),
-                                        ui.TextDisplay("The bot is restarting for maintenance.\nIf you stay in the voice channel, playback will resume automatically."),
-                                        make_separator(),
-                                        make_banner_gallery(),
-                                        accent_color=WARNING_COLOR,
-                                    ))
+                                    shutdown_view.add_item(
+                                        make_themed_container(
+                                            ui.TextDisplay(
+                                                "**<:reset:1448850253234311250> Bot Restarting**"
+                                            ),
+                                            ui.TextDisplay(
+                                                "The bot is restarting for maintenance.\n"
+                                                "If you stay in the voice channel, playback will resume automatically."
+                                            ),
+                                            make_separator(),
+                                            make_banner_gallery(),
+                                            accent_color=WARNING_COLOR,
+                                        )
+                                    )
                                     await channel.send(view=shutdown_view)
                                     sent_count += 1
                                 except Exception as e:
@@ -414,14 +434,20 @@ class TapiBot(commands.Bot):
                 music_cog = self.get_cog("Music")
                 if music_cog and hasattr(music_cog, "last_music_messages"):
                     deleted_count = 0
-                    for guild_id, message in list(music_cog.last_music_messages.items()):
+                    for guild_id, message in list(
+                        music_cog.last_music_messages.items()
+                    ):
                         try:
                             await message.delete()
                             deleted_count += 1
                         except Exception as e:
-                            LOGGER.debug(f"Error deleting music message for guild {guild_id}: {e}")
+                            LOGGER.debug(
+                                f"Error deleting music message for guild {guild_id}: {e}"
+                            )
                     music_cog.last_music_messages.clear()
-                    LOGGER.info(f"Shard {shard_id} deleted {deleted_count} music control messages")
+                    LOGGER.info(
+                        f"Shard {shard_id} deleted {deleted_count} music control messages"
+                    )
 
             # stats_updater 세션 종료
             if self.stats_updater:
@@ -466,12 +492,14 @@ class TapiBot(commands.Bot):
                 for i, track in enumerate(player.queue):
                     if i >= 50:
                         break
-                    queue_data.append({
-                        "uri": track.uri,
-                        "title": track.title,
-                        "author": track.author,
-                        "requester": track.requester,
-                    })
+                    queue_data.append(
+                        {
+                            "uri": track.uri,
+                            "title": track.title,
+                            "author": track.author,
+                            "requester": track.requester,
+                        }
+                    )
 
                 state = {
                     "guild_id": guild.id,
@@ -490,7 +518,9 @@ class TapiBot(commands.Bot):
 
         if playback_states:
             redis_manager.save_playback_state(shard_id, playback_states)
-            LOGGER.info(f"Saved {len(playback_states)} playback states for shard {shard_id}")
+            LOGGER.info(
+                f"Saved {len(playback_states)} playback states for shard {shard_id}"
+            )
 
     async def _delayed_restore_playback(self):
         """Lavalink 노드 준비 후 재생 상태 복원"""
@@ -515,26 +545,34 @@ class TapiBot(commands.Bot):
             LOGGER.debug(f"No playback states to restore for shard {shard_id}")
             return
 
-        LOGGER.info(f"Attempting to restore {len(states)} playback states for shard {shard_id}")
+        LOGGER.info(
+            f"Attempting to restore {len(states)} playback states for shard {shard_id}"
+        )
         restored_count = 0
 
         for state in states:
             try:
                 guild = self.get_guild(state["guild_id"])
                 if not guild:
-                    LOGGER.debug(f"Guild {state['guild_id']} not found, skipping restore")
+                    LOGGER.debug(
+                        f"Guild {state['guild_id']} not found, skipping restore"
+                    )
                     continue
 
                 # 음성 채널 확인
                 voice_channel = guild.get_channel(state["voice_channel_id"])
                 if not voice_channel:
-                    LOGGER.debug(f"Voice channel {state['voice_channel_id']} not found in guild {guild.id}")
+                    LOGGER.debug(
+                        f"Voice channel {state['voice_channel_id']} not found in guild {guild.id}"
+                    )
                     continue
 
                 # 조건 확인: 음성 채널에 사용자가 있는지
                 non_bot_members = [m for m in voice_channel.members if not m.bot]
                 if len(non_bot_members) == 0:
-                    LOGGER.debug(f"No users in voice channel {voice_channel.id}, skipping restore for guild {guild.id}")
+                    LOGGER.debug(
+                        f"No users in voice channel {voice_channel.id}, skipping restore for guild {guild.id}"
+                    )
                     continue
 
                 # 자동 재생 복원
@@ -543,11 +581,15 @@ class TapiBot(commands.Bot):
                     restored_count += 1
 
             except Exception as e:
-                LOGGER.error(f"Error restoring playback for guild {state.get('guild_id')}: {e}")
+                LOGGER.error(
+                    f"Error restoring playback for guild {state.get('guild_id')}: {e}"
+                )
 
         # 복원 완료 후 Redis에서 상태 삭제
         redis_manager.clear_playback_state(shard_id)
-        LOGGER.info(f"Restored {restored_count}/{len(states)} playback states for shard {shard_id}")
+        LOGGER.info(
+            f"Restored {restored_count}/{len(states)} playback states for shard {shard_id}"
+        )
 
     async def _restore_player(self, guild, state):
         """개별 플레이어 상태 복원"""
@@ -568,7 +610,9 @@ class TapiBot(commands.Bot):
             try:
                 await voice_channel.connect(cls=AudioConnection)
             except Exception as e:
-                LOGGER.error(f"Failed to connect to voice channel in guild {guild.id}: {e}")
+                LOGGER.error(
+                    f"Failed to connect to voice channel in guild {guild.id}: {e}"
+                )
                 return False
 
             # 플레이어 가져오기
@@ -588,10 +632,14 @@ class TapiBot(commands.Bot):
             # 현재 곡 복원
             if state.get("current_track"):
                 try:
-                    results = await player.node.get_tracks(state["current_track"]["uri"])
+                    results = await player.node.get_tracks(
+                        state["current_track"]["uri"]
+                    )
                     if results and results.tracks:
                         track = results.tracks[0]
-                        track.requester = state["current_track"].get("requester", self.user.id)
+                        track.requester = state["current_track"].get(
+                            "requester", self.user.id
+                        )
                         player.add(track=track, requester=track.requester)
                         tracks_added += 1
                 except Exception as e:
@@ -617,18 +665,26 @@ class TapiBot(commands.Bot):
             if text_channel and tracks_added > 0:
                 try:
                     restore_view = ui.LayoutView(timeout=None)
-                    restore_view.add_item(make_themed_container(
-                        ui.TextDisplay("**<:reset:1448850253234311250> Playback Resumed**"),
-                        ui.TextDisplay(f"Music playback has been automatically restored after maintenance.\n**{tracks_added}** track(s) restored."),
-                        make_separator(),
-                        make_banner_gallery(),
-                        accent_color=SUCCESS_COLOR,
-                    ))
+                    restore_view.add_item(
+                        make_themed_container(
+                            ui.TextDisplay(
+                                "**<:reset:1448850253234311250> Playback Resumed**"
+                            ),
+                            ui.TextDisplay(
+                                f"Music playback has been automatically restored after maintenance.\n**{tracks_added}** track(s) restored."
+                            ),
+                            make_separator(),
+                            make_banner_gallery(),
+                            accent_color=SUCCESS_COLOR,
+                        )
+                    )
                     await text_channel.send(view=restore_view)
                 except Exception as e:
                     LOGGER.warning(f"Failed to send restore notification: {e}")
 
-            LOGGER.info(f"Restored playback for guild {guild.id} with {tracks_added} tracks")
+            LOGGER.info(
+                f"Restored playback for guild {guild.id} with {tracks_added} tracks"
+            )
             return tracks_added > 0
 
         except Exception as e:

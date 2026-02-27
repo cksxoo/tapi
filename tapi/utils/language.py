@@ -15,7 +15,7 @@ def get_lan(interaction, text: str):
     default_language = "en"  # 기본값은 영어
 
     # 사용자의 Discord locale 자동 감지
-    if hasattr(interaction, 'locale'):
+    if hasattr(interaction, "locale"):
         user_locale = str(interaction.locale)
         if user_locale.startswith("ko"):
             language = "ko"

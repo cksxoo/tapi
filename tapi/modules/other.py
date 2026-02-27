@@ -4,9 +4,11 @@ from discord.ext import commands
 
 from tapi.utils.language import get_lan
 from tapi import LOGGER
-from tapi.utils.database import Database
 from tapi.utils.v2_components import (
-    make_themed_container, make_banner_gallery, make_separator, send_temp_v2,
+    make_themed_container,
+    make_banner_gallery,
+    make_separator,
+    send_temp_v2,
 )
 
 
@@ -21,12 +23,14 @@ class Other(commands.Cog):
         desc = get_lan(interaction, "other_invite_description").format(link=link)
 
         layout = ui.LayoutView(timeout=None)
-        layout.add_item(make_themed_container(
-            ui.TextDisplay(f"## {title}"),
-            ui.TextDisplay(desc),
-            make_separator(),
-            make_banner_gallery(),
-        ))
+        layout.add_item(
+            make_themed_container(
+                ui.TextDisplay(f"## {title}"),
+                ui.TextDisplay(desc),
+                make_separator(),
+                make_banner_gallery(),
+            )
+        )
         await interaction.response.defer()
         await send_temp_v2(interaction, layout, delete_after=8, refresh_control=False)
 
@@ -37,23 +41,23 @@ class Other(commands.Cog):
         btn_label = get_lan(interaction, "coffee_button")
 
         layout = ui.LayoutView(timeout=None)
-        layout.add_item(make_themed_container(
-            ui.TextDisplay(f"## {title}"),
-            ui.TextDisplay(desc),
-            make_separator(),
-            make_banner_gallery(),
-            ui.ActionRow(
-                ui.Button(
-                    label=btn_label,
-                    url="https://buymeacoffee.com/cksxoo",
-                    style=discord.ButtonStyle.link,
-                )
-            ),
-        ))
+        layout.add_item(
+            make_themed_container(
+                ui.TextDisplay(f"## {title}"),
+                ui.TextDisplay(desc),
+                make_separator(),
+                make_banner_gallery(),
+                ui.ActionRow(
+                    ui.Button(
+                        label=btn_label,
+                        url="https://buymeacoffee.com/cksxoo",
+                        style=discord.ButtonStyle.link,
+                    )
+                ),
+            )
+        )
 
         await interaction.response.send_message(view=layout, ephemeral=True)
-
-
 
 
 async def setup(bot):
