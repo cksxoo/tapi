@@ -4,13 +4,15 @@
 
 v0.9.2: Channel Restriction
 
-- Bot Channel: Added `/channel` command — admins can designate a bot-only channel where slash commands are restricted
+- Cherry Blossom Edition: Updated bot description images and HTML with cherry blossom theme
+- Bot Settings: Added `/settings` command — admins can configure bot channel restriction and other settings
 
-### *February 25, 2026* | v0.9.2: 채널 제한
+### *February 27, 2026* | v0.9.2: 채널 제한
 
 |no|contents|
 |:---:|:---|
-|1| 봇 전용 채널: `/channel` 커맨드 추가 — 관리자가 봇 전용 채널을 지정하면 해당 채널에서만 슬래시 커맨드 사용 가능|
+|1| 🌸 벚꽃 에디션: 봇 소개 이미지 및 설명 벚꽃 테마로 업데이트|
+|2| 봇 설정 커맨드: `/settings` 커맨드 추가 — 봇 전용 채널 지정 등 설정 가능|
 
 ---
 
