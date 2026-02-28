@@ -20,6 +20,7 @@ class SettingCmd(commands.Cog):
         option=[
             Choice(name="Set/Unset Bot Channel", value="channel"),
             Choice(name="Auto Delete Messages Toggle", value="autodel"),
+            Choice(name="Instant/Delayed Disconnect Toggle", value="instant_disconnect"),
         ]
     )
     async def setting(self, interaction: discord.Interaction, option: str):
@@ -33,6 +34,19 @@ class SettingCmd(commands.Cog):
                 msg = get_lan(interaction, "setting_autodel_result_on")
             else:
                 msg = get_lan(interaction, "setting_autodel_result_off")
+
+            await interaction.response.send_message(msg, ephemeral=True)
+
+        elif option == "instant_disconnect":
+            db = Database()
+            current_state = db.get_instant_disconnect(interaction.guild.id)
+            new_state = not current_state
+            db.set_instant_disconnect(interaction.guild.id, new_state)
+
+            if new_state:
+                msg = get_lan(interaction, "setting_instant_disconnect_result_on")
+            else:
+                msg = get_lan(interaction, "setting_instant_disconnect_result_off")
 
             await interaction.response.send_message(msg, ephemeral=True)
 

@@ -115,5 +115,7 @@
     "channel_set_description": "{channel} がボット専用チャンネルに設定されたよ！\nスラッシュコマンドはここだけで使えるよ。",
     "channel_unset_title": "ボット専用チャンネル設定解除",
     "channel_unset_description": "{channel} のボット専用チャンネル設定を解除したよ。\nすべてのチャンネルでコマンドが使えるようになったよ。",
-    "channel_restrict_message": "⚠️ ボットのコマンドは {channel} チャンネルでのみ使えるよ。"
+    "channel_restrict_message": "⚠️ ボットのコマンドは {channel} チャンネルでのみ使えるよ。",
+    "setting_instant_disconnect_result_on": "即時退出が**オン**になったよ。（キュー終了時すぐに退出）",
+    "setting_instant_disconnect_result_off": "遅延退出が設定されたよ。（キュー終了後30秒待機）"
 }

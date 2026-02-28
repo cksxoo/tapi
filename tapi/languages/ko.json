@@ -123,5 +123,7 @@
     "setting_autodel_on": "켜기",
     "setting_autodel_off": "끄기",
     "setting_autodel_result_on": "메시지 자동 삭제가 **켜짐** 상태로 설정되었습니다.",
-    "setting_autodel_result_off": "메시지 자동 삭제가 **꺼짐** 상태로 설정되었습니다. (메시지가 삭제되지 않습니다)"
+    "setting_autodel_result_off": "메시지 자동 삭제가 **꺼짐** 상태로 설정되었습니다. (메시지가 삭제되지 않습니다)",
+    "setting_instant_disconnect_result_on": "즉시 퇴장이 **켜짐** 상태로 설정되었습니다. (큐 종료 시 바로 퇴장)",
+    "setting_instant_disconnect_result_off": "지연 퇴장이 설정되었습니다. (큐 종료 후 30초 대기)"
 }

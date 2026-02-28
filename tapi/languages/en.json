@@ -122,5 +122,7 @@
     "setting_autodel_on": "ON",
     "setting_autodel_off": "OFF",
     "setting_autodel_result_on": "Auto-delete is now **ON**.",
-    "setting_autodel_result_off": "Auto-delete is now **OFF**. (Messages will not be deleted)"
+    "setting_autodel_result_off": "Auto-delete is now **OFF**. (Messages will not be deleted)",
+    "setting_instant_disconnect_result_on": "Instant disconnect is now **ON**. (Leaves immediately when queue ends)",
+    "setting_instant_disconnect_result_off": "Delayed disconnect is now **ON**. (Waits 30 seconds before leaving)"
 }

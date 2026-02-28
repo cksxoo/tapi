@@ -165,6 +165,15 @@ class Database:
         """길드 메시지 자동 삭제 설정"""
         self.upsert_guild_settings(guild_id, autodel=autodel)
 
+    def get_instant_disconnect(self, guild_id):
+        """길드 즉시 퇴장 설정 가져오기 (True=즉시, False=30초 후)"""
+        settings = self.get_guild_settings(guild_id)
+        return settings.get("instant_disconnect", True)
+
+    def set_instant_disconnect(self, guild_id, instant_disconnect):
+        """길드 즉시 퇴장 설정"""
+        self.upsert_guild_settings(guild_id, instant_disconnect=instant_disconnect)
+
     def get_guild_settings(self, guild_id):
         """길드 설정 통합 조회 (캐시 활용)"""
         # 캐시 확인
@@ -180,6 +189,7 @@ class Database:
                 "loop_mode": 0,
                 "shuffle": False,
                 "autodel": True,
+                "instant_disconnect": True,
             }
 
         try:
@@ -202,6 +212,7 @@ class Database:
                     "loop_mode": 0,
                     "shuffle": False,
                     "autodel": True,
+                    "instant_disconnect": True,
                 }
                 return default_settings
 
@@ -213,6 +224,7 @@ class Database:
                 "loop_mode": 0,
                 "shuffle": False,
                 "autodel": True,
+                "instant_disconnect": True,
             }
 
     def upsert_guild_settings(self, guild_id, **kwargs):
