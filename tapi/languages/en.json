@@ -2,7 +2,7 @@
     "help_main_title": "TAPI",
     "help_main_description": "A music bot for Discord.\n\nCheck out the commands below!",
     "help_general_title": "General",
-    "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI\n`/setting [Option]` - Configure bot settings (Admin)",
+    "help_general_description": "`/invite` - Invite bot to other servers\n`/coffee` - Support TAPI\n`/setting [Option]` - Configure bot settings (Admin)\n\u3000`channel` - Set/unset bot-only channel\n\u3000`autodel` - Toggle auto-delete messages\n\u3000`instant_disconnect` - Toggle instant/delayed disconnect",
     "help_music_title": "Music",
     "help_music_description": "**Playback**\n`/play [song/link/playlist]` - Play music (YouTube, Spotify)\n`/spplay [song/link]` - Search and play from Spotify\n`/scplay [song/link]` - Search and play from SoundCloud\n`/search [keyword]` - Search and select songs\n*(Pause, skip, etc. are controlled via buttons during playback)*\n\n**Queue & Volume**\n`/volume [1-100]` - Adjust volume\n`/queue` - View queue\n`/remove [number]` - Remove song from queue\n`/clear` - Clear entire queue\n*(Shuffle and repeat are controlled via buttons during playback)*\n\n**More**\n`/nowplaying` - Current song info\n\n**Playlists**\n`/save` - Save current queue as your playlist\n`/load` - Load your saved playlist",
     "welcome_title": "Thanks for adding TAPI!",

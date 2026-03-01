@@ -2,7 +2,7 @@
     "help_main_title": "TAPI",
     "help_main_description": "Discord 음악 봇이에요.\n\n아래 버튼으로 명령어를 확인해보세요!",
     "help_general_title": "일반",
-    "help_general_description": "`/invite` - 다른 서버에 봇 초대\n`/coffee` - TAPI 후원하기\n`/setting [옵션]` - 봇 설정 변경 (관리자)",
+    "help_general_description": "`/invite` - 다른 서버에 봇 초대\n`/coffee` - TAPI 후원하기\n`/setting [옵션]` - 봇 설정 변경 (관리자)\n\u3000`channel` - 봇 전용 채널 설정/해제\n\u3000`autodel` - 메시지 자동 삭제 토글\n\u3000`instant_disconnect` - 즉시/30초 후 퇴장 토글",
     "help_music_title": "음악",
     "help_music_description": "**재생**\n`/play [곡명/링크/재생목록]` - 음악 재생 (YouTube, Spotify)\n`/spplay [곡명/링크]` - Spotify에서 검색 및 재생\n`/scplay [곡명/링크]` - SoundCloud에서 검색 및 재생\n`/search [검색어]` - 곡 검색 및 선택 재생\n*(일시정지, 스킵 등은 곡 재생 시 나타나는 버튼으로 조작하세요)*\n\n**대기열 & 음량**\n`/volume [1-100]` - 음량 조절\n`/queue` - 대기열 확인\n`/remove [번호]` - 대기열에서 곡 제거\n`/clear` - 대기열 전체 비우기\n*(반복, 셔플 등은 곡 재생 시 나타나는 버튼으로 조작하세요)*\n\n**기타**\n`/nowplaying` - 현재 재생 중인 곡 정보\n\n**플레이리스트**\n`/save` - 현재 대기열을 플레이리스트로 저장\n`/load` - 저장된 플레이리스트 불러오기",
     "welcome_title": "TAPI를 추가해주셔서 감사해요!",

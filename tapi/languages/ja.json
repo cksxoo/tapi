@@ -2,7 +2,7 @@
     "help_main_title": "TAPI",
     "help_main_description": "Discordの音楽ボットだよ！\n\n下のボタンからコマンドをチェックしてね！",
     "help_general_title": "一般",
-    "help_general_description": "`/invite` - 他のサーバーにボットを招待\n`/coffee` - TAPIを応援する\n`/setting [オプション]` - ボットの設定 (管理者)",
+    "help_general_description": "`/invite` - 他のサーバーにボットを招待\n`/coffee` - TAPIを応援する\n`/setting [オプション]` - ボットの設定 (管理者)\n\u3000`channel` - ボット専用チャンネル設定/解除\n\u3000`autodel` - メッセージ自動削除トグル\n\u3000`instant_disconnect` - 即時/30秒後退出トグル",
     "help_music_title": "音楽",
     "help_music_description": "**再生**\n`/play [曲名/リンク/プレイリスト]` - 音楽を再生（YouTube、Spotify）\n`/spplay [曲名/リンク]` - Spotifyから検索・再生\n`/scplay [曲名/リンク]` - SoundCloudから検索・再生\n`/search [キーワード]` - 曲を検索して再生\n*(一時停止、スキップなどは再生中のボタンで操作してね)*\n\n**キュー＆音量**\n`/volume [1-100]` - 音量調節\n`/queue` - キューを確認\n`/remove [番号]` - キューから曲を削除\n`/clear` - キューを全てクリア\n*(シャッフル、リピートは再生中のボタンで操作してね)*\n\n**その他**\n`/nowplaying` - 現在再生中の曲情報\n\n**プレイリスト**\n`/save` - 現在のキューをプレイリストとして保存\n`/load` - 保存したプレイリストを読み込む",
     "welcome_title": "TAPIを追加してくれてありがとう！",
