@@ -402,7 +402,7 @@ class MusicHandlers:
                     )
                     return
                 player.store("channel", message.channel.id)
-                await voice_channel.connect(cls=AudioConnection)
+                await voice_channel.connect(cls=AudioConnection, self_deaf=True)
             elif message.guild.voice_client.channel.id != voice_channel.id:
                 await message.channel.send(
                     f"⚠️ {message.author.mention} 봇이 있는 음성 채널로 입장해 주세요!",

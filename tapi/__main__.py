@@ -608,7 +608,7 @@ class TapiBot(commands.Bot):
 
             # 음성 채널 연결
             try:
-                await voice_channel.connect(cls=AudioConnection)
+                await voice_channel.connect(cls=AudioConnection, self_deaf=True)
             except Exception as e:
                 LOGGER.error(
                     f"Failed to connect to voice channel in guild {guild.id}: {e}"
