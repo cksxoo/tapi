@@ -23,7 +23,7 @@ x-bot-base: &bot-base
 
 services:
   lavalink:
-    image: ghcr.io/lavalink-devs/lavalink:4.1.1
+    image: ghcr.io/lavalink-devs/lavalink:4.2.1
     container_name: lavalink
     ports:
       - "2333:2333"

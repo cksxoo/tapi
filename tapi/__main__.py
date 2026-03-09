@@ -81,8 +81,8 @@ class TapiBot(commands.Bot):
         if interaction.guild is None:
             return True
 
-        # /channel 명령어 자체는 채널 제한 없이 허용
-        if interaction.command and interaction.command.name == "channel":
+        # /setting 명령어는 채널 제한 없이 허용 (채널 설정 변경을 위해 필요)
+        if interaction.command and interaction.command.name == "setting":
             return True
 
         # DB에서 봇 전용 채널 조회
@@ -608,7 +608,7 @@ class TapiBot(commands.Bot):
 
             # 음성 채널 연결
             try:
-                await voice_channel.connect(cls=AudioConnection)
+                await voice_channel.connect(cls=AudioConnection, self_deaf=True)
             except Exception as e:
                 LOGGER.error(
                     f"Failed to connect to voice channel in guild {guild.id}: {e}"

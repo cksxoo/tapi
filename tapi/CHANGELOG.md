@@ -2,6 +2,24 @@
 
 ---
 
+v0.9.3: Bug Fixes & Discord Voice Encryption Update
+
+- Fixed an issue where the /setting command could not be used in the designated bot channel
+- Fixed music playback failure caused by Discord's updated voice encryption policy
+- Fixed YouTube source errors
+- Applied self_deaf when connecting to voice channels
+
+### *March 3, 2026* | v0.9.3: 버그 수정 & Discord 음성 암호화 대응
+
+|no|contents|
+|:---:|:---|
+|1| /setting 명령어가 지정된 봇 채널에서 사용 불가능하던 문제 수정|
+|2| Discord 음성 암호화 정책 변경으로 인한 음악 재생 불가 문제 수정|
+|3| YouTube 소스 오류 수정|
+|4| 음성 채널 연결 시 self_deaf 적용|
+
+---
+
 v0.9.2: 🌸 Cherry Blossom Edition & Bot Settings
 
 - 🌸 Cherry Blossom Edition: Updated bot description images and HTML with cherry blossom theme

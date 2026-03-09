@@ -273,7 +273,7 @@ class Music(commands.Cog):
             await Music._validate_voice_permissions(interaction, voice_channel)
             player.store("channel", interaction.channel.id)
             setattr(player, "_tapi_just_connected", True)
-            await voice_channel.connect(cls=AudioConnection)
+            await voice_channel.connect(cls=AudioConnection, self_deaf=True)
         elif voice_client.channel.id != voice_channel.id:
             raise app_commands.CheckFailure(
                 get_lan(interaction, "music_come_in_my_voice_channel")
