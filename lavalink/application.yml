@@ -71,3 +71,5 @@ logging:
     lavalink: INFO
     # 헬스체크 로그 줄이기 (HEAD /v4/info 요청 로그 숨김)
     lavalink.server.io.RequestLoggingFilter: WARN
+    # 재생 불가 URL 등 예상 가능한 로드 실패 stack trace 숨김
+    lavalink.server.player.AudioLoaderRestHandler: WARN
