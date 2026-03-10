@@ -163,12 +163,10 @@ class TapiBot(commands.Bot):
     async def status_task(self):
         await self.wait_until_ready()
 
-        # Status messages (순차적으로 표시)
         status_messages = [
-            "New Year, New Music!",
-            "Happy New Year 2026!",
+            "Spring Playlist 🌸",
+            "Spring Playlist 🌸",
         ]
-        # original_status = "🎶 ヾ(｡>﹏<｡)ﾉﾞ✧"
 
         index = 0
         while True:
