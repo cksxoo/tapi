@@ -2,6 +2,26 @@
 
 ---
 
+v0.9.4: Playlist Sharing
+
+- Playlist Share Code: Each playlist now gets a unique share code (e.g. `tapi-4l1Ch`)
+- `/play tapi-xxxxx`: Play anyone's shared playlist by entering their share code
+- `/save` now displays the share code in the success message
+- Web Share Button: Added Share button to the web playlist page — copies share code to clipboard
+- Buy Me a Coffee button added to the playlist page
+
+### *March 17, 2026* | v0.9.4: 플레이리스트 공유
+
+|no|contents|
+|:---:|:---|
+|1| 플레이리스트 공유 코드: 각 플레이리스트에 고유 공유 코드 부여 (예: `tapi-4l1Ch`)|
+|2| `/play tapi-xxxxx`: 공유 코드로 다른 사람의 플레이리스트 재생 가능|
+|3| `/save` 저장 완료 시 공유 코드 표시|
+|4| 웹 Share 버튼: 웹 플레이리스트 페이지에 공유 버튼 추가 — 클릭 시 코드 클립보드 복사|
+|5| 플레이리스트 페이지에 Buy Me a Coffee 버튼 추가|
+
+---
+
 v0.9.3: Bug Fixes & Discord Voice Encryption Update
 
 - Fixed an issue where the /setting command could not be used in the designated bot channel
