@@ -1,4 +1,6 @@
 import os
+import secrets
+import string
 from datetime import datetime, timezone, timedelta
 import logging
 import time
@@ -359,6 +361,11 @@ class Database:
 
     # ===== 플레이리스트 관련 메서드 =====
 
+    def _generate_code(self, length=5):
+        """공유용 고유 코드 생성 (영숫자 5자리)"""
+        alphabet = string.ascii_letters + string.digits
+        return "".join(secrets.choice(alphabet) for _ in range(length))
+
     def save_playlist(self, user_id, tracks):
         """사용자 플레이리스트 저장 (유저당 1개, upsert)"""
         client = self.get_client()
@@ -376,7 +383,26 @@ class Database:
                 client.table("playlists").upsert(data, on_conflict="user_id").execute()
             )
 
-            return response.data[0] if response.data else {}
+            row = response.data[0] if response.data else {}
+
+            # 첫 저장 시 공유 코드 생성
+            if row and not row.get("code"):
+                for _ in range(3):
+                    code = self._generate_code()
+                    try:
+                        update_resp = (
+                            client.table("playlists")
+                            .update({"code": code})
+                            .eq("user_id", str(user_id))
+                            .execute()
+                        )
+                        if update_resp.data:
+                            row["code"] = code
+                            break
+                    except Exception:
+                        continue
+
+            return row
 
         except Exception as e:
             LOGGER.error(f"Error saving playlist: {e}")
@@ -401,6 +427,27 @@ class Database:
 
         except Exception as e:
             LOGGER.error(f"Error loading playlist: {e}")
+            return None
+
+    def load_playlist_by_code(self, code):
+        """공유 코드로 플레이리스트 불러오기"""
+        client = self.get_client()
+        if not client:
+            return None
+
+        try:
+            response = (
+                client.table("playlists")
+                .select("*")
+                .eq("code", code)
+                .maybe_single()
+                .execute()
+            )
+
+            return response.data if response else None
+
+        except Exception as e:
+            LOGGER.error(f"Error loading playlist by code: {e}")
             return None
 
     def create_table(self):
