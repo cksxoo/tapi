@@ -2,6 +2,24 @@
 
 ---
 
+v0.9.5: Web Dashboard Recommendations & Queue Play
+
+- Queue Track Play: Click any track in the queue to play it immediately
+- Song Recommendations: Auto-generated recommendations based on current track (YouTube Mix)
+- Horizontal card UI with drag-scroll, auto-refresh on track change, and auto-refill
+- Skip To: Jump to any queued track without removing other tracks
+
+### *March 20, 2026* | v0.9.5: 웹 대시보드 추천 & 큐 재생
+
+|no|contents|
+|:---:|:---|
+|1| 큐 트랙 재생: 큐에서 곡을 클릭하면 즉시 해당 곡으로 건너뛰기|
+|2| 곡 추천: 현재 재생 곡 기반 YouTube Mix 자동 추천|
+|3| 가로 스크롤 카드 UI, 곡 변경 시 자동 갱신, 추천곡 재생 시 자동 리필|
+|4| Skip To: 다른 곡을 삭제하지 않고 큐의 특정 곡으로 이동|
+
+---
+
 v0.9.4: Playlist Sharing
 
 - Playlist Share Code: Each playlist now gets a unique share code (e.g. `tapi-4l1Ch`)

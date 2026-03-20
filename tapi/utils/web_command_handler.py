@@ -107,6 +107,27 @@ async def handle_skip(bot, guild_id: int, user_id: int, **_params):
     return {"success": True}
 
 
+async def handle_skip_to(bot, guild_id: int, user_id: int, index: int = 0, **_params):
+    valid, msg = validate_user_in_voice(bot, guild_id, user_id)
+    if not valid:
+        return {"success": False, "error": msg}
+
+    player = bot.lavalink.player_manager.get(guild_id)
+    if index < 0 or index >= len(player.queue):
+        return {"success": False, "error": "Invalid queue index"}
+
+    # 선택한 곡을 큐 맨 앞으로 이동
+    track = player.queue.pop(index)
+    player.queue.insert(0, track)
+
+    # 반복 모드가 한곡반복이면 전체반복으로 변경 (skip이 동작하도록)
+    if player.loop == 1:
+        player.set_loop(2)
+        Database().set_loop(guild_id, 2)
+    await player.skip()
+    return {"success": True}
+
+
 async def handle_stop(bot, guild_id: int, user_id: int, **_params):
     valid, msg = validate_user_in_voice(bot, guild_id, user_id)
     if not valid:
@@ -300,6 +321,51 @@ async def handle_get_state(bot, guild_id: int, user_id: int, **_params):
     return {"success": True, "data": state}
 
 
+async def handle_recommend(bot, guild_id: int, user_id: int, **_params):
+    """현재 재생 중인 곡 기반 YouTube Mix 추천 목록을 반환합니다."""
+    player = bot.lavalink.player_manager.get(guild_id)
+    if not player or not player.current:
+        return {"success": False, "error": "No track currently playing"}
+
+    video_id = player.current.identifier
+    if not video_id:
+        return {"success": False, "error": "Cannot identify current track"}
+
+    mix_url = f"https://www.youtube.com/watch?v={video_id}&list=RD{video_id}"
+
+    try:
+        results = await player.node.get_tracks(mix_url)
+        if not results or not results.tracks:
+            return {"success": False, "error": "No recommendations found"}
+
+        # 현재 재생 중인 곡 제외, 큐에 있는 곡도 제외
+        queue_uris = {t.uri for t in player.queue}
+        if player.current:
+            queue_uris.add(player.current.uri)
+
+        tracks = []
+        for track in results.tracks:
+            if track.uri in queue_uris:
+                continue
+            tracks.append(
+                {
+                    "title": track.title,
+                    "author": track.author,
+                    "uri": track.uri,
+                    "duration": track.duration,
+                    "identifier": track.identifier,
+                    "thumbnail": get_track_thumbnail(track),
+                }
+            )
+            if len(tracks) >= 10:
+                break
+
+        return {"success": True, "data": {"tracks": tracks}}
+    except Exception as e:
+        LOGGER.error(f"Error loading recommendations: {e}")
+        return {"success": False, "error": "Failed to load recommendations"}
+
+
 async def handle_resolve_track(
     bot, guild_id: int, user_id: int, url: str = "", **_params
 ):
@@ -348,7 +414,9 @@ COMMAND_HANDLERS = {
     "remove": handle_remove,
     "move": handle_move,
     "seek": handle_seek,
+    "skip_to": handle_skip_to,
     "resolve_track": handle_resolve_track,
+    "recommend": handle_recommend,
 }
 
 # guild_id가 필요 없는 글로벌 명령

@@ -92,7 +92,7 @@ async def _process_command(bot, data: dict):
         LOGGER.info(f"Web command failed: {command} - {result.get('error', 'unknown')}")
 
     # 상태 변경 시 player_update 발행 (search, 글로벌 명령 제외)
-    if result.get("success") and command not in ("search",) and not is_global:
+    if result.get("success") and command not in ("search", "recommend") and not is_global:
         state = get_player_state(bot, guild_id)
         await redis_manager.publish_player_update(guild_id, command, state)
 
