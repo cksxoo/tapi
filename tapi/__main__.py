@@ -385,10 +385,11 @@ class TapiBot(commands.Bot):
         import aiohttp
 
         KST = timezone(timedelta(hours=9))
-        SERVICES = ["shard_0", "shard_1", "bot", "lavalink", "web"]
+        SERVICES = ["shard_0", "shard_1", "bot", "lavalink", "web", "api"]
         LAVALINK_URL = f"http://{HOST}:{PORT}/v4/info"
         LAVALINK_HEADERS = {"Authorization": PSW}
         WEB_URL = os.getenv("WEB_URL", "http://tapi-web:3000/")
+        API_URL = "https://vote-worker.cksxoo.workers.dev/"
 
         while True:
             try:
@@ -432,6 +433,16 @@ class TapiBot(commands.Bot):
                             results["web"] = resp.status == 200
                 except Exception:
                     results["web"] = False
+
+                # API (vote-worker) 체크
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(
+                            API_URL, timeout=aiohttp.ClientTimeout(total=5)
+                        ) as resp:
+                            results["api"] = resp.status == 200
+                except Exception:
+                    results["api"] = False
 
                 # Redis 비트맵에 기록
                 for service in SERVICES:
