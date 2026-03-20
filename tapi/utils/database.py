@@ -450,6 +450,28 @@ class Database:
             LOGGER.error(f"Error loading playlist by code: {e}")
             return None
 
+    # ===== 업타임 히스토리 관련 메서드 =====
+
+    def insert_uptime_history(self, service: str, date_str: str, total_checks: int, up_checks: int):
+        """일별 업타임 집계를 Supabase에 저장합니다."""
+        client = self.get_client()
+        if not client:
+            return
+
+        try:
+            client.table("uptime_history").upsert(
+                {
+                    "service": service,
+                    "date": date_str,
+                    "total_checks": total_checks,
+                    "up_checks": up_checks,
+                },
+                on_conflict="service,date",
+            ).execute()
+            LOGGER.debug(f"Inserted uptime history: {service} {date_str} {up_checks}/{total_checks}")
+        except Exception as e:
+            LOGGER.error(f"Error inserting uptime history: {e}")
+
     def create_table(self):
         """테이블 생성 (Supabase에서는 SQL Editor에서 직접 실행)"""
         LOGGER.info("Tables should be created directly in Supabase SQL Editor")

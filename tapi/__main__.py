@@ -155,10 +155,11 @@ class TapiBot(commands.Bot):
         # 점검 후 재생 상태 복원 (잠시 대기 후 실행)
         self.loop.create_task(self._delayed_restore_playback())
 
-        # shard 0만 봇 통계 업데이트 담당
+        # shard 0만 봇 통계 업데이트 및 업타임 모니터링 담당
         if getattr(self, "shard_id", 0) == 0 or not hasattr(self, "shard_id"):
             self.loop.create_task(self.stats_update_task())
-            LOGGER.info("Bot stats update task started")
+            self.loop.create_task(self.uptime_check_task())
+            LOGGER.info("Bot stats update & uptime check tasks started")
 
     async def status_task(self):
         await self.wait_until_ready()
@@ -375,6 +376,89 @@ class TapiBot(commands.Bot):
             except Exception as e:
                 LOGGER.error(f"Error in stats_update_task: {e}")
                 await asyncio.sleep(600)  # 에러 발생 시 10분 대기
+
+    async def uptime_check_task(self):
+        """업타임 모니터링 태스크 (shard 0만, 5분 간격)"""
+        await self.wait_until_ready()
+        await asyncio.sleep(60)  # 초기 대기
+
+        import aiohttp
+
+        KST = timezone(timedelta(hours=9))
+        SERVICES = ["shard_0", "shard_1", "bot", "lavalink", "web"]
+        LAVALINK_URL = f"http://{HOST}:{PORT}/v4/info"
+        LAVALINK_HEADERS = {"Authorization": PSW}
+        WEB_URL = os.getenv("WEB_URL", "http://tapi-web:3000/")
+
+        while True:
+            try:
+                now = datetime.datetime.now(KST)
+                date_str = now.strftime("%Y-%m-%d")
+                check_index = (now.hour * 60 + now.minute) // 5  # 0-287
+
+                # 샤드 상태 체크 (Redis 타임스탬프 45초 이내)
+                shard_statuses = redis_manager.get_all_shard_statuses()
+                shard_up = {}
+                for sid in range(getattr(self, "shard_count", 1)):
+                    shard_data = shard_statuses.get(sid)
+                    if shard_data and shard_data.get("timestamp"):
+                        ts = datetime.datetime.fromisoformat(shard_data["timestamp"])
+                        shard_up[sid] = (now - ts).total_seconds() < 45
+                    else:
+                        shard_up[sid] = False
+
+                results = {
+                    "shard_0": shard_up.get(0, False),
+                    "shard_1": shard_up.get(1, False),
+                    "bot": any(shard_up.values()),
+                }
+
+                # Lavalink 체크
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(
+                            LAVALINK_URL, headers=LAVALINK_HEADERS, timeout=aiohttp.ClientTimeout(total=5)
+                        ) as resp:
+                            results["lavalink"] = resp.status == 200
+                except Exception:
+                    results["lavalink"] = False
+
+                # Web 체크
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(
+                            WEB_URL, timeout=aiohttp.ClientTimeout(total=5)
+                        ) as resp:
+                            results["web"] = resp.status == 200
+                except Exception:
+                    results["web"] = False
+
+                # Redis 비트맵에 기록
+                for service in SERVICES:
+                    is_up = results.get(service, False)
+                    redis_manager.record_uptime_check(service, date_str, check_index, is_up)
+
+                LOGGER.debug(f"Uptime check recorded: {results}")
+
+                # 전날 집계 시도
+                yesterday = (now - timedelta(days=1)).strftime("%Y-%m-%d")
+                if not redis_manager.is_uptime_aggregated(yesterday):
+                    from tapi.utils.database import Database
+                    db = Database()
+                    for service in SERVICES:
+                        summary = redis_manager.get_uptime_summary(service, yesterday)
+                        if summary["total_checks"] > 0:
+                            db.insert_uptime_history(
+                                service, yesterday,
+                                summary["total_checks"], summary["up_checks"]
+                            )
+                    redis_manager.mark_uptime_aggregated(yesterday)
+                    LOGGER.info(f"Uptime aggregated for {yesterday}")
+
+            except Exception as e:
+                LOGGER.error(f"Error in uptime_check_task: {e}")
+
+            await asyncio.sleep(300)  # 5분
 
     async def close(self):
         """봇 종료 시 자동 공지 - 각 샤드가 자기 활성 플레이어에게 직접 전송"""

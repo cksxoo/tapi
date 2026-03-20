@@ -253,6 +253,88 @@ class RedisManager:
             except Exception as e:
                 LOGGER.error(f"Unexpected error clearing playback state: {e}")
 
+    # --- Uptime 모니터링 (비트맵) ---
+
+    UPTIME_CHECK_PREFIX = "uptime:checks:"
+    UPTIME_COUNT_PREFIX = "uptime:check_count:"
+    UPTIME_AGGREGATED_PREFIX = "uptime:aggregated:"
+    UPTIME_TTL = 60 * 60 * 48  # 2일
+
+    def record_uptime_check(self, service: str, date_str: str, check_index: int, is_up: bool):
+        """업타임 체크 결과를 Redis 비트맵에 기록합니다."""
+        if not self.available:
+            return
+
+        client = self.get_client()
+        if client:
+            try:
+                bitmap_key = f"{self.UPTIME_CHECK_PREFIX}{service}:{date_str}"
+                count_key = f"{self.UPTIME_COUNT_PREFIX}{service}:{date_str}"
+
+                if is_up:
+                    client.setbit(bitmap_key, check_index, 1)
+                else:
+                    client.setbit(bitmap_key, check_index, 0)
+
+                # 체크 카운트 증가
+                client.incr(count_key)
+
+                # TTL 설정 (키가 새로 생성된 경우)
+                if client.ttl(bitmap_key) < 0:
+                    client.expire(bitmap_key, self.UPTIME_TTL)
+                if client.ttl(count_key) < 0:
+                    client.expire(count_key, self.UPTIME_TTL)
+            except Exception as e:
+                LOGGER.error(f"Failed to record uptime check: {e}")
+
+    def get_uptime_summary(self, service: str, date_str: str) -> dict:
+        """특정 날짜의 업타임 요약을 반환합니다."""
+        if not self.available:
+            return {"up_checks": 0, "total_checks": 0}
+
+        client = self.get_client()
+        if client:
+            try:
+                bitmap_key = f"{self.UPTIME_CHECK_PREFIX}{service}:{date_str}"
+                count_key = f"{self.UPTIME_COUNT_PREFIX}{service}:{date_str}"
+
+                up_checks = client.bitcount(bitmap_key)
+                total_checks = client.get(count_key)
+                total_checks = int(total_checks) if total_checks else 0
+
+                return {"up_checks": up_checks, "total_checks": total_checks}
+            except Exception as e:
+                LOGGER.error(f"Failed to get uptime summary: {e}")
+        return {"up_checks": 0, "total_checks": 0}
+
+    def is_uptime_aggregated(self, date_str: str) -> bool:
+        """해당 날짜의 업타임이 이미 집계되었는지 확인합니다."""
+        if not self.available:
+            return True
+
+        client = self.get_client()
+        if client:
+            try:
+                return bool(client.get(f"{self.UPTIME_AGGREGATED_PREFIX}{date_str}"))
+            except Exception:
+                return True
+        return True
+
+    def mark_uptime_aggregated(self, date_str: str):
+        """해당 날짜의 업타임 집계 완료를 표시합니다."""
+        if not self.available:
+            return
+
+        client = self.get_client()
+        if client:
+            try:
+                client.set(
+                    f"{self.UPTIME_AGGREGATED_PREFIX}{date_str}", "1",
+                    ex=60 * 60 * 72  # 3일
+                )
+            except Exception as e:
+                LOGGER.error(f"Failed to mark uptime aggregated: {e}")
+
     # --- Async Pub/Sub (웹 대시보드 양방향 통신) ---
 
     def get_async_client(self):
