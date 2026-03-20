@@ -116,15 +116,16 @@ async def handle_skip_to(bot, guild_id: int, user_id: int, index: int = 0, **_pa
     if index < 0 or index >= len(player.queue):
         return {"success": False, "error": "Invalid queue index"}
 
-    # 선택한 곡을 큐 맨 앞으로 이동
+    # 선택한 곡을 큐에서 꺼내서 직접 재생
+    # player.skip() -> play()는 셔플 시 randrange로 랜덤 곡을 뽑기 때문에
+    # play(track)으로 직접 전달하여 셔플 로직을 우회
     track = player.queue.pop(index)
-    player.queue.insert(0, track)
 
-    # 반복 모드가 한곡반복이면 전체반복으로 변경 (skip이 동작하도록)
+    # 반복 모드가 한곡반복이면 전체반복으로 변경
     if player.loop == 1:
         player.set_loop(2)
         Database().set_loop(guild_id, 2)
-    await player.skip()
+    await player.play(track)
     return {"success": True}
 
 
