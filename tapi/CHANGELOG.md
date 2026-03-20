@@ -8,6 +8,7 @@ v0.9.5: Web Dashboard Recommendations & Queue Play
 - Song Recommendations: Auto-generated recommendations based on current track (YouTube Mix)
 - Horizontal card UI with drag-scroll, auto-refresh on track change, and auto-refill
 - Skip To: Jump to any queued track without removing other tracks
+- Uptime History: 90-day service uptime bar chart on the status page
 
 ### *March 20, 2026* | v0.9.5: 웹 대시보드 추천 & 큐 재생
 
@@ -17,6 +18,7 @@ v0.9.5: Web Dashboard Recommendations & Queue Play
 |2| 곡 추천: 현재 재생 곡 기반 YouTube Mix 자동 추천|
 |3| 가로 스크롤 카드 UI, 곡 변경 시 자동 갱신, 추천곡 재생 시 자동 리필|
 |4| Skip To: 다른 곡을 삭제하지 않고 큐의 특정 곡으로 이동|
+|5| 업타임 히스토리: 상태 페이지에 90일간 서비스별 가동률 바 차트 추가|
 
 ---
 
