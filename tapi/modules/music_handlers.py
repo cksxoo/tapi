@@ -308,50 +308,50 @@ class MusicHandlers:
         if before.channel != bot_voice_channel:
             return
 
-            # 음성 채널에 남아있는 사용자 수 확인 (봇 제외)
-            non_bot_members = [m for m in bot_voice_channel.members if not m.bot]
+        # 음성 채널에 남아있는 사용자 수 확인 (봇 제외)
+        non_bot_members = [m for m in bot_voice_channel.members if not m.bot]
 
-            # 봇만 남아있다면 연결 해제
-            if len(non_bot_members) == 0:
-                db = Database()
-                if db.get_instant_disconnect(guild.id):
-                    # 즉시 퇴장
+        # 봇만 남아있다면 연결 해제
+        if len(non_bot_members) == 0:
+            db = Database()
+            if db.get_instant_disconnect(guild.id):
+                # 즉시 퇴장
+                try:
+                    await self._full_disconnect_cleanup(
+                        guild.id,
+                        "auto_disconnect",
+                    )
+                    LOGGER.info(
+                        f"Auto-disconnected from voice channel in guild {guild.name}"
+                    )
+                except Exception as e:
+                    LOGGER.error(
+                        f"Error during auto-disconnect in guild {guild.name}: {e}"
+                    )
+            else:
+                # 30초 후 퇴장
+                self._cancel_disconnect_task(guild.id)
+
+                async def delayed_auto_disconnect(g_id, g_name):
                     try:
+                        await asyncio.sleep(30)
                         await self._full_disconnect_cleanup(
-                            guild.id,
-                            "auto_disconnect",
+                            g_id, "auto_disconnect_delayed"
                         )
                         LOGGER.info(
-                            f"Auto-disconnected from voice channel in guild {guild.name}"
+                            f"Delayed auto-disconnect from voice channel in guild {g_name}"
                         )
+                    except asyncio.CancelledError:
+                        pass
                     except Exception as e:
                         LOGGER.error(
-                            f"Error during auto-disconnect in guild {guild.name}: {e}"
+                            f"Error during delayed auto-disconnect in guild {g_name}: {e}"
                         )
-                else:
-                    # 30초 후 퇴장
-                    self._cancel_disconnect_task(guild.id)
+                    finally:
+                        self._disconnect_tasks.pop(g_id, None)
 
-                    async def delayed_auto_disconnect(g_id, g_name):
-                        try:
-                            await asyncio.sleep(30)
-                            await self._full_disconnect_cleanup(
-                                g_id, "auto_disconnect_delayed"
-                            )
-                            LOGGER.info(
-                                f"Delayed auto-disconnect from voice channel in guild {g_name}"
-                            )
-                        except asyncio.CancelledError:
-                            pass
-                        except Exception as e:
-                            LOGGER.error(
-                                f"Error during delayed auto-disconnect in guild {g_name}: {e}"
-                            )
-                        finally:
-                            self._disconnect_tasks.pop(g_id, None)
-
-                    self._disconnect_tasks[guild.id] = asyncio.create_task(
-                        delayed_auto_disconnect(guild.id, guild.name)
+                self._disconnect_tasks[guild.id] = asyncio.create_task(
+                    delayed_auto_disconnect(guild.id, guild.name)
                     )
 
     async def handle_autoplay_message(self, message: discord.Message):
