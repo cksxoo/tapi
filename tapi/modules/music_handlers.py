@@ -281,26 +281,32 @@ class MusicHandlers:
         if member.bot:
             return
 
-        # 사용자가 봇이 있는 채널에 들어오면 대기 중인 퇴장 타이머 취소
-        if after.channel and not before.channel:
+        # 사용자가 봇이 있는 채널에 들어오거나 이동해오면 대기 중인 퇴장 타이머 취소
+        if after.channel:
             guild = after.channel.guild
             if guild.voice_client and after.channel == guild.voice_client.channel:
                 self._cancel_disconnect_task(guild.id)
 
-        # 사용자가 음성 채널에서 나간 경우만 처리
-        if before.channel and not after.channel:
-            guild = before.channel.guild
+        # 사용자가 음성 채널에서 나가거나 다른 채널로 이동한 경우 처리
+        if not before.channel:
+            return
 
-            # 봇이 해당 길드의 음성 채널에 연결되어 있는지 확인
-            if not guild.voice_client:
-                return
+        guild = before.channel.guild
 
-            # 봇이 연결된 음성 채널 확인
-            bot_voice_channel = guild.voice_client.channel
+        # 같은 채널 내 상태 변경(음소거 등)은 무시
+        if after.channel == before.channel:
+            return
 
-            # 사용자가 나간 채널이 봇이 있는 채널과 같은지 확인
-            if before.channel != bot_voice_channel:
-                return
+        # 봇이 해당 길드의 음성 채널에 연결되어 있는지 확인
+        if not guild.voice_client:
+            return
+
+        # 봇이 연결된 음성 채널 확인
+        bot_voice_channel = guild.voice_client.channel
+
+        # 사용자가 나간 채널이 봇이 있는 채널과 같은지 확인
+        if before.channel != bot_voice_channel:
+            return
 
             # 음성 채널에 남아있는 사용자 수 확인 (봇 제외)
             non_bot_members = [m for m in bot_voice_channel.members if not m.bot]
