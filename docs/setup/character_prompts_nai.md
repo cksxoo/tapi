@@ -97,6 +97,16 @@ chromatic aberration, text, error, jpeg artifacts, watermark, scan, scan artifac
 [[artist:canape_(canape0130)]], artist:mi2mi2_minmi, {artist:ratatatat74}, year 2024,
 ```
 
+### cheat sheet
+
+```
+nsfw,
+
+0.8::laliberte::, 0.6::honjou raita::, 0.8::kim hyung tae::, 0.6::cle masahiro::,
+0.2::abubu::, 0.8::pottsness::, 0.6::parsley-f::, 0.6::sincos::,
+0.6::artist:ratatatat74, ::
+```
+
 ---
 
 ## 템플릿
@@ -228,6 +238,24 @@ balcony, {cherry blossoms}, petals falling, morning sunlight,
 spring, backlight, hair blowing, {depth of field}
 ```
 - 추가 Negative: `night, winter, indoor, dark colors`
+
+#### Spring - Stairway Sit
+
+```
+..., expressionless, looking away, leather jacket, black dress, thigh highs,
+sitting on stairs, legs crossed, {cherry blossoms}, petals on steps,
+spring, overcast, muted colors, eye level, {depth of field}
+```
+- 추가 Negative: `night, winter, indoor, dark atmosphere`
+
+#### Spring - Puddle Reflection
+
+```
+..., {looking down}, crouching, oversized hoodie, bare legs, sneakers,
+puddle, {reflection}, {cherry blossom petals} on water, wet ground,
+spring, after rain, overcast, soft lighting, {depth of field}
+```
+- 추가 Negative: `night, winter, indoor, sunny`
 
 ---
 
