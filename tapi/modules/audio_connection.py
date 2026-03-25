@@ -90,14 +90,18 @@ class AudioConnection(discord.VoiceClient):
             if not force and not player.is_connected:
                 return
 
-            # None means disconnect
-            await self.channel.guild.change_voice_state(channel=None)
-
             # update the channel_id of the player to None
             # this must be done because the on_voice_state_update that would set channel_id
             # to None doesn't get dispatched after the disconnect
             player.channel_id = None
-            await self._destroy()
+
+        # None means disconnect — always leave the voice channel even if player is gone
+        try:
+            await self.channel.guild.change_voice_state(channel=None)
+        except Exception as e:
+            LOGGER.warning(f"Failed to change voice state during disconnect: {e}")
+
+        await self._destroy()
 
     async def _destroy(self):
         self.cleanup()

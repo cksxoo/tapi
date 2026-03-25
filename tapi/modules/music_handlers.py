@@ -62,13 +62,13 @@ class MusicHandlers:
         reason: str = "disconnect",
     ):
         """완전한 연결 해제 정리 (메시지 + 플레이어 + 음성 연결)"""
+        # 0. 대기 중인 지연 퇴장 타이머 취소 (QueueEndEvent 등과의 race 방지)
+        self._cancel_disconnect_task(guild_id)
+
         # 1. 음악 메시지 정리
         await self._cleanup_music_message(guild_id, reason)
 
-        # 2. 플레이어 정리
-        await self._cleanup_player(guild_id)
-
-        # 3. 음성 연결 해제
+        # 2. 음성 연결 해제 (player.stop → QueueEndEvent race 방지를 위해 먼저 연결 해제)
         try:
             guild = self.bot.get_guild(guild_id)
             if guild and guild.voice_client:
@@ -76,6 +76,9 @@ class MusicHandlers:
                 LOGGER.debug(f"Voice client disconnected for guild {guild_id}")
         except Exception as e:
             LOGGER.error(f"Error disconnecting voice client for guild {guild_id}: {e}")
+
+        # 3. 플레이어 정리 (disconnect 후 실행하여 QueueEndEvent가 다시 disconnect 시도하지 않도록)
+        await self._cleanup_player(guild_id)
 
     def _cancel_disconnect_task(self, guild_id: int):
         """대기 중인 지연 퇴장 타이머 취소"""
