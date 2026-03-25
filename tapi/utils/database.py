@@ -452,11 +452,12 @@ class Database:
 
     # ===== 업타임 히스토리 관련 메서드 =====
 
-    def insert_uptime_history(self, service: str, date_str: str, total_checks: int, up_checks: int):
-        """일별 업타임 집계를 Supabase에 저장합니다."""
+    def insert_uptime_history(self, service: str, date_str: str, total_checks: int, up_checks: int) -> bool:
+        """일별 업타임 집계를 Supabase에 저장합니다. 성공 시 True 반환."""
         client = self.get_client()
         if not client:
-            return
+            LOGGER.error("insert_uptime_history: Supabase client not available")
+            return False
 
         try:
             client.table("uptime_history").upsert(
@@ -468,9 +469,11 @@ class Database:
                 },
                 on_conflict="service,date",
             ).execute()
-            LOGGER.debug(f"Inserted uptime history: {service} {date_str} {up_checks}/{total_checks}")
+            LOGGER.info(f"Inserted uptime history: {service} {date_str} {up_checks}/{total_checks}")
+            return True
         except Exception as e:
             LOGGER.error(f"Error inserting uptime history: {e}")
+            return False
 
     def create_table(self):
         """테이블 생성 (Supabase에서는 SQL Editor에서 직접 실행)"""
