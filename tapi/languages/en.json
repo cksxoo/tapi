@@ -46,7 +46,7 @@
     "playlist_saved_desc": "{count} tracks saved!",
     "playlist_save_empty": "Nothing to save! Play some music first.",
     "playlist_save_error": "Couldn't save the playlist. Try again!",
-    "playlist_save_truncated": "Only the first {max} tracks were saved (beta limit).",
+    "playlist_save_truncated": "Only the first {max} tracks were saved.",
     "playlist_loaded": "Playlist loaded!",
     "playlist_loaded_desc": "{count} tracks added to queue!",
     "playlist_loading": "Loading playlist ({count} tracks)...",
