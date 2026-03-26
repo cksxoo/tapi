@@ -239,10 +239,7 @@ class MusicHandlers:
             db = Database()
             if db.get_instant_disconnect(guild_id):
                 # 즉시 퇴장
-                try:
-                    await guild.voice_client.disconnect(force=True)
-                except Exception as e:
-                    LOGGER.error(f"Error disconnecting voice client: {e}")
+                await self._full_disconnect_cleanup(guild_id, "queue_end")
             else:
                 # 30초 후 퇴장
                 self._cancel_disconnect_task(guild_id)
@@ -250,10 +247,10 @@ class MusicHandlers:
                 async def delayed_disconnect():
                     try:
                         await asyncio.sleep(30)
-                        g = self.bot.get_guild(guild_id)
-                        if g and g.voice_client:
-                            await g.voice_client.disconnect(force=True)
-                            LOGGER.debug(f"Delayed disconnect for guild {guild_id}")
+                        await self._full_disconnect_cleanup(
+                            guild_id, "queue_end_delayed"
+                        )
+                        LOGGER.debug(f"Delayed disconnect for guild {guild_id}")
                     except asyncio.CancelledError:
                         pass
                     except Exception as e:
