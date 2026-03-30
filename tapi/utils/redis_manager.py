@@ -270,20 +270,26 @@ class RedisManager:
             try:
                 bitmap_key = f"{self.UPTIME_CHECK_PREFIX}{service}:{date_str}"
                 count_key = f"{self.UPTIME_COUNT_PREFIX}{service}:{date_str}"
+                seen_key = f"uptime:seen:{service}:{date_str}"
 
                 if is_up:
                     client.setbit(bitmap_key, check_index, 1)
                 else:
                     client.setbit(bitmap_key, check_index, 0)
 
-                # 체크 카운트 증가
-                client.incr(count_key)
+                # 해당 check_index가 처음 기록되는 경우에만 카운트 증가
+                # (봇 재시작 등으로 같은 슬롯이 중복 기록되는 것 방지)
+                newly_added = client.sadd(seen_key, check_index)
+                if newly_added:
+                    client.incr(count_key)
 
                 # TTL 설정 (키가 새로 생성된 경우)
                 if client.ttl(bitmap_key) < 0:
                     client.expire(bitmap_key, self.UPTIME_TTL)
                 if client.ttl(count_key) < 0:
                     client.expire(count_key, self.UPTIME_TTL)
+                if client.ttl(seen_key) < 0:
+                    client.expire(seen_key, self.UPTIME_TTL)
             except Exception as e:
                 LOGGER.error(f"Failed to record uptime check: {e}")
 

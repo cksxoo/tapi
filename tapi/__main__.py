@@ -456,15 +456,26 @@ class TapiBot(commands.Bot):
                 if not redis_manager.is_uptime_aggregated(yesterday):
                     from tapi.utils.database import Database
                     db = Database()
+                    all_success = True
+                    inserted_count = 0
                     for service in SERVICES:
                         summary = redis_manager.get_uptime_summary(service, yesterday)
                         if summary["total_checks"] > 0:
-                            db.insert_uptime_history(
+                            success = db.insert_uptime_history(
                                 service, yesterday,
                                 summary["total_checks"], summary["up_checks"]
                             )
-                    redis_manager.mark_uptime_aggregated(yesterday)
-                    LOGGER.info(f"Uptime aggregated for {yesterday}")
+                            if success:
+                                inserted_count += 1
+                            else:
+                                all_success = False
+                    if all_success and inserted_count > 0:
+                        redis_manager.mark_uptime_aggregated(yesterday)
+                        LOGGER.info(f"Uptime aggregated for {yesterday}: {inserted_count} services")
+                    elif inserted_count == 0:
+                        LOGGER.warning(f"No uptime data to aggregate for {yesterday}")
+                    else:
+                        LOGGER.error(f"Uptime aggregation partially failed for {yesterday}: {inserted_count} succeeded, not marking as done")
 
             except Exception as e:
                 LOGGER.error(f"Error in uptime_check_task: {e}")
