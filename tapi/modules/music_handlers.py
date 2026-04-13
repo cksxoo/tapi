@@ -23,7 +23,7 @@ class MusicHandlers:
     def __init__(self, music_cog):
         self.music_cog = music_cog
         self.bot = music_cog.bot
-        self._disconnect_tasks: dict[int, asyncio.Task] = {}
+        self._disconnect_tasks: dict[int, tuple[asyncio.Task, str]] = {}
 
     async def _cleanup_music_message(self, guild_id: int, reason: str = "cleanup"):
         """음악 메시지 정리 함수"""
@@ -80,12 +80,26 @@ class MusicHandlers:
         # 3. 플레이어 정리 (disconnect 후 실행하여 QueueEndEvent가 다시 disconnect 시도하지 않도록)
         await self._cleanup_player(guild_id)
 
-    def _cancel_disconnect_task(self, guild_id: int):
-        """대기 중인 지연 퇴장 타이머 취소"""
-        task = self._disconnect_tasks.pop(guild_id, None)
+    def _cancel_disconnect_task(
+        self, guild_id: int, only: set[str] | None = None
+    ):
+        """대기 중인 지연 퇴장 타이머 취소.
+
+        only가 지정되면 저장된 reason이 해당 집합에 포함된 경우에만 취소한다.
+        (예: 유저 입장 시엔 auto_disconnect 타이머만 취소하고 queue_end 타이머는 유지)
+        """
+        entry = self._disconnect_tasks.get(guild_id)
+        if not entry:
+            return
+        task, reason = entry
+        if only is not None and reason not in only:
+            return
+        self._disconnect_tasks.pop(guild_id, None)
         if task and not task.done():
             task.cancel()
-            LOGGER.debug(f"Cancelled delayed disconnect for guild {guild_id}")
+            LOGGER.debug(
+                f"Cancelled delayed disconnect for guild {guild_id} (reason={reason})"
+            )
 
     @lavalink.listener(TrackStartEvent)
     async def on_track_start(self, event: TrackStartEvent):
@@ -258,8 +272,9 @@ class MusicHandlers:
                     finally:
                         self._disconnect_tasks.pop(guild_id, None)
 
-                self._disconnect_tasks[guild_id] = asyncio.create_task(
-                    delayed_disconnect()
+                self._disconnect_tasks[guild_id] = (
+                    asyncio.create_task(delayed_disconnect()),
+                    "queue_end",
                 )
 
     @lavalink.listener(TrackExceptionEvent)
@@ -281,11 +296,12 @@ class MusicHandlers:
         if member.bot:
             return
 
-        # 사용자가 봇이 있는 채널에 들어오거나 이동해오면 대기 중인 퇴장 타이머 취소
+        # 사용자가 봇이 있는 채널에 들어오거나 이동해오면 auto_disconnect 타이머만 취소
+        # (queue_end 타이머는 재생할 곡이 없다는 의미이므로 유지되어야 함)
         if after.channel:
             guild = after.channel.guild
             if guild.voice_client and after.channel == guild.voice_client.channel:
-                self._cancel_disconnect_task(guild.id)
+                self._cancel_disconnect_task(guild.id, only={"auto_disconnect"})
 
         # 사용자가 음성 채널에서 나가거나 다른 채널로 이동한 경우 처리
         if not before.channel:
@@ -350,9 +366,12 @@ class MusicHandlers:
                     finally:
                         self._disconnect_tasks.pop(g_id, None)
 
-                self._disconnect_tasks[guild.id] = asyncio.create_task(
-                    delayed_auto_disconnect(guild.id, guild.name)
-                    )
+                self._disconnect_tasks[guild.id] = (
+                    asyncio.create_task(
+                        delayed_auto_disconnect(guild.id, guild.name)
+                    ),
+                    "auto_disconnect",
+                )
 
     async def handle_autoplay_message(self, message: discord.Message):
         """봇 전용 채널에 올라온 유튜브 링크를 감지하여 자동 재생.

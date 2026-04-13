@@ -146,6 +146,7 @@ class TapiBot(commands.Bot):
 
         self.loop.create_task(self.status_task())
         self.loop.create_task(self.redis_update_task())
+        self.loop.create_task(self.voice_cleanup_task())
 
         # 웹 대시보드 명령 리스너 시작
         from tapi.utils.redis_command_listener import start_command_listener
@@ -341,6 +342,57 @@ class TapiBot(commands.Bot):
             except Exception as e:
                 LOGGER.error(f"Error in redis_update_task: {e}")
                 await asyncio.sleep(60)
+
+    async def voice_cleanup_task(self):
+        """빈 음성 채널에 잔류한 봇을 주기적으로 정리 (이벤트 드롭/강제 이동 대비 안전망)"""
+        await self.wait_until_ready()
+        await asyncio.sleep(60)  # 부팅/복원 로직 완료 대기
+
+        while True:
+            try:
+                music_cog = self.get_cog("Music")
+                handlers = getattr(music_cog, "handlers", None) if music_cog else None
+
+                for guild in list(self.guilds):
+                    try:
+                        voice_client = guild.voice_client
+                        if not voice_client or not voice_client.channel:
+                            continue
+
+                        player = self.lavalink.player_manager.get(guild.id)
+                        is_active = bool(
+                            player and (player.is_playing or player.paused)
+                        )
+
+                        non_bot_members = [
+                            m for m in voice_client.channel.members if not m.bot
+                        ]
+
+                        # 잔류 조건: 유저가 없거나, 플레이어가 활성 상태가 아님
+                        if non_bot_members and is_active:
+                            continue
+
+                        LOGGER.info(
+                            f"[voice_cleanup] Cleaning up guild {guild.id} "
+                            f"(users={len(non_bot_members)}, active={is_active})"
+                        )
+
+                        if handlers:
+                            await handlers._full_disconnect_cleanup(
+                                guild.id, "health_check"
+                            )
+                        else:
+                            # Music cog 로딩 전이라면 voice_client만이라도 정리
+                            await voice_client.disconnect(force=True)
+                    except Exception as e:
+                        LOGGER.error(
+                            f"Error in voice_cleanup for guild {guild.id}: {e}"
+                        )
+
+                await asyncio.sleep(120)
+            except Exception as e:
+                LOGGER.error(f"Error in voice_cleanup_task: {e}")
+                await asyncio.sleep(120)
 
     async def stats_update_task(self):
         """봇 리스팅 사이트 통계 업데이트 주기적 작업 (shard 0만 실행)"""
