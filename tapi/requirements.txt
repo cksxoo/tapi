@@ -1,5 +1,5 @@
 py-cord>=2.7.1
-lavalink>=5.10.0
+lavalink>=5.11.0
 psutil
 requests
 koreanbots
