@@ -129,6 +129,20 @@ wearing oversized tortoiseshell-framed sunglasses, woven straw hat with a thin b
 warm spring daylight, soft lighting, {depth of field}
 ```
 
+#### Pastel Cardigan Look
+
+```
+..., aroused, lovestruck, licking lips, index finger together,
+banner composition, wide-angle landscape, upper body view,
+character positioned on the right side of frame, open space on the left side,
+{gentle smile}, looking back over shoulder, three-quarter view,
+pastel cardigan, open cardigan, simple white linen summer dress,
+{{oversized tortoiseshell-framed sunglasses worn on face}}, {bare shoulders}, collarbone,
+minimalist gold necklace,
+simple uniform unblemished pastel pale yellow background, no background details, empty background,
+warm spring daylight, soft lighting, {depth of field}
+```
+
 ---
 
 ## 태그 레퍼런스
