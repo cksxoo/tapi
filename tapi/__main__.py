@@ -166,8 +166,9 @@ class TapiBot(commands.Bot):
         await self.wait_until_ready()
 
         status_messages = [
-            "Spring Playlist 🌸",
-            "Spring Playlist 🌸",
+            "Vacation Vibes 🌴",
+            "Seaside Tunes ⛱️",
+            "Ocean Breeze 🌊",
         ]
 
         index = 0
