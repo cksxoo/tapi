@@ -9,6 +9,7 @@
 5. [템플릿](#템플릿)
    - [Logo (로고)](#logo-로고)
    - [Banner (배너)](#banner-배너)
+   - [Illustration (일러스트)](#illustration-일러스트)
 6. [태그 레퍼런스](#태그-레퍼런스)
 
 ---
@@ -22,7 +23,7 @@
 | Sampler | k_euler_ancestral |
 | Noise Schedule | karras |
 | CFG Rescale | 0.6 |
-| Resolution | 832x1216 (세로) / 1216x832 (가로) |
+| Resolution | 832x1216 (세로) / 1216x832 (가로) / 1024x1536 (일러스트 세로) |
 
 ---
 
@@ -141,6 +142,41 @@ pastel cardigan, open cardigan, simple white linen summer dress,
 minimalist gold necklace,
 simple uniform unblemished pastel pale yellow background, no background details, empty background,
 warm spring daylight, soft lighting, {depth of field}
+```
+
+---
+
+### Illustration (일러스트)
+
+> 권장 해상도: **1024x1536** (세로) — 캐릭터의 허벅지 중간까지 담는 cowboy shot 구도.
+
+#### Mediterranean Cowboy Shot
+
+```
+..., {{cowboy shot}}, centered composition, looking at viewer,
+{gentle smile}, three-quarter view, relaxed pose,
+one hand lightly holding the brim of the straw hat,
+expansive view of an unbroken mediterranean coastline behind,
+long white sand beach stretching to horizon, turquoise ocean,
+distant unified white resort architecture, minimum stylized palm trees,
+uniform soft blue sky with subtle cloud gradients,
+simple white linen summer dress, {bare shoulders}, collarbone,
+{{oversized tortoiseshell-framed sunglasses worn on face}},
+woven straw hat with a thin blue ribbon, minimalist gold necklace,
+warm spring daylight, soft lighting, {{depth of field}}, bokeh
+```
+
+#### Pastel Cardigan Cowboy Shot
+
+```
+..., {{cowboy shot}}, centered composition, looking at viewer,
+{gentle smile}, three-quarter view, relaxed pose,
+hands clasped in front, slightly tilted head,
+pastel cardigan, open cardigan, simple white linen summer dress,
+{{oversized tortoiseshell-framed sunglasses worn on face}}, {bare shoulders}, collarbone,
+minimalist gold necklace,
+simple uniform unblemished pastel pale yellow background, no background details, empty background,
+warm spring daylight, soft lighting, {{depth of field}}
 ```
 
 ---
