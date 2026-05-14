@@ -39,6 +39,8 @@ services:
     env_file:
       - .env
     restart: unless-stopped
+    labels:
+      autoheal: "true"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "--header=Authorization: youshallnotpass", "http://localhost:2333/v4/info"]
       interval: 10s
@@ -112,3 +114,20 @@ services:
         limits:
           cpus: '0.5'
           memory: 256M
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    container_name: autoheal
+    restart: unless-stopped
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_INTERVAL: 30
+      AUTOHEAL_START_PERIOD: 60
+      TZ: Asia/Seoul
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
