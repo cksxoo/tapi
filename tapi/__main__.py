@@ -606,6 +606,14 @@ class TapiBot(commands.Bot):
                         f"Shard {shard_id} deleted {deleted_count} music control messages"
                     )
 
+            # 통계 buffer flush (Python 종료 전에 명시적으로 실행)
+            try:
+                from tapi.utils.database import Database
+
+                Database().flush_statistics()
+            except Exception as e:
+                LOGGER.error(f"Failed to flush statistics on shutdown: {e}")
+
             # stats_updater 세션 종료
             if self.stats_updater:
                 await self.stats_updater.close()

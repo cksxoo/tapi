@@ -478,8 +478,3 @@ class Database:
     def create_table(self):
         """테이블 생성 (Supabase에서는 SQL Editor에서 직접 실행)"""
         LOGGER.info("Tables should be created directly in Supabase SQL Editor")
-
-    def __del__(self):
-        """소멸자에서 남은 통계 플러시"""
-        if hasattr(self, "stats_buffer") and self.stats_buffer:
-            self.flush_statistics()
