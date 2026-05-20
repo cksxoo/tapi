@@ -276,11 +276,25 @@ class MusicHandlers:
         original_track_uri = event.track.uri
         original_track_title = event.track.title
 
-        # 로그만 남기고 사용자에게는 메시지를 보내지 않음
         LOGGER.warning(
             f"Track playback failed: '{original_track_title}' (URI: {original_track_uri}) - "
             f"Severity: {event.severity}, Error: {event.message}"
         )
+
+        # Suspicious 예외는 lavalink이 TrackEndEvent를 안 보내고 같은 트랙을 무한 retry함.
+        # 다음 트랙으로 강제 skip하여 retry loop 차단.
+        try:
+            severity = str(event.severity).lower()
+            if "suspicious" in severity or "fault" in severity:
+                # 단일 트랙 loop이면 broken 트랙을 다시 재생할 수 있으니 loop 해제
+                if event.player.loop == 1:
+                    event.player.set_loop(0)
+                await event.player.skip()
+                LOGGER.debug(
+                    f"Force-skipped suspicious track in guild {event.player.guild_id}"
+                )
+        except Exception as e:
+            LOGGER.error(f"Failed to skip suspicious track: {e}")
 
     async def on_voice_state_update(self, member, before, after):
         """
