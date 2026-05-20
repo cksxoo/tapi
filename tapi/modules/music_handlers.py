@@ -1,5 +1,6 @@
 import asyncio
 import re
+import time
 from datetime import datetime
 import pytz
 
@@ -24,6 +25,8 @@ class MusicHandlers:
         self.music_cog = music_cog
         self.bot = music_cog.bot
         self._disconnect_tasks: dict[int, tuple[asyncio.Task, str]] = {}
+        # guild_id -> (실패 URI, monotonic timestamp). 같은 트랙 중복 처리 방지용.
+        self._last_exception: dict[int, tuple[str, float]] = {}
 
     async def _cleanup_music_message(self, guild_id: int, reason: str = "cleanup"):
         """음악 메시지 정리 함수"""
@@ -275,26 +278,43 @@ class MusicHandlers:
     async def on_track_exception(self, event: TrackExceptionEvent):
         original_track_uri = event.track.uri
         original_track_title = event.track.title
+        player = event.player
+        guild_id = player.guild_id
 
         LOGGER.warning(
             f"Track playback failed: '{original_track_title}' (URI: {original_track_uri}) - "
             f"Severity: {event.severity}, Error: {event.message}"
         )
 
-        # Suspicious 예외는 lavalink이 TrackEndEvent를 안 보내고 같은 트랙을 무한 retry함.
-        # 다음 트랙으로 강제 skip하여 retry loop 차단.
+        severity = str(event.severity).lower()
+        if "suspicious" not in severity and "fault" not in severity:
+            return
+
+        # 같은 트랙이 짧은 시간 내 반복 예외 → Lavalink 서버사이드 retry. 이미 처리 중이므로 중복 무시.
+        now = time.monotonic()
+        last = self._last_exception.get(guild_id)
+        if last and last[0] == original_track_uri and now - last[1] < 5.0:
+            return
+        self._last_exception[guild_id] = (original_track_uri, now)
+
+        # skip()은 서버사이드 retry와 race가 나서 안 통함. 명시적 stop + 다음 트랙 직접 재생.
         try:
-            severity = str(event.severity).lower()
-            if "suspicious" in severity or "fault" in severity:
-                # 단일 트랙 loop이면 broken 트랙을 다시 재생할 수 있으니 loop 해제
-                if event.player.loop == 1:
-                    event.player.set_loop(0)
-                await event.player.skip()
+            if player.loop == 1:
+                player.set_loop(0)
+
+            if player.queue:
+                next_track = player.queue.pop(0)
+                await player.play(next_track)
                 LOGGER.debug(
-                    f"Force-skipped suspicious track in guild {event.player.guild_id}"
+                    f"Advanced past suspicious track in guild {guild_id}"
+                )
+            else:
+                await player.stop()
+                LOGGER.debug(
+                    f"Stopped player after suspicious track in guild {guild_id} (queue empty)"
                 )
         except Exception as e:
-            LOGGER.error(f"Failed to skip suspicious track: {e}")
+            LOGGER.error(f"Failed to recover from suspicious track: {e}")
 
     async def on_voice_state_update(self, member, before, after):
         """
