@@ -298,21 +298,30 @@ class MusicHandlers:
         self._last_exception[guild_id] = (original_track_uri, now)
 
         # skip()은 서버사이드 retry와 race가 나서 안 통함. 명시적 stop + 다음 트랙 직접 재생.
+        # loop=2(queue loop) 상태에서 play(next_track)을 부르면 lavalink.py가 현재 트랙(깨진 거)을
+        # 큐 끝에 자동 append → 깨진 트랙이 다시 돌아옴. 따라서 loop을 잠시 꺼서 re-add를 막는다.
         try:
-            if player.loop == 1:
+            original_loop = player.loop
+            if original_loop != 0:
                 player.set_loop(0)
 
-            if player.queue:
-                next_track = player.queue.pop(0)
-                await player.play(next_track)
-                LOGGER.debug(
-                    f"Advanced past suspicious track in guild {guild_id}"
-                )
-            else:
-                await player.stop()
-                LOGGER.debug(
-                    f"Stopped player after suspicious track in guild {guild_id} (queue empty)"
-                )
+            try:
+                if player.queue:
+                    next_track = player.queue.pop(0)
+                    await player.play(next_track)
+                    LOGGER.debug(
+                        f"Advanced past suspicious track in guild {guild_id}"
+                    )
+                else:
+                    await player.stop()
+                    LOGGER.debug(
+                        f"Stopped player after suspicious track in guild {guild_id} (queue empty)"
+                    )
+            finally:
+                # queue loop만 복원. single loop(1)은 그 깨진 트랙을 반복하려던 의도였으므로
+                # 복원하면 새 트랙을 무한 반복하게 됨 → 의도 X. queue loop은 깨진 트랙만 빼고 계속.
+                if original_loop == 2:
+                    player.set_loop(2)
         except Exception as e:
             LOGGER.error(f"Failed to recover from suspicious track: {e}")
 
