@@ -1,5 +1,4 @@
 from .database import Database
-from .statistics import Statistics
 from .language import get_lan
 from .redis_manager import RedisManager, redis_manager
 
@@ -27,7 +26,6 @@ def volumeicon(vol: int) -> str:
 
 __all__ = [
     "Database",
-    "Statistics",
     "get_lan",
     "RedisManager",
     "redis_manager",

@@ -119,28 +119,13 @@ class Database:
 
     # ===== 길드 설정 관련 메서드 =====
 
-    def get_volume(self, guild_id):
-        """길드 볼륨 설정 가져오기"""
-        settings = self.get_guild_settings(guild_id)
-        return settings.get("volume", 20)
-
     def set_volume(self, guild_id, volume):
         """길드 볼륨 설정"""
         self.upsert_guild_settings(guild_id, volume=volume)
 
-    def get_loop(self, guild_id):
-        """길드 루프 설정 가져오기"""
-        settings = self.get_guild_settings(guild_id)
-        return settings.get("loop_mode", 0)
-
     def set_loop(self, guild_id, loop_mode):
         """길드 루프 설정"""
         self.upsert_guild_settings(guild_id, loop_mode=loop_mode)
-
-    def get_shuffle(self, guild_id):
-        """길드 셔플 설정 가져오기"""
-        settings = self.get_guild_settings(guild_id)
-        return settings.get("shuffle", False)
 
     def set_shuffle(self, guild_id, shuffle):
         """길드 셔플 설정"""

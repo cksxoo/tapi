@@ -149,46 +149,6 @@ class RedisManager:
             except Exception as e:
                 LOGGER.error(f"Failed to update bot guilds in Redis: {e}")
 
-    def get_all_active_players(self) -> dict:
-        """모든 샤드의 활성 플레이어 정보를 가져옵니다."""
-        if not self.available:
-            LOGGER.debug("Redis not available, returning empty active players")
-            return {}
-
-        client = self.get_client()
-        if client:
-            try:
-                player_keys = []
-                cursor = "0"
-                while cursor != 0:
-                    cursor, keys = client.scan(
-                        cursor=cursor,
-                        match=f"{self.active_players_key_prefix}*",
-                        count=100,
-                    )
-                    player_keys.extend(keys)
-
-                if not player_keys:
-                    return {}
-
-                raw_data = client.mget(player_keys)
-                all_players = {}
-                for i, key in enumerate(player_keys):
-                    shard_id_str = key.split(":")[-1]
-                    if raw_data[i]:
-                        all_players[int(shard_id_str)] = json.loads(raw_data[i])
-                return all_players
-            except redis.exceptions.RedisError as e:
-                LOGGER.error(f"Failed to get active players from Redis: {e}")
-                return {}
-            except (ValueError, IndexError) as e:
-                LOGGER.error(f"Error parsing active players from Redis: {e}")
-                return {}
-            except Exception as e:
-                LOGGER.error(f"Unexpected error getting active players: {e}")
-                return {}
-        return {}
-
     def save_playback_state(self, shard_id: int, playback_states: list):
         """점검 전 재생 상태를 Redis에 저장합니다."""
         if not self.available:

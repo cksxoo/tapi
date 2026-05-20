@@ -43,11 +43,3 @@ class Config(object):
     # Supabase Database Settings
     SUPABASE_URL = ""  # Your Supabase project URL
     SUPABASE_ANON_KEY = ""  # Your Supabase anon key
-
-
-class Production(Config):
-    LOGGER = False
-
-
-class Development(Config):
-    LOGGER = True

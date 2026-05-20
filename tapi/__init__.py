@@ -25,32 +25,23 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 10:
 from tapi.config import Development as Config
 
 TOKEN = Config.TOKEN
-OWNERS = Config.OWNERS
-DEBUG_SERVER = Config.DEBUG_SERVER
 APPLICATION_NAME = Config.APPLICATION_NAME
 APP_TAG = Config.APP_TAG
 CLIENT_ID = Config.CLIENT_ID
 THEME_COLOR = Config.THEME_COLOR
-IDLE_COLOR = Config.IDLE_COLOR
 SUCCESS_COLOR = Config.SUCCESS_COLOR
 ERROR_COLOR = Config.ERROR_COLOR
 WARNING_COLOR = Config.WARNING_COLOR
 INFO_COLOR = Config.INFO_COLOR
 MUSIC_COLOR = Config.MUSIC_COLOR
-APP_DESCRIPTION = Config.APP_DESCRIPTION
 HOST = Config.HOST
 PSW = Config.PSW
 REGION = Config.REGION
 PORT = Config.PORT
-LAVALINK_AUTO_UPDATE = Config.LAVALINK_AUTO_UPDATE
-LAVALINK_PLUGINS = Config.LAVALINK_PLUGINS
 MESSAGE_CONTENT_INTENT = Config.MESSAGE_CONTENT_INTENT
-# SQL settings removed - using Supabase only
 
 KOREANBOT_TOKEN = Config.KOREANBOT_TOKEN
 TOPGG_TOKEN = Config.TOPGG_TOKEN
-
-# SQLite database settings removed - using Supabase only
 
 EXTENSIONS = []
 # Exclude utility modules that are not Discord extensions
@@ -58,7 +49,6 @@ EXCLUDED_MODULES = {
     "audio_connection",
     "music_handlers",
     "music_views",
-    "player_backup",
 }
 for file in os.listdir("tapi/modules"):
     if file.endswith(".py"):
