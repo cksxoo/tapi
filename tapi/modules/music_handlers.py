@@ -227,15 +227,15 @@ class MusicHandlers:
             except Exception as e:
                 LOGGER.error(f"Error sending music message: {e}")
 
-    @lavalink.listener(QueueEndEvent)
-    async def on_queue_end(self, event: QueueEndEvent):
-        guild_id = event.player.guild_id
-        guild = self.bot.get_guild(guild_id)
+    async def _handle_queue_end(self, guild_id: int, reason: str = "queue_end"):
+        """큐 종료 정리: 메시지 삭제 + redis publish + (즉시/30초 후) 퇴장 타이머.
 
-        # 모듈화된 완전 정리 함수 사용 (큐 종료 시에는 플레이어 정리 생략)
-        await self._cleanup_music_message(guild_id, "queue_end")
+        QueueEndEvent 자연 발생 외에도, TrackException → player.stop() 처럼
+        QueueEndEvent가 안 뜨는 케이스에서도 이 함수를 직접 호출해서 같은 정리 수행.
+        """
+        await self._cleanup_music_message(guild_id, reason)
 
-        # 웹 대시보드에 큐 종료 발행
+        # 웹 대시보드에 발행
         try:
             from tapi.utils.redis_manager import redis_manager
             from tapi.utils.web_command_handler import get_player_state
@@ -245,34 +245,40 @@ class MusicHandlers:
         except Exception as e:
             LOGGER.debug(f"Failed to publish queue end update: {e}")
 
-        # Check if the voice client exists and if the player is connected
-        if guild and guild.voice_client and event.player.is_connected:
-            db = Database()
-            if db.get_instant_disconnect(guild_id):
-                # 즉시 퇴장
-                await self._full_disconnect_cleanup(guild_id, "queue_end")
-            else:
-                # 30초 후 퇴장
-                self._cancel_disconnect_task(guild_id)
+        guild = self.bot.get_guild(guild_id)
+        if not (guild and guild.voice_client):
+            return
 
-                async def delayed_disconnect():
-                    try:
-                        await asyncio.sleep(30)
-                        await self._full_disconnect_cleanup(
-                            guild_id, "queue_end_delayed"
-                        )
-                        LOGGER.debug(f"Delayed disconnect for guild {guild_id}")
-                    except asyncio.CancelledError:
-                        pass
-                    except Exception as e:
-                        LOGGER.error(f"Error in delayed disconnect: {e}")
-                    finally:
-                        self._disconnect_tasks.pop(guild_id, None)
+        db = Database()
+        if db.get_instant_disconnect(guild_id):
+            await self._full_disconnect_cleanup(guild_id, reason)
+            return
 
-                self._disconnect_tasks[guild_id] = (
-                    asyncio.create_task(delayed_disconnect()),
-                    "queue_end",
+        # 30초 후 퇴장
+        self._cancel_disconnect_task(guild_id)
+
+        async def delayed_disconnect():
+            try:
+                await asyncio.sleep(30)
+                await self._full_disconnect_cleanup(
+                    guild_id, f"{reason}_delayed"
                 )
+                LOGGER.debug(f"Delayed disconnect for guild {guild_id}")
+            except asyncio.CancelledError:
+                pass
+            except Exception as e:
+                LOGGER.error(f"Error in delayed disconnect: {e}")
+            finally:
+                self._disconnect_tasks.pop(guild_id, None)
+
+        self._disconnect_tasks[guild_id] = (
+            asyncio.create_task(delayed_disconnect()),
+            "queue_end",
+        )
+
+    @lavalink.listener(QueueEndEvent)
+    async def on_queue_end(self, event: QueueEndEvent):
+        await self._handle_queue_end(event.player.guild_id, "queue_end")
 
     @lavalink.listener(TrackExceptionEvent)
     async def on_track_exception(self, event: TrackExceptionEvent):
@@ -305,6 +311,7 @@ class MusicHandlers:
             if original_loop != 0:
                 player.set_loop(0)
 
+            queue_emptied = False
             try:
                 if player.queue:
                     next_track = player.queue.pop(0)
@@ -314,6 +321,7 @@ class MusicHandlers:
                     )
                 else:
                     await player.stop()
+                    queue_emptied = True
                     LOGGER.debug(
                         f"Stopped player after suspicious track in guild {guild_id} (queue empty)"
                     )
@@ -322,6 +330,10 @@ class MusicHandlers:
                 # 복원하면 새 트랙을 무한 반복하게 됨 → 의도 X. queue loop은 깨진 트랙만 빼고 계속.
                 if original_loop == 2:
                     player.set_loop(2)
+
+            # stop()은 QueueEndEvent를 안 띄우는 경우가 있어서, 메시지/타이머 정리를 직접 호출.
+            if queue_emptied:
+                await self._handle_queue_end(guild_id, "exception_stop")
         except Exception as e:
             LOGGER.error(f"Failed to recover from suspicious track: {e}")
 
