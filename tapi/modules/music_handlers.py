@@ -125,20 +125,9 @@ class MusicHandlers:
             date = now.strftime("%Y-%m-%d")
             time = now.strftime("%H:%M:%S")
 
-            # 사용자 정보 안전하게 가져오기
-            user_name = "Unknown User"
-            try:
-                # 먼저 캐시에서 확인
-                requester = self.bot.get_user(requester_id)
-                if requester:
-                    user_name = requester.name
-                else:
-                    # 캐시에 없으면 API에서 가져오기
-                    requester = await self.bot.fetch_user(requester_id)
-                    user_name = requester.name if requester else f"User-{requester_id}"
-            except Exception as user_error:
-                LOGGER.warning(f"Could not fetch user {requester_id}: {user_error}")
-                user_name = f"User-{requester_id}"
+            # 사용자 정보 (캐시 only — API 호출은 글로벌 레이트리밋 위험)
+            requester = self.bot.get_user(requester_id)
+            user_name = requester.name if requester else f"User-{requester_id}"
 
             # duration을 밀리초에서 초로 변환
             duration_seconds = track.duration // 1000
@@ -170,11 +159,9 @@ class MusicHandlers:
                 LOGGER.warning(
                     f"Bot lacks send_messages permission in channel {channel.id} ({channel.name}) in guild {guild.id}"
                 )
-                # 채널에 메시지를 못 보내니 DM으로라도 알림
+                # 채널에 메시지를 못 보내니 DM으로라도 알림 (캐시에 있을 때만)
                 try:
                     requester = self.bot.get_user(requester_id)
-                    if not requester:
-                        requester = await self.bot.fetch_user(requester_id)
                     if requester:
                         dm_view = ui.LayoutView(timeout=None)
                         dm_view.add_item(
@@ -193,9 +180,6 @@ class MusicHandlers:
                 except (discord.Forbidden, discord.NotFound, discord.HTTPException):
                     pass
                 return
-
-            # 이전 음악 메시지 정리
-            await self._cleanup_music_message(guild_id, "new_track")
 
             # 음악 컨트롤 V2 레이아웃 생성
             control_layout = MusicControlLayout(self.music_cog, guild_id)
@@ -217,8 +201,18 @@ class MusicHandlers:
             except Exception as e:
                 LOGGER.debug(f"Failed to publish player update: {e}")
 
+            # 트랙 변경 시 기존 메시지를 편집 (delete+send → edit 1건으로 API 호출 절반 감소)
+            existing_message = self.music_cog.last_music_messages.get(guild_id)
             try:
-                # 새 음악 메시지를 보내고 저장
+                if existing_message is not None:
+                    try:
+                        await existing_message.edit(view=control_layout)
+                        LOGGER.debug(f"Edited existing music message for guild {guild_id}")
+                        return existing_message
+                    except discord.NotFound:
+                        # 메시지가 이미 삭제됨 → 새로 전송
+                        self.music_cog.last_music_messages.pop(guild_id, None)
+
                 message = await channel.send(view=control_layout)
                 self.music_cog.last_music_messages[guild_id] = message
                 LOGGER.debug(f"Created new music message for guild {guild_id}")
