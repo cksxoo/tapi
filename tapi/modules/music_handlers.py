@@ -31,23 +31,24 @@ class MusicHandlers:
     async def _cleanup_music_message(self, guild_id: int, reason: str = "cleanup"):
         """음악 메시지 정리 함수"""
         if guild_id not in self.music_cog.last_music_messages:
-            LOGGER.info(
-                f"[msg_cleanup] no tracked message for guild {guild_id} (reason={reason})"
-            )
             return
 
+        old_message = self.music_cog.last_music_messages[guild_id]
         try:
-            old_message = self.music_cog.last_music_messages[guild_id]
             await old_message.delete()
-            LOGGER.info(
-                f"[msg_cleanup] deleted msg {old_message.id} on {reason} for guild {guild_id}"
-            )
-        except Exception as e:
-            LOGGER.info(f"[msg_cleanup] FAILED to delete on {reason} for guild {guild_id}: {e!r}")
-        finally:
-            # 딕셔너리에서 안전하게 제거
-            if guild_id in self.music_cog.last_music_messages:
-                del self.music_cog.last_music_messages[guild_id]
+            LOGGER.debug(f"Music message deleted on {reason} for guild {guild_id}")
+        except discord.NotFound:
+            # 이미 삭제됨 — 추적만 정리하면 됨 (아래에서 pop)
+            pass
+        except (discord.Forbidden, discord.HTTPException) as e:
+            # 삭제 실패(권한/네트워크 등). 메시지는 채널에 남아있으므로 추적을 끊지 않는다.
+            # 다음 정리(health_check 주기 등)에서 다시 시도하게 함 → 고아 메시지 방지.
+            LOGGER.debug(f"Could not delete music message on {reason}: {e}")
+            return
+        # 삭제 성공(또는 이미 없음)일 때만 추적 제거.
+        # delete()가 CancelledError(BaseException)로 중단되면 이 줄에 도달하지 않으므로,
+        # "메시지는 채널에 남았는데 추적만 끊기는" 고아 현상이 발생하지 않는다.
+        self.music_cog.last_music_messages.pop(guild_id, None)
 
     async def _cleanup_player(
         self, guild_id: int, stop_current: bool = True, clear_queue: bool = True
@@ -112,7 +113,6 @@ class MusicHandlers:
     @lavalink.listener(TrackStartEvent)
     async def on_track_start(self, event: TrackStartEvent):
         guild_id = event.player.guild_id
-        LOGGER.info(f"[evt] TrackStartEvent guild {guild_id} track={event.track.title!r}")
         # 새 트랙 시작 시 대기 중인 퇴장 타이머 취소
         self._cancel_disconnect_task(guild_id)
         channel_id = event.player.fetch("channel")
@@ -125,9 +125,6 @@ class MusicHandlers:
         # (수동 퇴장/정리 후 lavalink가 다음 트랙 이벤트를 한 번 더 보내면서
         #  유령 컨트롤 패널이 생성·잔류하는 race 방지)
         if not guild.voice_client:
-            LOGGER.info(
-                f"[evt] TrackStartEvent ignored — not connected, guild {guild_id}"
-            )
             return
 
         channel = guild.get_channel(channel_id)
@@ -225,10 +222,7 @@ class MusicHandlers:
                 if existing_message is not None:
                     try:
                         await existing_message.edit(view=control_layout)
-                        LOGGER.info(
-                            f"[msg_create] edited existing msg {existing_message.id} "
-                            f"in channel {channel.id} for guild {guild_id}"
-                        )
+                        LOGGER.debug(f"Edited existing music message for guild {guild_id}")
                         return existing_message
                     except discord.NotFound:
                         # 메시지가 이미 삭제됨 → 새로 전송
@@ -236,10 +230,7 @@ class MusicHandlers:
 
                 message = await channel.send(view=control_layout)
                 self.music_cog.last_music_messages[guild_id] = message
-                LOGGER.info(
-                    f"[msg_create] sent NEW msg {message.id} in channel {channel.id} "
-                    f"for guild {guild_id}"
-                )
+                LOGGER.debug(f"Created new music message for guild {guild_id}")
                 return message
             except discord.Forbidden:
                 LOGGER.warning(
@@ -299,7 +290,6 @@ class MusicHandlers:
 
     @lavalink.listener(QueueEndEvent)
     async def on_queue_end(self, event: QueueEndEvent):
-        LOGGER.info(f"[evt] QueueEndEvent guild {event.player.guild_id}")
         await self._handle_queue_end(event.player.guild_id, "queue_end")
 
     @lavalink.listener(TrackExceptionEvent)
