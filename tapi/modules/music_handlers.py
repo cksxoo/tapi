@@ -39,7 +39,9 @@ class MusicHandlers:
         try:
             old_message = self.music_cog.last_music_messages[guild_id]
             await old_message.delete()
-            LOGGER.info(f"[msg_cleanup] deleted message on {reason} for guild {guild_id}")
+            LOGGER.info(
+                f"[msg_cleanup] deleted msg {old_message.id} on {reason} for guild {guild_id}"
+            )
         except Exception as e:
             LOGGER.info(f"[msg_cleanup] FAILED to delete on {reason} for guild {guild_id}: {e!r}")
         finally:
@@ -213,7 +215,10 @@ class MusicHandlers:
                 if existing_message is not None:
                     try:
                         await existing_message.edit(view=control_layout)
-                        LOGGER.debug(f"Edited existing music message for guild {guild_id}")
+                        LOGGER.info(
+                            f"[msg_create] edited existing msg {existing_message.id} "
+                            f"in channel {channel.id} for guild {guild_id}"
+                        )
                         return existing_message
                     except discord.NotFound:
                         # 메시지가 이미 삭제됨 → 새로 전송
@@ -221,7 +226,10 @@ class MusicHandlers:
 
                 message = await channel.send(view=control_layout)
                 self.music_cog.last_music_messages[guild_id] = message
-                LOGGER.debug(f"Created new music message for guild {guild_id}")
+                LOGGER.info(
+                    f"[msg_create] sent NEW msg {message.id} in channel {channel.id} "
+                    f"for guild {guild_id}"
+                )
                 return message
             except discord.Forbidden:
                 LOGGER.warning(
