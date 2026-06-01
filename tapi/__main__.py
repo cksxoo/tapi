@@ -666,10 +666,17 @@ class TapiBot(commands.Bot):
                         }
                     )
 
+                # 컨트롤 메시지 ID도 저장 (재시작 후 추적 복원용)
+                music_cog = self.get_cog("Music")
+                control_message = (
+                    music_cog.last_music_messages.get(guild.id) if music_cog else None
+                )
+
                 state = {
                     "guild_id": guild.id,
                     "voice_channel_id": voice_client.channel.id,
                     "text_channel_id": player.fetch("channel"),
+                    "message_id": control_message.id if control_message else None,
                     "current_track": current_track,
                     "queue": queue_data,
                     "volume": player.volume,
@@ -791,6 +798,19 @@ class TapiBot(commands.Bot):
             await player.set_volume(state.get("volume", 20))
             player.set_loop(state.get("loop", 0))
             player.set_shuffle(state.get("shuffle", False))
+
+            # 재시작 전 컨트롤 메시지를 다시 추적 등록
+            # (이렇게 해야 on_track_start가 새로 보내지 않고 기존 메시지를 재사용하고,
+            #  퇴장 시 정상적으로 삭제된다 — 강제 종료로 끊긴 추적 복원)
+            message_id = state.get("message_id")
+            if message_id and text_channel:
+                music_cog = self.get_cog("Music")
+                if music_cog:
+                    try:
+                        control_message = await text_channel.fetch_message(message_id)
+                        music_cog.last_music_messages[guild.id] = control_message
+                    except (discord.NotFound, discord.Forbidden, discord.HTTPException):
+                        pass
 
             tracks_added = 0
 
