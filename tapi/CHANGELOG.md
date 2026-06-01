@@ -2,6 +2,46 @@
 
 ---
 
+v0.9.7: Playback Recovery & Reliability
+
+- Playback Recovery: Auto-skip broken/unavailable tracks, prevent infinite retry loops, and restore loop mode after failures
+- Lavalink Auto-Heal: Health monitoring auto-restarts the audio server within ~30s if it becomes unresponsive
+- Graceful Shutdown: Extended shutdown window to 30s so playback state and statistics are reliably saved before restart
+- Fixed: Music control panel not being removed when stopping playback from the web dashboard
+- Fixed: Missing Japanese translation for the auto-delete (`/setting autodel`) result message
+- Summer theme: Updated status messages and bot description visuals
+
+### *June 1, 2026* | v0.9.7: 재생 복구 & 안정성
+
+|no|contents|
+|:---:|:---|
+|1| 재생 복구: 깨지거나 재생 불가한 곡 자동 스킵, 무한 재시도 루프 방지, 실패 후 반복 모드 복원|
+|2| Lavalink 자동 복구: 오디오 서버가 응답하지 않으면 약 30초 내 자동 재시작 (헬스 모니터링)|
+|3| 우아한 종료: 종료 대기 시간을 30초로 연장해 재생 상태·통계를 안정적으로 저장|
+|4| 수정: 웹 대시보드에서 재생 중지 시 음악 컨트롤 패널이 삭제되지 않던 문제|
+|5| 수정: 자동 삭제(`/setting autodel`) 결과 메시지의 일본어 번역 누락|
+|6| 여름 테마: 상태 메시지 및 봇 소개 이미지 업데이트|
+
+---
+
+v0.9.6: Voice Stability & Spring Theme
+
+- Auto-Disconnect Reliability: Fixed race conditions and event ordering so the bot reliably leaves empty channels and never gets stuck (added periodic safety-net cleanup)
+- Skip To Fix: Selecting a queued track now plays it directly, even in shuffle mode
+- Playlist out of Beta: Removed the beta label — playlist is now a stable feature
+- Spring theme: New banner artwork
+
+### *April 14, 2026* | v0.9.6: 음성 안정성 & 봄 테마
+
+|no|contents|
+|:---:|:---|
+|1| 자동 퇴장 안정성: 경쟁 조건 및 이벤트 순서 수정으로 빈 채널에서 봇이 확실히 퇴장하고 멈추지 않도록 개선 (주기적 안전망 정리 추가)|
+|2| Skip To 수정: 셔플 모드에서도 큐의 특정 곡을 선택하면 해당 곡이 바로 재생됨|
+|3| 플레이리스트 정식 출시: 베타 레이블 제거 — 플레이리스트가 정식 기능으로 안정화|
+|4| 봄 테마: 새 배너 이미지 적용|
+
+---
+
 v0.9.5: Web Dashboard Recommendations & Queue Play
 
 - Queue Track Play: Click any track in the queue to play it immediately
