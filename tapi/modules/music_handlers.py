@@ -121,6 +121,15 @@ class MusicHandlers:
         if not guild:
             return await self.bot.lavalink.player_manager.destroy(guild_id)
 
+        # 봇이 이미 음성 채널에서 나간 뒤 뒤늦게 도착한 TrackStartEvent 무시.
+        # (수동 퇴장/정리 후 lavalink가 다음 트랙 이벤트를 한 번 더 보내면서
+        #  유령 컨트롤 패널이 생성·잔류하는 race 방지)
+        if not guild.voice_client:
+            LOGGER.info(
+                f"[evt] TrackStartEvent ignored — not connected, guild {guild_id}"
+            )
+            return
+
         channel = guild.get_channel(channel_id)
         player = self.bot.lavalink.player_manager.get(guild_id)
         track = event.track
