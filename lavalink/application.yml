@@ -75,3 +75,6 @@ logging:
     lavalink.server.player.AudioLoaderRestHandler: OFF
     # YouTube 클라이언트 실패 상세 로그 숨김
     dev.lavalink.youtube: WARN
+    # DAVE(음성 E2E 암호화) MLS epoch 재협상 노이즈 로그 숨김 (오디오 영향 없음)
+    moe.kyokobot.koe.internal.dave.DAVELogger: OFF
+    moe.kyokobot.koe.internal.DAVEManager: OFF
