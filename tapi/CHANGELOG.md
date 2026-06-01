@@ -5,8 +5,8 @@
 v0.9.7: Playback Recovery & Reliability
 
 - Playback Recovery: Auto-skip broken/unavailable tracks, prevent infinite retry loops, and restore loop mode after failures
-- Lavalink Auto-Heal: Health monitoring auto-restarts the audio server within ~30s if it becomes unresponsive
-- Graceful Shutdown: Extended shutdown window to 30s so playback state and statistics are reliably saved before restart
+- Auto-Heal: Health monitoring auto-restarts the audio server within ~30s if it becomes unresponsive
+- Shutdown: Extended shutdown window to 30s so playback state and statistics are reliably saved before restart
 - Fixed: Music control panel not being removed when stopping playback from the web dashboard
 - Fixed: Missing Japanese translation for the auto-delete (`/setting autodel`) result message
 - Summer theme: Updated status messages and bot description visuals
@@ -16,8 +16,8 @@ v0.9.7: Playback Recovery & Reliability
 |no|contents|
 |:---:|:---|
 |1| 재생 복구: 깨지거나 재생 불가한 곡 자동 스킵, 무한 재시도 루프 방지, 실패 후 반복 모드 복원|
-|2| Lavalink 자동 복구: 오디오 서버가 응답하지 않으면 약 30초 내 자동 재시작 (헬스 모니터링)|
-|3| 우아한 종료: 종료 대기 시간을 30초로 연장해 재생 상태·통계를 안정적으로 저장|
+|2| 자동 복구: 오디오 서버가 응답하지 않으면 약 30초 내 자동 재시작 (헬스 모니터링)|
+|3| 종료: 종료 대기 시간을 30초로 연장해 재생 상태·통계를 안정적으로 저장|
 |4| 수정: 웹 대시보드에서 재생 중지 시 음악 컨트롤 패널이 삭제되지 않던 문제|
 |5| 수정: 자동 삭제(`/setting autodel`) 결과 메시지의 일본어 번역 누락|
 |6| 여름 테마: 상태 메시지 및 봇 소개 이미지 업데이트|
