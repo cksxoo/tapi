@@ -166,9 +166,8 @@ class TapiBot(commands.Bot):
         await self.wait_until_ready()
 
         status_messages = [
-            "Vacation Vibes 🌴",
-            "Seaside Tunes ⛱️",
-            "Ocean Breeze 🌊",
+            "2026 World Cup ⚽",
+            "World Cup 2026 🏆",
         ]
 
         index = 0
