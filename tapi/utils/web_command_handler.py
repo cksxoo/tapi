@@ -134,12 +134,10 @@ async def handle_stop(bot, guild_id: int, user_id: int, **_params):
     if not valid:
         return {"success": False, "error": msg}
 
-    guild = bot.get_guild(guild_id)
-    if guild and guild.voice_client:
-        player = bot.lavalink.player_manager.get(guild_id)
-        player.queue.clear()
-        await player.stop()
-        await guild.voice_client.disconnect(force=True)
+    music_cog = bot.get_cog("Music")
+    if music_cog:
+        # 음성 자동퇴장과 동일한 정리: 컨트롤 메시지 삭제 + 연결 해제 + 플레이어 정리
+        await music_cog.handlers._full_disconnect_cleanup(guild_id, "web_stop")
     return {"success": True}
 
 
