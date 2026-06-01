@@ -1,14 +1,6 @@
-py-cord>=2.8.0
+discord.py>=2.7.1
 lavalink>=5.11.0
 psutil
-requests
-koreanbots
-topggpy
-pymysql
-yt-dlp
-PyNaCl
-youtube_dl
 pytz
 redis
-pandas
 supabase

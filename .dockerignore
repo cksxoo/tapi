@@ -1,0 +1,30 @@
+# 빌드에 필요한 것은 tapi/(코드)와 requirements.txt 뿐.
+# 나머지는 build context에서 제외해 전송량/캐시 무효화를 줄인다.
+
+# VCS / 대용량
+.git
+.github
+docs
+plugins
+data
+
+# 런타임 전용 (이미지에 불필요)
+docker-compose.yml
+lavalink
+scripts
+config.py
+.env
+.env.example
+
+# Python 캐시
+__pycache__
+**/__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+
+# 에디터/OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
