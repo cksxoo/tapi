@@ -112,6 +112,7 @@ class MusicHandlers:
     @lavalink.listener(TrackStartEvent)
     async def on_track_start(self, event: TrackStartEvent):
         guild_id = event.player.guild_id
+        LOGGER.info(f"[evt] TrackStartEvent guild {guild_id} track={event.track.title!r}")
         # 새 트랙 시작 시 대기 중인 퇴장 타이머 취소
         self._cancel_disconnect_task(guild_id)
         channel_id = event.player.fetch("channel")
@@ -289,6 +290,7 @@ class MusicHandlers:
 
     @lavalink.listener(QueueEndEvent)
     async def on_queue_end(self, event: QueueEndEvent):
+        LOGGER.info(f"[evt] QueueEndEvent guild {event.player.guild_id}")
         await self._handle_queue_end(event.player.guild_id, "queue_end")
 
     @lavalink.listener(TrackExceptionEvent)
