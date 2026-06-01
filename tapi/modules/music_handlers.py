@@ -31,14 +31,17 @@ class MusicHandlers:
     async def _cleanup_music_message(self, guild_id: int, reason: str = "cleanup"):
         """음악 메시지 정리 함수"""
         if guild_id not in self.music_cog.last_music_messages:
+            LOGGER.info(
+                f"[msg_cleanup] no tracked message for guild {guild_id} (reason={reason})"
+            )
             return
 
         try:
             old_message = self.music_cog.last_music_messages[guild_id]
             await old_message.delete()
-            LOGGER.debug(f"Music message deleted on {reason} for guild {guild_id}")
+            LOGGER.info(f"[msg_cleanup] deleted message on {reason} for guild {guild_id}")
         except Exception as e:
-            LOGGER.debug(f"Could not delete music message on {reason}: {e}")
+            LOGGER.info(f"[msg_cleanup] FAILED to delete on {reason} for guild {guild_id}: {e!r}")
         finally:
             # 딕셔너리에서 안전하게 제거
             if guild_id in self.music_cog.last_music_messages:
